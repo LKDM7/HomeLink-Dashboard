@@ -1,0 +1,8 @@
+{
+    "textures":  {
+                     "muted_light":  "homelink_dashboard:block/nas_network",
+                     "screen_light":  "homelink_dashboard:block/nas_power",
+                     "indicator":  "homelink_dashboard:block/nas_activity"
+                 },
+    "parent":  "homelink_dashboard:block/home_server_upper"
+}

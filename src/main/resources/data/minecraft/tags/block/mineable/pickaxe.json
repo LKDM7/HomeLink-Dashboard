@@ -1,0 +1,7 @@
+{
+  "replace": false,
+  "values": [
+    "homelink_dashboard:home_server",
+    "homelink_dashboard:dashboard_display"
+  ]
+}

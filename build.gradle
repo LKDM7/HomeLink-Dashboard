@@ -1,0 +1,440 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'idea'
+    id 'net.neoforged.moddev' version '2.0.147'
+}
+
+version = mod_version
+group = mod_group_id
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+base {
+    archivesName = mod_id
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+sourceSets {
+    verification {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+configurations {
+    verificationImplementation.extendsFrom implementation
+    verificationRuntimeOnly.extendsFrom runtimeOnly
+}
+
+neoForge {
+    // Specify the version of NeoForge to use.
+    version = project.neo_version
+    addModdingDependenciesTo sourceSets.verification
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    // This line is optional. Access Transformers are automatically detected
+    // accessTransformers.add('src/main/resources/META-INF/accesstransformer.cfg')
+
+    // Default run configurations.
+    // These can be tweaked, removed, or duplicated as needed.
+    runs {
+        client {
+            client()
+
+            // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        // This run config launches GameTestServer and runs all registered gametests, then exits.
+        // By default, the server will crash when no gametests are provided.
+        // The gametest system is also enabled by default for other run configs under the /test command.
+        gameTestServer {
+            type = "gameTestServer"
+            gameDirectory = file('build/validation/server')
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'homelink_dashboard_validation'
+        }
+
+        clientSmoke {
+            client()
+            gameDirectory = file('build/validation/client')
+            systemProperty 'homelink.clientSmoke', 'true'
+        }
+        connectionSmoke {
+            client()
+            gameDirectory = file('build/validation/connection')
+            systemProperty 'homelink.connectionSmoke', 'true'
+        }
+        actionSmoke {
+            client()
+            gameDirectory = file('build/validation/actions')
+            systemProperty 'homelink.actionSmoke', 'true'
+        }
+        preferencesSmoke {
+            client()
+            gameDirectory = file('build/validation/preferences')
+            systemProperty 'homelink.preferencesSmoke', 'true'
+        }
+        alertsSmoke {
+            client()
+            gameDirectory = file('build/validation/alerts')
+            systemProperty 'homelink.alertsSmoke', 'true'
+        }
+        performanceSmoke {
+            client()
+            gameDirectory = file('build/validation/performance')
+            systemProperty 'homelink.performanceSmoke', 'true'
+        }
+        persistence {
+            type = 'gameTestServer'
+            gameDirectory = file('build/validation/persistence')
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'homelink_dashboard_validation'
+            systemProperty 'homelink.persistencePass', providers.gradleProperty('persistencePass').getOrElse('read')
+        }
+
+        data {
+            data()
+
+            // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
+            // gameDirectory = project.file('run-data')
+
+            // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+
+        // applies to all the run configs above
+        configureEach {
+            // Recommended logging data for a userdev environment
+            // The markers can be added/remove as needed separated by commas.
+            // "SCAN": For mods scan.
+            // "REGISTRIES": For firing of registry events.
+            // "REGISTRYDUMP": For getting the contents of all registries.
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+
+            // Recommended logging level for the console
+            // You can set various levels here.
+            // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
+            logLevel = org.slf4j.event.Level.INFO
+        }
+    }
+
+    mods {
+        // define mod <-> source bindings
+        // these are used to tell the game which sources are for which mod
+        // mostly optional in a single mod project
+        // but multi mod projects should define one per mod
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+        homelink_dashboard_validation {
+            sourceSet(sourceSets.verification)
+        }
+    }
+    runs.configureEach { loadedMods = [mods.homelink_dashboard] }
+    runs.gameTestServer.loadedMods = [mods.homelink_dashboard, mods.homelink_dashboard_validation]
+    runs.clientSmoke.loadedMods = [mods.homelink_dashboard, mods.homelink_dashboard_validation]
+    runs.connectionSmoke.loadedMods = [mods.homelink_dashboard, mods.homelink_dashboard_validation]
+    runs.actionSmoke.loadedMods = [mods.homelink_dashboard, mods.homelink_dashboard_validation]
+    runs.preferencesSmoke.loadedMods = [mods.homelink_dashboard, mods.homelink_dashboard_validation]
+    runs.alertsSmoke.loadedMods = [mods.homelink_dashboard, mods.homelink_dashboard_validation]
+    runs.performanceSmoke.loadedMods = [mods.homelink_dashboard, mods.homelink_dashboard_validation]
+    runs.persistence.loadedMods = [mods.homelink_dashboard, mods.homelink_dashboard_validation]
+}
+
+def persistenceProperties = layout.buildDirectory.file('validation/persistence/server.properties')
+def persistenceLog = layout.buildDirectory.file('validation/persistence/logs/latest.log')
+def persistencePass = providers.gradleProperty('persistencePass').getOrElse('read').toUpperCase(java.util.Locale.ROOT)
+tasks.named('runPersistence') {
+    doFirst {
+        def properties = persistenceProperties.get().asFile
+        if (!properties.exists()) { properties.parentFile.mkdirs(); properties.setText('', 'UTF-8') }
+    }
+    doLast {
+        def report = persistenceLog.get().asFile
+        if (!report.exists() || !report.getText('UTF-8').contains('HOMELINK_PERSISTENCE_' + persistencePass + '_OK')) {
+            throw new GradleException('Persistence verification failed; inspect build/validation/persistence/logs/latest.log.')
+        }
+    }
+}
+
+def performanceOptions = layout.buildDirectory.file('validation/performance/options.txt')
+def performanceLog = layout.buildDirectory.file('validation/performance/logs/latest.log')
+tasks.named('runPerformanceSmoke') {
+    doFirst {
+        def options = performanceOptions.get().asFile
+        if (!options.exists()) {
+            options.parentFile.mkdirs()
+            options.setText('onboardAccessibility:false\npauseOnLostFocus:false\nrenderDistance:2\nsimulationDistance:5\nmaxFps:60\n', 'UTF-8')
+        }
+    }
+    doLast {
+        def report = performanceLog.get().asFile
+        def result = report.exists() ? report.getText('UTF-8') : ''
+        if (!result.contains('HOMELINK_PERFORMANCE_SMOKE_OK') || result.contains('HOMELINK_PERFORMANCE_SMOKE_FAILED')) {
+            throw new GradleException('Performance verification failed; inspect build/validation/performance/logs/latest.log.')
+        }
+    }
+}
+
+def alertsLog = layout.buildDirectory.file('validation/alerts/logs/latest.log')
+def alertsOptions = layout.buildDirectory.file('validation/alerts/options.txt')
+tasks.named('runAlertsSmoke') {
+    doFirst {
+        def options = alertsOptions.get().asFile
+        if (!options.exists()) {
+            options.parentFile.mkdirs()
+            options.setText('onboardAccessibility:false\npauseOnLostFocus:false\nrenderDistance:2\nsimulationDistance:5\nmaxFps:60\n', 'UTF-8')
+        }
+    }
+    doLast {
+        def report = alertsLog.get().asFile
+        def result = report.exists() ? report.getText('UTF-8') : ''
+        if (!result.contains('HOMELINK_ALERTS_SMOKE_OK') || result.contains('HOMELINK_ALERTS_SMOKE_FAILED')) {
+            throw new GradleException('Alerts verification failed; inspect build/validation/alerts/logs/latest.log.')
+        }
+    }
+}
+
+def preferencesLog = layout.buildDirectory.file('validation/preferences/logs/latest.log')
+def preferencesOptions = layout.buildDirectory.file('validation/preferences/options.txt')
+tasks.named('runPreferencesSmoke') {
+    doFirst {
+        def options = preferencesOptions.get().asFile
+        if (!options.exists()) {
+            options.parentFile.mkdirs()
+            options.setText('onboardAccessibility:false\npauseOnLostFocus:false\nrenderDistance:2\nsimulationDistance:5\nmaxFps:60\n', 'UTF-8')
+        }
+    }
+    doLast {
+        def report = preferencesLog.get().asFile
+        def result = report.exists() ? report.getText('UTF-8') : ''
+        if (!result.contains('HOMELINK_PREFERENCES_SMOKE_OK') || result.contains('HOMELINK_PREFERENCES_SMOKE_FAILED')) {
+            throw new GradleException('Preferences verification failed; inspect build/validation/preferences/logs/latest.log.')
+        }
+    }
+}
+
+def actionLog = layout.buildDirectory.file('validation/actions/logs/latest.log')
+def actionOptions = layout.buildDirectory.file('validation/actions/options.txt')
+tasks.named('runActionSmoke') {
+    doFirst {
+        def options = actionOptions.get().asFile
+        if (!options.exists()) {
+            options.parentFile.mkdirs()
+            options.setText('onboardAccessibility:false\npauseOnLostFocus:false\nrenderDistance:2\nsimulationDistance:5\nmaxFps:60\n', 'UTF-8')
+        }
+    }
+    doLast {
+        def report = actionLog.get().asFile
+        def result = report.exists() ? report.getText('UTF-8') : ''
+        if (!result.contains('HOMELINK_ACTION_SMOKE_OK') || result.contains('HOMELINK_ACTION_SMOKE_FAILED')) {
+            throw new GradleException('Action verification failed; inspect build/validation/actions/logs/latest.log.')
+        }
+    }
+}
+
+def connectionLog = layout.buildDirectory.file('validation/connection/logs/latest.log')
+def connectionOptions = layout.buildDirectory.file('validation/connection/options.txt')
+tasks.named('runConnectionSmoke') {
+    doFirst {
+        def options = connectionOptions.get().asFile
+        if (!options.exists()) {
+            options.parentFile.mkdirs()
+            options.setText('onboardAccessibility:false\npauseOnLostFocus:false\nrenderDistance:2\nsimulationDistance:5\nmaxFps:60\n', 'UTF-8')
+        }
+    }
+    doLast {
+        def report = connectionLog.get().asFile
+        def result = report.exists() ? report.getText('UTF-8') : ''
+        if (!result.contains('HOMELINK_CONNECTION_SMOKE_OK') || result.contains('HOMELINK_CONNECTION_SMOKE_FAILED')) {
+            throw new GradleException('Connection verification failed; inspect build/validation/connection/logs/latest.log.')
+        }
+    }
+}
+
+tasks.named('check') { dependsOn tasks.named('verificationClasses') }
+
+// Explicit locale for reproducible UI checks; normal runClient preferences are untouched.
+def smokeLanguage = providers.gradleProperty('smokeLanguage').orElse('').get()
+if (!smokeLanguage.isEmpty()) {
+    ['runPreferencesSmoke': 'preferences', 'runActionSmoke': 'actions',
+     'runAlertsSmoke': 'alerts', 'runConnectionSmoke': 'connection'].each { runName, directory ->
+        def localeOptions = layout.buildDirectory.file("validation/${directory}/options.txt")
+        tasks.named(runName) {
+            doFirst {
+                def file = localeOptions.get().asFile
+                file.parentFile.mkdirs()
+                def content = file.exists() ? file.getText('UTF-8') : 'onboardAccessibility:false\npauseOnLostFocus:false\nrenderDistance:2\nsimulationDistance:5\nmaxFps:60\n'
+                content = content.replaceAll('(?m)^lang:[^\\r\\n]*[\\r\\n]*', '')
+                file.setText(content.stripTrailing() + '\nlang:' + smokeLanguage + '\n', 'UTF-8')
+            }
+        }
+    }
+}
+
+// Several game clients compete for the same GPU. Keep verification runs sequential
+// even when Gradle's parallel execution is enabled for compilation.
+abstract class MinecraftRunLock implements org.gradle.api.services.BuildService<org.gradle.api.services.BuildServiceParameters.None> { }
+def minecraftRunLock = gradle.sharedServices.registerIfAbsent('homelinkMinecraftRuns', MinecraftRunLock) {
+    maxParallelUsages = 1
+}
+tasks.matching { it.name in ['runClient', 'runServer', 'runGameTestServer', 'runClientSmoke', 'runConnectionSmoke',
+                            'runActionSmoke', 'runPreferencesSmoke', 'runAlertsSmoke', 'runPerformanceSmoke', 'runPersistence'] }
+        .configureEach { usesService(minecraftRunLock) }
+
+def smokeLog = layout.buildDirectory.file('validation/client/logs/latest.log')
+def smokeOptions = layout.buildDirectory.file('validation/client/options.txt')
+tasks.named('runClientSmoke') {
+    doFirst {
+        def options = smokeOptions.get().asFile
+        if (!options.exists()) {
+            options.parentFile.mkdirs()
+            options.setText('onboardAccessibility:false\npauseOnLostFocus:false\nrenderDistance:2\nsimulationDistance:5\nmaxFps:60\n', 'UTF-8')
+        }
+    }
+    doLast {
+        def report = smokeLog.get().asFile
+        def result = report.exists() ? report.getText('UTF-8') : ''
+        if (!result.contains('HOMELINK_CLIENT_SMOKE_OK') || result.contains('HOMELINK_CLIENT_SMOKE_FAILED')) {
+            throw new GradleException('Connected-client verification failed; inspect build/validation/client/logs/latest.log.')
+        }
+    }
+}
+
+// Include resources generated by data generators.
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+
+dependencies {
+    implementation 'fr.lkdm.homecore:homecore:1.1.0'
+    // Example mod dependency with JEI
+    // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
+    // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
+    // compileOnly "mezz.jei:jei-${mc_version}-forge-api:${jei_version}"
+    // runtimeOnly "mezz.jei:jei-${mc_version}-forge:${jei_version}"
+
+    // Example mod dependency using a mod jar from ./libs with a flat dir repository
+    // This maps to ./libs/coolmod-${mc_version}-${coolmod_version}.jar
+    // The group id is ignored when searching -- in this case, it is "blank"
+    // implementation "blank:coolmod-${mc_version}:${coolmod_version}"
+
+    // Example mod dependency using a file as dependency
+    // implementation files("libs/coolmod-${mc_version}-${coolmod_version}.jar")
+
+    // Example project dependency using a sister or child project:
+    // implementation project(":myproject")
+
+    // For more info:
+    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
+    // http://www.gradle.org/docs/current/userguide/dependency_management.html
+}
+
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+tasks.withType(Jar).configureEach {
+    includeEmptyDirs = false
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+tasks.named('jar', Jar) { from('LICENSE') }
+
+def releaseJar = tasks.named('jar', Jar).flatMap { it.archiveFile }
+def releaseVersion = providers.gradleProperty('mod_version').get()
+def verifyReleaseJar = tasks.register('verifyReleaseJar') {
+    dependsOn tasks.named('jar')
+    inputs.file(releaseJar)
+    doLast {
+        new java.util.zip.ZipFile(releaseJar.get().asFile).withCloseable { archive ->
+            def names = archive.entries().collect { it.name }
+            def forbidden = names.find { it.startsWith('fr/lkdm/homecore/') || it.startsWith('CoreLink/') ||
+                    it.contains('/verification/') || it.endsWith('.log') || it.endsWith('.java') }
+            if (forbidden != null) throw new GradleException('Unexpected development/dependency content: ' + forbidden)
+            def expected = ['META-INF/neoforge.mods.toml', 'LICENSE',
+                            'fr/lkdm/homelink/dashboard/HomeLinkDashboard.class',
+                            'assets/homelink_dashboard/lang/en_us.json', 'assets/homelink_dashboard/lang/fr_fr.json']
+            ['home_server', 'dashboard_display'].each { block ->
+                expected += ['assets/homelink_dashboard/blockstates/' + block + '.json',
+                             'assets/homelink_dashboard/models/item/' + block + '.json',
+                             'data/homelink_dashboard/recipe/' + block + '.json',
+                             'data/homelink_dashboard/loot_table/blocks/' + block + '.json']
+            }
+            expected.each { name -> if (!names.contains(name)) throw new GradleException('Missing release resource: ' + name) }
+            def read = { String name -> archive.getInputStream(archive.getEntry(name)).withCloseable { it.getText('UTF-8') } }
+            def metadata = read('META-INF/neoforge.mods.toml')
+            if (!metadata.contains('version = "' + releaseVersion + '"') || metadata.contains('${') ||
+                    !metadata.contains('versionRange = "[1.1.0,2.0.0)"') || !metadata.contains('versionRange = "[1.21.1]"'))
+                throw new GradleException('Release metadata/version/dependency mismatch')
+            def parser = new groovy.json.JsonSlurper()
+            def english = parser.parseText(read('assets/homelink_dashboard/lang/en_us.json'))
+            def french = parser.parseText(read('assets/homelink_dashboard/lang/fr_fr.json'))
+            if (english.keySet() != french.keySet()) throw new GradleException('EN/FR translation keys differ')
+            english.each { key, value ->
+                if (!value || !french[key] || (value =~ /%s/).count != (french[key] =~ /%s/).count)
+                    throw new GradleException('Invalid translation or placeholder mismatch: ' + key)
+            }
+            names.findAll { it.endsWith('.json') }.each { parser.parseText(read(it)) }
+            logger.lifecycle('Release archive verified: {} ({} translations)', releaseJar.get().asFile.name, english.size())
+        }
+    }
+}
+tasks.named('check') { dependsOn verifyReleaseJar }
+
+// This block of code expands all declared replace properties in the specified resource targets.
+// A missing property will result in an error. Properties are expanded using ${} Groovy notation.
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [minecraft_version      : minecraft_version,
+                             minecraft_version_range: minecraft_version_range,
+                             neo_version            : neo_version,
+                             neo_version_range      : neo_version_range,
+                             loader_version_range   : loader_version_range,
+                             mod_id                 : mod_id,
+                             mod_name               : mod_name,
+                             mod_license            : mod_license,
+                             mod_version            : mod_version,
+                             mod_authors            : mod_authors,
+                             mod_description        : mod_description]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
+}
+
+// Include the output of "generateModMetadata" as an input directory for the build
+// this works with both building through Gradle and the IDE.
+sourceSets.main.resources.srcDir generateModMetadata
+// To avoid having to run "generateModMetadata" manually, make it run on every project reload
+neoForge.ideSyncTask generateModMetadata
+
+// Example configuration to allow publishing using the maven-publish plugin
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/repo"
+        }
+    }
+}
+
+// IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}

@@ -1,0 +1,16 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="Apache-2.0"
+
+[[mods]]
+modId="homelink_dashboard_validation"
+version="1.0.0"
+displayName="HomeLink Dashboard Validation"
+description="Development-only verification, excluded from the mod JAR."
+
+[[dependencies.homelink_dashboard_validation]]
+modId="homelink_dashboard"
+type="required"
+versionRange="[1.0.0-SNAPSHOT,)"
+ordering="AFTER"
+side="BOTH"

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": ["IQI", "RCR", "III"],
+  "key": {
+    "I": { "item": "minecraft:iron_ingot" },
+    "Q": { "item": "minecraft:quartz" },
+    "R": { "item": "minecraft:redstone" },
+    "C": { "item": "minecraft:comparator" }
+  },
+  "result": { "id": "homelink_dashboard:home_server", "count": 1 }
+}

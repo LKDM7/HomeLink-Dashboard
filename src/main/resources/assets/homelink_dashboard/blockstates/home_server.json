@@ -1,0 +1,100 @@
+{
+    "variants":  {
+                     "facing=north,half=lower,status=online":  {
+                                                                   "model":  "homelink_dashboard:block/home_server_lower_online",
+                                                                   "y":  0
+                                                               },
+                     "facing=east,half=lower,status=online":  {
+                                                                  "model":  "homelink_dashboard:block/home_server_lower_online",
+                                                                  "y":  90
+                                                              },
+                     "facing=south,half=lower,status=online":  {
+                                                                   "model":  "homelink_dashboard:block/home_server_lower_online",
+                                                                   "y":  180
+                                                               },
+                     "facing=west,half=lower,status=online":  {
+                                                                  "model":  "homelink_dashboard:block/home_server_lower_online",
+                                                                  "y":  270
+                                                              },
+                     "facing=north,half=upper,status=online":  {
+                                                                   "model":  "homelink_dashboard:block/home_server_upper_online",
+                                                                   "y":  0
+                                                               },
+                     "facing=east,half=upper,status=online":  {
+                                                                  "model":  "homelink_dashboard:block/home_server_upper_online",
+                                                                  "y":  90
+                                                              },
+                     "facing=south,half=upper,status=online":  {
+                                                                   "model":  "homelink_dashboard:block/home_server_upper_online",
+                                                                   "y":  180
+                                                               },
+                     "facing=west,half=upper,status=online":  {
+                                                                  "model":  "homelink_dashboard:block/home_server_upper_online",
+                                                                  "y":  270
+                                                              },
+                     "facing=north,half=lower,status=offline":  {
+                                                                    "model":  "homelink_dashboard:block/home_server_lower_offline",
+                                                                    "y":  0
+                                                                },
+                     "facing=east,half=lower,status=offline":  {
+                                                                   "model":  "homelink_dashboard:block/home_server_lower_offline",
+                                                                   "y":  90
+                                                               },
+                     "facing=south,half=lower,status=offline":  {
+                                                                    "model":  "homelink_dashboard:block/home_server_lower_offline",
+                                                                    "y":  180
+                                                                },
+                     "facing=west,half=lower,status=offline":  {
+                                                                   "model":  "homelink_dashboard:block/home_server_lower_offline",
+                                                                   "y":  270
+                                                               },
+                     "facing=north,half=upper,status=offline":  {
+                                                                    "model":  "homelink_dashboard:block/home_server_upper_offline",
+                                                                    "y":  0
+                                                                },
+                     "facing=east,half=upper,status=offline":  {
+                                                                   "model":  "homelink_dashboard:block/home_server_upper_offline",
+                                                                   "y":  90
+                                                               },
+                     "facing=south,half=upper,status=offline":  {
+                                                                    "model":  "homelink_dashboard:block/home_server_upper_offline",
+                                                                    "y":  180
+                                                                },
+                     "facing=west,half=upper,status=offline":  {
+                                                                   "model":  "homelink_dashboard:block/home_server_upper_offline",
+                                                                   "y":  270
+                                                               },
+                     "facing=north,half=lower,status=error":  {
+                                                                  "model":  "homelink_dashboard:block/home_server_lower_error",
+                                                                  "y":  0
+                                                              },
+                     "facing=east,half=lower,status=error":  {
+                                                                 "model":  "homelink_dashboard:block/home_server_lower_error",
+                                                                 "y":  90
+                                                             },
+                     "facing=south,half=lower,status=error":  {
+                                                                  "model":  "homelink_dashboard:block/home_server_lower_error",
+                                                                  "y":  180
+                                                              },
+                     "facing=west,half=lower,status=error":  {
+                                                                 "model":  "homelink_dashboard:block/home_server_lower_error",
+                                                                 "y":  270
+                                                             },
+                     "facing=north,half=upper,status=error":  {
+                                                                  "model":  "homelink_dashboard:block/home_server_upper_error",
+                                                                  "y":  0
+                                                              },
+                     "facing=east,half=upper,status=error":  {
+                                                                 "model":  "homelink_dashboard:block/home_server_upper_error",
+                                                                 "y":  90
+                                                             },
+                     "facing=south,half=upper,status=error":  {
+                                                                  "model":  "homelink_dashboard:block/home_server_upper_error",
+                                                                  "y":  180
+                                                              },
+                     "facing=west,half=upper,status=error":  {
+                                                                 "model":  "homelink_dashboard:block/home_server_upper_error",
+                                                                 "y":  270
+                                                             }
+                 }
+}

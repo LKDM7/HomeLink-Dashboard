@@ -1,0 +1,49 @@
+{
+  "variants": {
+    "facing=north,status=offline": {
+      "model": "homelink_dashboard:block/dashboard_display_offline"
+    },
+    "facing=north,status=online": {
+      "model": "homelink_dashboard:block/dashboard_display_online"
+    },
+    "facing=north,status=error": {
+      "model": "homelink_dashboard:block/dashboard_display_error"
+    },
+    "facing=east,status=offline": {
+      "model": "homelink_dashboard:block/dashboard_display_offline",
+      "y": 90
+    },
+    "facing=east,status=online": {
+      "model": "homelink_dashboard:block/dashboard_display_online",
+      "y": 90
+    },
+    "facing=east,status=error": {
+      "model": "homelink_dashboard:block/dashboard_display_error",
+      "y": 90
+    },
+    "facing=south,status=offline": {
+      "model": "homelink_dashboard:block/dashboard_display_offline",
+      "y": 180
+    },
+    "facing=south,status=online": {
+      "model": "homelink_dashboard:block/dashboard_display_online",
+      "y": 180
+    },
+    "facing=south,status=error": {
+      "model": "homelink_dashboard:block/dashboard_display_error",
+      "y": 180
+    },
+    "facing=west,status=offline": {
+      "model": "homelink_dashboard:block/dashboard_display_offline",
+      "y": 270
+    },
+    "facing=west,status=online": {
+      "model": "homelink_dashboard:block/dashboard_display_online",
+      "y": 270
+    },
+    "facing=west,status=error": {
+      "model": "homelink_dashboard:block/dashboard_display_error",
+      "y": 270
+    }
+  }
+}

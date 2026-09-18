@@ -1,0 +1,8 @@
+{
+    "textures":  {
+                     "muted_light":  "minecraft:block/gray_concrete",
+                     "screen_light":  "homelink_dashboard:block/nas_error",
+                     "indicator":  "homelink_dashboard:block/nas_error"
+                 },
+    "parent":  "homelink_dashboard:block/home_server_lower"
+}

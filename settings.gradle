@@ -1,0 +1,23 @@
+pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+        maven { url = 'https://maven.neoforged.net/releases' }
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+}
+
+rootProject.name = 'HomeLinkDashboard'
+// Build the actual public API and runtime from the adjacent workspace project.
+def homeCoreDir = file(providers.gradleProperty('homecore_dir').getOrElse('../HomeCore'))
+if (!new File(homeCoreDir, 'settings.gradle').isFile()) {
+    throw new GradleException('HomeCore source project missing. Set -Phomecore_dir=<path>.')
+}
+includeBuild(homeCoreDir) {
+    dependencySubstitution {
+        substitute module('fr.lkdm.homecore:homecore') using project(':')
+    }
+}

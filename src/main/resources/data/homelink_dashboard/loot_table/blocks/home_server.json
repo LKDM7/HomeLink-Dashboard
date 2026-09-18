@@ -1,0 +1,27 @@
+{
+    "type":  "minecraft:block",
+    "pools":  [
+                  {
+                      "rolls":  1,
+                      "bonus_rolls":  0,
+                      "entries":  [
+                                      {
+                                          "type":  "minecraft:item",
+                                          "name":  "homelink_dashboard:home_server"
+                                      }
+                                  ],
+                      "conditions":  [
+                                         {
+                                             "condition":  "minecraft:survives_explosion"
+                                         },
+                                         {
+                                             "properties":  {
+                                                                "half":  "lower"
+                                                            },
+                                             "condition":  "minecraft:block_state_property",
+                                             "block":  "homelink_dashboard:home_server"
+                                         }
+                                     ]
+                  }
+              ]
+}

@@ -1,0 +1,8 @@
+{
+    "textures":  {
+                     "muted_light":  "minecraft:block/gray_concrete",
+                     "screen_light":  "minecraft:block/gray_concrete",
+                     "indicator":  "minecraft:block/gray_concrete"
+                 },
+    "parent":  "homelink_dashboard:block/home_server_upper"
+}
