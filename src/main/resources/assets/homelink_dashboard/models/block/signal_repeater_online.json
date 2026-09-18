@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "led":  "homelink_dashboard:block/nas_activity"
+                 },
+    "parent":  "homelink_dashboard:block/signal_repeater"
+}

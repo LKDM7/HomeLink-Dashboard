@@ -27,7 +27,19 @@ public abstract class AccessPointBlockEntity extends BlockEntity {
 
     @Override public void onLoad() {
         super.onLoad();
-        if (level != null && !level.isClientSide) level.scheduleTick(worldPosition, getBlockState().getBlock(), 1);
+        if (level != null && !level.isClientSide) {
+            fr.lkdm.homelink.dashboard.server.RadioNetworkService.changed(this);
+            level.scheduleTick(worldPosition, getBlockState().getBlock(), 1);
+        }
+    }
+
+    @Override public void setRemoved() {
+        fr.lkdm.homelink.dashboard.server.RadioNetworkService.removed(this);
+        super.setRemoved();
+    }
+    @Override public void onChunkUnloaded() {
+        fr.lkdm.homelink.dashboard.server.RadioNetworkService.removed(this);
+        super.onChunkUnloaded();
     }
 
     public void initializeOwner(UUID player) {
@@ -40,6 +52,7 @@ public abstract class AccessPointBlockEntity extends BlockEntity {
         requireServer();
         this.networkId = networkId;
         setChanged();
+        fr.lkdm.homelink.dashboard.server.RadioNetworkService.changed(this);
         DashboardAccess.refreshStatus(this);
     }
 
@@ -48,6 +61,7 @@ public abstract class AccessPointBlockEntity extends BlockEntity {
         requireServer();
         this.active = active;
         setChanged();
+        fr.lkdm.homelink.dashboard.server.RadioNetworkService.changed(this);
         DashboardAccess.refreshStatus(this);
     }
 

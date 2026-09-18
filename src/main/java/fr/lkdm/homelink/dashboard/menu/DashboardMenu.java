@@ -77,7 +77,9 @@ public final class DashboardMenu extends AbstractContainerMenu {
             result = DashboardNetworks.bind(serverPlayer, accessPoint, session.choices().get(index).id());
         }
         if (result == ActionResult.Code.SUCCESS) DashboardAccess.open(serverPlayer, accessPoint);
-        else player.displayClientMessage(Component.translatable("message.homelink_dashboard.setup_result", Component.translatableWithFallback("value.homelink_dashboard." + result.name().toLowerCase(java.util.Locale.ROOT), result.name())), false);
+        else player.displayClientMessage(result == ActionResult.Code.DEVICE_OFFLINE
+                ? Component.translatable("message.homelink_dashboard.no_signal")
+                : Component.translatable("message.homelink_dashboard.setup_result", Component.translatableWithFallback("value.homelink_dashboard." + result.name().toLowerCase(java.util.Locale.ROOT), result.name())), false);
         return result == ActionResult.Code.SUCCESS;
     }
 

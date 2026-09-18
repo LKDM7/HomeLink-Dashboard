@@ -26,6 +26,52 @@ public final class NetworkSetupGameTests {
     private static final BlockPos POSITION = new BlockPos(1, 1, 1);
 
     @GameTest(template = "empty")
+    public static void namedCreationUsesAuthenticatedMenu(GameTestHelper helper) {
+        var owner = player(helper);
+        var point = place(helper, DashboardRegistries.HOME_SERVER.get(), owner);
+        owner.containerMenu = new DashboardMenu(31, owner.getInventory(), point);
+        var request = new fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.Request(31, true, "  Base principale  ");
+        helper.assertTrue(fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.handle(owner, request) == ActionResult.Code.SUCCESS, "Named creation must succeed");
+        var network = DashboardAPI.networks(owner.server).getNetwork(point.networkId().orElseThrow()).orElseThrow();
+        helper.assertTrue(network.name().equals("Base principale"), "Named creation must normalize surrounding spaces");
+        helper.assertTrue(fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.handle(owner, request) == ActionResult.Code.DENIED, "Old setup session must not create twice");
+        DashboardAPI.networks(owner.server).deleteNetwork(network.id());
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
+    public static void renameRejectsViewersInvalidNamesAndStaleMenus(GameTestHelper helper) {
+        var owner = player(helper);
+        var viewer = player(helper);
+        var point = place(helper, DashboardRegistries.HOME_SERVER.get(), owner);
+        var manager = DashboardAPI.networks(owner.server);
+        var network = manager.createNetwork("Before", owner.getUUID());
+        manager.setMember(network.id(), viewer.getUUID(), NetworkRole.VIEWER);
+        point.setNetworkId(network.id());
+        owner.containerMenu = new DashboardMenu(32, owner.getInventory(), point);
+        viewer.containerMenu = new DashboardMenu(33, viewer.getInventory(), point);
+        helper.assertTrue(fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.handle(viewer,
+                new fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.Request(33, false, "Forbidden")) == ActionResult.Code.DENIED, "VIEWER must not rename");
+        helper.assertTrue(fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.handle(owner,
+                new fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.Request(99, false, "Stale")) == ActionResult.Code.DENIED, "Wrong container must not rename");
+        helper.assertTrue(fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.handle(owner,
+                new fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.Request(32, false, "Entrepôt")) == ActionResult.Code.SUCCESS, "Owner must rename");
+        helper.assertTrue(fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.handle(owner,
+                new fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.Request(32, false, "  ")) == ActionResult.Code.INVALID_PARAMETER, "Blank names must be rejected");
+        helper.assertTrue(manager.getNetwork(network.id()).orElseThrow().name().equals("Entrepôt"), "Invalid input must preserve the name");
+        for (String invalid : new String[] {"", "x".repeat(129), "bad\nname", "§aname", "bad\u202ename"}) {
+            helper.assertTrue(!DashboardNetworks.validName(invalid), "Unsafe/oversized name accepted");
+        }
+        helper.assertTrue(fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.handle(owner,
+                new fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.Request(32, false, "Spam")) == ActionResult.Code.RATE_LIMITED, "Name mutations must be rate limited");
+        owner.setPos(owner.getX() + 20, owner.getY(), owner.getZ());
+        helper.assertTrue(fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.handle(owner,
+                new fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.Request(32, false, "Remote")) == ActionResult.Code.DENIED, "Expired physical session must be denied");
+        manager.deleteNetwork(network.id());
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
     public static void serverCreatesHomeCoreNetwork(GameTestHelper helper) {
         var owner = player(helper);
         var point = place(helper, DashboardRegistries.HOME_SERVER.get(), owner);
@@ -54,6 +100,9 @@ public final class NetworkSetupGameTests {
         var point = place(helper, DashboardRegistries.DASHBOARD_DISPLAY.get(), owner);
         var manager = DashboardAPI.networks(helper.getLevel().getServer());
         var network = manager.createNetwork("Display binding", owner.getUUID());
+        var rootPos = helper.absolutePos(POSITION.offset(2, 0, 0));
+        helper.getLevel().setBlock(rootPos, DashboardRegistries.HOME_SERVER.get().defaultBlockState(), 3);
+        ((AccessPointBlockEntity) helper.getLevel().getBlockEntity(rootPos)).setNetworkId(network.id());
         var description = DashboardNetworks.describe(owner, point, 0);
         helper.assertTrue(!description.canCreate(), "Displays must not offer server network creation");
         helper.assertTrue(description.choices().stream().anyMatch(choice -> choice.id().equals(network.id())),
@@ -66,6 +115,32 @@ public final class NetworkSetupGameTests {
                 "Display owner with network CONFIGURE must be able to bind");
         helper.assertTrue(point.networkId().orElseThrow().equals(network.id()), "Display must retain HomeCore network identity");
         manager.deleteNetwork(network.id());
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
+    public static void duplicateNamesPreferNearbyNetworkAndAllowAuthorizedRepair(GameTestHelper helper) {
+        var owner = player(helper);
+        var stranger = player(helper);
+        var manager = DashboardAPI.networks(helper.getLevel().getServer());
+        var old = manager.createNetwork("Same name", owner.getUUID());
+        var current = manager.createNetwork("Same name", owner.getUUID());
+        var rootPos = helper.absolutePos(POSITION.offset(2, 0, 0));
+        helper.getLevel().setBlock(rootPos, DashboardRegistries.HOME_SERVER.get().defaultBlockState(), 3);
+        ((AccessPointBlockEntity) helper.getLevel().getBlockEntity(rootPos)).setNetworkId(current.id());
+        var point = place(helper, DashboardRegistries.SIGNAL_REPEATER.get(), owner);
+        var choices = DashboardNetworks.describe(owner, point, 0).choices();
+        helper.assertTrue(choices.getFirst().id().equals(current.id()) && choices.getFirst().inRange(), "Nearby network must be first even with duplicate names");
+        helper.assertTrue(!choices.stream().filter(choice -> choice.id().equals(old.id())).findFirst().orElseThrow().inRange(), "Old network without a server must be marked unavailable");
+        helper.assertTrue(DashboardNetworks.bind(owner, point, old.id()) == ActionResult.Code.DEVICE_OFFLINE && point.networkId().isEmpty(), "Forged unreachable binding must not leave a stuck association");
+        point.setNetworkId(old.id()); // Existing world from before the repair.
+        helper.assertTrue(!fr.lkdm.homelink.dashboard.server.DashboardAccess.canView(owner, point), "Wrong old association must reproduce no signal");
+        helper.assertTrue(!DashboardNetworks.resetBinding(stranger, point) && point.networkId().orElseThrow().equals(old.id()), "Stranger cannot reset association");
+        helper.assertTrue(DashboardNetworks.resetBinding(owner, point), "Owner must repair an unreachable association");
+        helper.assertTrue(DashboardNetworks.bind(owner, point, current.id()) == ActionResult.Code.SUCCESS, "Repair must bind the nearby server network");
+        helper.assertTrue(fr.lkdm.homelink.dashboard.server.DashboardAccess.canView(owner, point), "Repaired repeater must open normally");
+        helper.assertTrue(manager.getNetwork(old.id()).isPresent(), "Repair must not delete the old network");
+        manager.deleteNetwork(old.id()); manager.deleteNetwork(current.id());
         helper.succeed();
     }
 

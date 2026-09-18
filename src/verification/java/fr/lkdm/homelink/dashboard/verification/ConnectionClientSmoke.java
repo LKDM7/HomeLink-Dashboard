@@ -148,10 +148,53 @@ public final class ConnectionClientSmoke {
                 Screenshot.grab(client.gameDirectory, "phase3-device-details.png", client.getMainRenderTarget(),
                         result -> LogUtils.getLogger().info("HOMELINK_SCREENSHOT {}", result.getString()));
                 snapshots = state.snapshotCount();
+                int w = Math.min(520, screen.width - 16), h = Math.min(340, screen.height - 16);
+                screen.mouseClicked((screen.width - w) / 2 + w - 100, (screen.height - h) / 2 + h - 18, 0);
+                if (!screen.manualOpen()) fail("Manual help button did not open the manual");
                 serverTask(client, () -> fixture(client).progress.setValue(85.0));
+                stage = 301;
+            } else if (stage == 301 && client.screen instanceof DashboardScreen screen && metricEquals(85.0)) {
+                if (++quietTicks < 10) return;
+                quietTicks = 0;
+                Screenshot.grab(client.gameDirectory, "homelink-manual.png", client.getMainRenderTarget(),
+                        result -> LogUtils.getLogger().info("HOMELINK_SCREENSHOT {}", result.getString()));
+                int w = Math.min(520, screen.width - 16), h = Math.min(340, screen.height - 16);
+                int x = (screen.width - w) / 2, y = (screen.height - h) / 2;
+                screen.mouseScrolled(x + 30, y + 100, 0, -100);
+                if (screen.manual().offset() == 0) fail("Manual did not scroll");
+                for (int chapter = 1; chapter < 5; chapter++) {
+                    screen.mouseClicked(x + w - 24, y + 72, 0);
+                    if (screen.manual().chapter() != chapter || screen.manual().offset() != 0) fail("Manual chapter navigation failed");
+                }
+                screen.mouseClicked(x + w - 24, y + 72, 0);
+                if (screen.manual().chapter() != 4) fail("Manual navigated past the last chapter");
+                screen.keyPressed(org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE, 0, 0);
+                if (screen.manualOpen() || screen.state() != state || !screen.explorer().showingDetails()
+                        || state.snapshotCount() != snapshots) fail("Manual did not preserve the active session");
+                LogUtils.getLogger().info("HOMELINK_MANUAL_OK chapters=5 scroll=true escape=true live_delta=true session_preserved=true");
                 stage = 4;
             } else if (stage == 4 && metricEquals(85.0)) {
                 if (state.deltaCount() < 1 || state.snapshotCount() != snapshots) fail("Metric update did not use a delta");
+                serverTask(client, () -> fixture(client).location = position.offset(65, 0, 0));
+                stage = 40;
+            } else if (stage == 40 && state.devices().stream().noneMatch(device -> device.id().equals(selected))) {
+                serverTask(client, () -> {
+                    var level = client.getSingleplayerServer().overworld();
+                    var relayPos = position.offset(64, 0, 0);
+                    level.getChunkAt(relayPos);
+                    level.setBlock(relayPos, DashboardRegistries.SIGNAL_REPEATER.get().defaultBlockState(), 3);
+                    ((AccessPointBlockEntity) level.getBlockEntity(relayPos)).setNetworkId(network);
+                });
+                stage = 41;
+            } else if (stage == 41 && metricEquals(85.0)) {
+                serverTask(client, () -> client.getSingleplayerServer().overworld().removeBlock(position.offset(64, 0, 0), false));
+                stage = 42;
+            } else if (stage == 42 && state.devices().stream().noneMatch(device -> device.id().equals(selected))) {
+                serverTask(client, () -> fixture(client).location = null);
+                stage = 43;
+            } else if (stage == 43 && metricEquals(85.0)) {
+                if (state.requestCount() != 1) fail("Radio recovery required a full resubscription");
+                LogUtils.getLogger().info("HOMELINK_RADIO_CLIENT_OK out_of_range=true relay_recovery=true relay_break=true automatic_roster=true");
                 serverTask(client, () -> fixture(client).status = DeviceStatus.State.WARNING);
                 stage = 5;
             } else if (stage == 5 && state.devices().stream().anyMatch(device -> device.id().equals(selected)
@@ -215,6 +258,7 @@ public final class ConnectionClientSmoke {
     private static final class Fixture implements DashboardDevice {
         private final UUID id;
         private final int index;
+        private BlockPos location;
         private DeviceStatus.State status = DeviceStatus.State.ONLINE;
         private final DeviceMetric<Double> progress = DeviceMetric.builder(PROGRESS, Component.literal("Progress"), MetricTypes.DOUBLE, 73.0)
                 .updatePolicy(UpdatePolicy.ON_CHANGE).build();
@@ -225,5 +269,9 @@ public final class ConnectionClientSmoke {
         @Override public Component displayName() { return Component.literal("Unknown device " + index); }
         @Override public DeviceStatus status() { return DeviceStatus.of(status); }
         @Override public List<DeviceMetric<?>> metrics() { return List.of(progress); }
+        @Override public java.util.Optional<BlockPos> position() { return java.util.Optional.ofNullable(location); }
+        @Override public java.util.Optional<net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level>> dimension() {
+            return location == null ? java.util.Optional.empty() : java.util.Optional.of(net.minecraft.world.level.Level.OVERWORLD);
+        }
     }
 }

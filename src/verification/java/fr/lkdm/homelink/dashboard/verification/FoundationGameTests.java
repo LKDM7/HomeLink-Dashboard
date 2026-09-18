@@ -41,6 +41,11 @@ public final class FoundationGameTests {
         var point = place(helper, block, player);
         helper.assertTrue(point.owner().orElseThrow().equals(player.getUUID()), "Placement must persist the authenticated owner");
         var network = DashboardAPI.networks(helper.getLevel().getServer()).createNetwork("Persistence fixture", player.getUUID());
+        if (block == DashboardRegistries.DASHBOARD_DISPLAY.get()) {
+            var rootPos = helper.absolutePos(POSITION.offset(2, 0, 0));
+            helper.getLevel().setBlock(rootPos, DashboardRegistries.HOME_SERVER.get().defaultBlockState(), 3);
+            ((AccessPointBlockEntity) helper.getLevel().getBlockEntity(rootPos)).setNetworkId(network.id());
+        }
         point.setNetworkId(network.id());
         helper.assertTrue(point.getBlockState().getValue(AccessPointBlock.STATUS) == AccessPointStatus.ONLINE, "Existing network must be online");
         point.setActive(false);

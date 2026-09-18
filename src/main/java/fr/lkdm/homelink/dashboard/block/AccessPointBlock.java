@@ -67,6 +67,10 @@ public abstract class AccessPointBlock extends BaseEntityBlock {
             Player player, BlockHitResult hit) {
         if (!level.isClientSide && player instanceof ServerPlayer serverPlayer
                 && level.getBlockEntity(pos) instanceof AccessPointBlockEntity accessPoint) {
+            if (player.isShiftKeyDown() && !fr.lkdm.homelink.dashboard.server.DashboardNetworks.resetBinding(serverPlayer, accessPoint)) {
+                player.displayClientMessage(net.minecraft.network.chat.Component.translatable("message.homelink_dashboard.access_denied"), true);
+                return InteractionResult.CONSUME;
+            }
             DashboardAccess.open(serverPlayer, accessPoint);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);

@@ -22,6 +22,24 @@ import net.minecraft.world.entity.player.Inventory;
 
 /** Navigation shell; page views and transport have separate lifecycles. */
 public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu> {
+    private fr.lkdm.homelink.dashboard.client.widget.ManualView manual;
+    private boolean manualOpen;
+    private String newNetworkName;
+    private String nameResult = "";
+    private final java.util.function.Consumer<fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.Response> nameListener = this::receiveNameResult;
+    private void receiveNameResult(fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.Response response) {
+        if (response.containerId() != menu.containerId) return;
+        nameResult = response.result().name();
+        if (network != null) network.nameResult(response.result());
+    }
+    private void sendName(boolean create, String name) {
+        nameResult = "";
+        net.neoforged.neoforge.network.PacketDistributor.sendToServer(
+                new fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.Request(menu.containerId, create, name));
+    }
+    public boolean manualOpen() { return manualOpen; }
+    public fr.lkdm.homelink.dashboard.client.widget.ManualView manual() { return manual; }
+    private void toggleManual() { manualOpen = !manualOpen; rebuild(); }
     private DashboardClientState state;
     private DeviceExplorerView explorer;
     private ActionPanel actions;
@@ -73,6 +91,8 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         rebuild();
     }
     @Override protected void init() {
+        fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.listen(nameListener);
+        previous = null; next = null; refresh = null; actionButton = null;
         favoriteButton = null;
         favoriteSymbol = "";
         imageWidth = Math.min(520, width - 16);
@@ -84,12 +104,30 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
             state.start();
         }
         button("close", imageWidth - 80, imageHeight - 28, 68, this::onClose);
+        var help = button("manual", imageWidth - 114, imageHeight - 28, 28, this::toggleManual);
+        help.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("manual.homelink_dashboard.title")));
+        if (manualOpen) {
+            if (manual == null) manual = new fr.lkdm.homelink.dashboard.client.widget.ManualView(font);
+            manual.init(leftPos + 12, topPos + 62, imageWidth - 24, imageHeight - 96, this::addRenderableWidget, this::rebuild);
+            button("manual_back", 12, imageHeight - 28, Math.min(150, imageWidth - 138), this::toggleManual);
+            return;
+        }
         if (state == null) {
-            if (menu.session().canCreate()) button("create", 12, 66, imageWidth - 24, () -> send(DashboardMenu.CREATE_NETWORK));
+            if (menu.session().canCreate()) {
+                if (newNetworkName == null) newNetworkName = "HomeLink · " + minecraft.player.getGameProfile().getName();
+                var input = new net.minecraft.client.gui.components.EditBox(font, leftPos + 12, topPos + 66, imageWidth - 132, 20,
+                        Component.translatable("screen.homelink_dashboard.network_name"));
+                input.setMaxLength(128); input.setValue(newNetworkName);
+                var create = button("create", imageWidth - 114, 66, 102, () -> sendName(true, newNetworkName));
+                create.active = fr.lkdm.homelink.dashboard.network.NetworkNames.isValid(newNetworkName);
+                input.setResponder(value -> { newNetworkName = value; create.active = fr.lkdm.homelink.dashboard.network.NetworkNames.isValid(value); });
+                addRenderableWidget(input);
+            }
             if (!menu.session().choices().isEmpty()) {
-                button("previous", 12, 110, 38, () -> selectedNetwork = Math.floorMod(selectedNetwork - 1, menu.session().choices().size()));
-                button("next", imageWidth - 50, 110, 38, () -> selectedNetwork = (selectedNetwork + 1) % menu.session().choices().size());
-                button("bind", 58, 110, imageWidth - 116, () -> send(DashboardMenu.BIND_NETWORK_BASE + selectedNetwork));
+                button("previous", 12, 110, 38, () -> { selectedNetwork = Math.floorMod(selectedNetwork - 1, menu.session().choices().size()); rebuild(); });
+                button("next", imageWidth - 50, 110, 38, () -> { selectedNetwork = (selectedNetwork + 1) % menu.session().choices().size(); rebuild(); });
+                button("bind", 58, 110, imageWidth - 116, () -> send(DashboardMenu.BIND_NETWORK_BASE + selectedNetwork))
+                        .active = menu.session().canCreate() || menu.session().choices().get(selectedNetwork).inRange();
             }
             if (menu.session().directoryOffset() > 0) button("previous", 12, 143, 48, () -> send(DashboardMenu.PREVIOUS_NETWORKS));
             if (menu.session().hasNext()) button("more_networks", 68, 143, imageWidth - 80, () -> send(DashboardMenu.NEXT_NETWORKS));
@@ -98,7 +136,7 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
             if (preferences == null) { preferences = new DashboardPreferencesClient(menu); preferences.start(); }
             if (home == null) home = new HomeDashboardView(state, preferences, font);
             if (alerts == null) alerts = new AlertCenterView(state, font, this::openDevice);
-            if (network == null) network = new NetworkView(state, font);
+            if (network == null) network = new NetworkView(state, font, name -> sendName(false, name), this::rebuild);
             if (settings == null) settings = new SettingsView(font, () -> state.setAlertLimit(DashboardConfig.alertLimit()));
             navigation();
             if (actionMode) {
@@ -123,11 +161,12 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
                     }
                     int refreshX = state.isNetworkWatch() ? 12 : 78;
                     refresh = button("refresh", refreshX, imageHeight - 28, 72, this::refreshData);
-                    if (page == Page.DEVICES) actionButton = button("actions", refreshX + 78, imageHeight - 28, Math.max(36, Math.min(78, imageWidth - refreshX - 166)), this::openActions);
+                    if (page == Page.DEVICES) actionButton = button("actions", refreshX + 78, imageHeight - 28,
+                            Math.max(24, Math.min(78, Math.min(174, imageWidth - 156) - refreshX - 82)), this::openActions);
                     if (page == Page.DEVICES && state.isNetworkWatch()) {
                         favoriteButton = addRenderableWidget(DashboardButton.builder(Component.literal("☆"), ignored -> {
                             explorer.selectedDeviceId().ifPresent(id -> { preferences.toggleFavorite(id); home.selectDevice(id); });
-                        }).bounds(leftPos + 174, topPos + imageHeight - 28, 36, 20).build());
+                        }).bounds(leftPos + Math.min(174, imageWidth - 156), topPos + imageHeight - 28, 36, 20).build());
                     }
                 } else if (page != Page.SETTINGS) refresh = button("refresh", 12, imageHeight - 28, 90, this::refreshData);
             }
@@ -165,7 +204,8 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
     @Override protected void containerTick() {
         super.containerTick();
         if (state != null) {
-            state.tick(); preferences.tick();
+            state.tick(); if (preferences != null) preferences.tick();
+            if (manualOpen) return;
             if (actionMode) actions.tick();
             if (++uiTicks % DashboardConfig.uiInterval() == 0) {
                 explorer.tick();
@@ -196,7 +236,12 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
             }
         }
     }
+    @Override public boolean keyPressed(int key, int scanCode, int modifiers) {
+        if (manualOpen && key == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) { toggleManual(); return true; }
+        return super.keyPressed(key, scanCode, modifiers);
+    }
     @Override public void removed() {
+        fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.stopListening(nameListener);
         if (state != null) state.close();
         if (preferences != null) preferences.close();
         fr.lkdm.homelink.dashboard.client.rendering.MetricRendererRegistry.clearCache();
@@ -214,7 +259,8 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         DashboardTheme.screw(graphics, leftPos + imageWidth - 8, topPos + 4);
         DashboardTheme.screw(graphics, leftPos + 4, topPos + imageHeight - 8);
         DashboardTheme.screw(graphics, leftPos + imageWidth - 8, topPos + imageHeight - 8);
-        if (actionMode) actions.render(graphics, mouseX, mouseY, partialTick);
+        if (manualOpen) manual.render(graphics);
+        else if (actionMode) actions.render(graphics, mouseX, mouseY, partialTick);
         else if (state != null) switch (page) {
             case HOME -> home.render(graphics, mouseX, mouseY, partialTick);
             case DEVICES -> explorer.render(graphics, mouseX, mouseY, partialTick);
@@ -230,10 +276,18 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         graphics.fill(imageWidth - 86, 13, imageWidth - 82, 17, statusColor);
         graphics.drawString(font, font.plainSubstrByWidth(DashboardText.value(state == null ? "OFFLINE" : state.connectionStatus()), 62),
                 imageWidth - 76, 11, DashboardTheme.MUTED, false);
-        if (state == null) {
+        if (manualOpen) {
+            text(graphics, Component.translatable("manual.homelink_dashboard.title"), 42, DashboardTheme.ACCENT);
+        } else if (state == null) {
             text(graphics, Component.translatable("screen.homelink_dashboard.setup"), 42, 0xAFB1AD);
-            if (!menu.session().choices().isEmpty()) text(graphics, Component.literal(menu.session().choices().get(selectedNetwork).name()), 96, 0xE7E5E0);
+            if (!menu.session().choices().isEmpty()) {
+                var choice = menu.session().choices().get(selectedNetwork);
+                text(graphics, Component.literal("[" + choice.id().toString().substring(0, 8) + "] " + choice.name()), 96, DashboardTheme.TEXT);
+                text(graphics, Component.translatable("screen.homelink_dashboard." + (choice.inRange() ? "signal_available" : "signal_unavailable")),
+                        132, choice.inRange() ? DashboardTheme.ONLINE : DashboardTheme.WARNING);
+            }
             else text(graphics, Component.translatable("screen.homelink_dashboard.no_networks"), 98, 0xAFB1AD);
+            if (!nameResult.isEmpty()) text(graphics, DashboardText.component(nameResult), 169, DashboardTheme.WARNING);
         } else if (page == Page.DEVICES) {
             text(graphics, Component.literal(state.networkName() + "  ·  " + DashboardText.value(state.role())), 60, 0xE7E5E0);
             if (!state.error().isEmpty()) text(graphics, Component.translatable("screen.homelink_dashboard.error", DashboardText.component(state.error())), 71, 0xD3B16F);
@@ -246,12 +300,14 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         graphics.drawString(font, font.plainSubstrByWidth(text.getString(), imageWidth - 24), 12, y, color, false);
     }
     @Override public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
+        if (manualOpen) return manual.mouseScrolled(mouseX, mouseY, vertical) || super.mouseScrolled(mouseX, mouseY, horizontal, vertical);
         if (!actionMode && page == Page.HOME && home != null && home.mouseScrolled(mouseX, mouseY, horizontal, vertical)) return true;
         if (!actionMode && page == Page.DEVICES && explorer != null && explorer.mouseScrolled(mouseX, mouseY, horizontal, vertical)) return true;
         if (!actionMode && page == Page.ALERTS && alerts != null && alerts.mouseScrolled(mouseX, mouseY, horizontal, vertical)) return true;
         return super.mouseScrolled(mouseX, mouseY, horizontal, vertical);
     }
     @Override public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (manualOpen) return super.mouseClicked(mouseX, mouseY, button);
         // Container screens consume otherwise unhandled clicks even when there are no slots.
         // Route custom page regions first; each view excludes its native button/input area.
         if (!actionMode && page == Page.HOME && home != null && home.mouseClicked(mouseX, mouseY, button)) return true;

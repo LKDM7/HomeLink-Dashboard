@@ -11,7 +11,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 public record AccessPointSession(BlockPos position, Optional<UUID> networkId,
         List<NetworkChoice> choices, int directoryOffset, boolean hasNext, boolean canCreate) {
     public static final int PAGE_SIZE = 16;
-    public record NetworkChoice(UUID id, String name) { }
+    public record NetworkChoice(UUID id, String name, boolean inRange) { }
 
     public AccessPointSession {
         position = position.immutable();
@@ -27,7 +27,7 @@ public record AccessPointSession(BlockPos position, Optional<UUID> networkId,
         buffer.writeBoolean(hasNext);
         buffer.writeBoolean(canCreate);
         buffer.writeVarInt(choices.size());
-        choices.forEach(choice -> { buffer.writeUUID(choice.id()); buffer.writeUtf(choice.name(), 128); });
+        choices.forEach(choice -> { buffer.writeUUID(choice.id()); buffer.writeUtf(choice.name(), 128); buffer.writeBoolean(choice.inRange()); });
     }
 
     public static AccessPointSession read(RegistryFriendlyByteBuf buffer) {
@@ -39,7 +39,7 @@ public record AccessPointSession(BlockPos position, Optional<UUID> networkId,
         int count = buffer.readVarInt();
         if (count < 0 || count > PAGE_SIZE) throw new IllegalArgumentException("Invalid network directory size");
         var choices = new ArrayList<NetworkChoice>(count);
-        for (int i = 0; i < count; i++) choices.add(new NetworkChoice(buffer.readUUID(), buffer.readUtf(128)));
+        for (int i = 0; i < count; i++) choices.add(new NetworkChoice(buffer.readUUID(), buffer.readUtf(128), buffer.readBoolean()));
         return new AccessPointSession(position, network, choices, offset, next, create);
     }
 }

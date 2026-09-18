@@ -38,21 +38,40 @@ public final class DashboardNetworks {
         var networks = DashboardAPI.networks(player.server).getNetworksForPlayer(player.getUUID()).stream()
                 .filter(network -> DashboardAPI.hasPermission(player, network.id(), Permission.CONFIGURE)
                         && DashboardAPI.hasPermission(player, network.id(), Permission.VIEW))
+                .map(network -> new AccessPointSession.NetworkChoice(network.id(), network.name(), RadioNetworkService.canReceive(point, network.id())))
+                .sorted(java.util.Comparator.comparing(AccessPointSession.NetworkChoice::inRange).reversed()
+                        .thenComparing(AccessPointSession.NetworkChoice::name).thenComparing(AccessPointSession.NetworkChoice::id))
                 .toList();
         int offset = Math.max(0, Math.min(requestedOffset, Math.max(0, networks.size() - 1)));
         offset = offset / AccessPointSession.PAGE_SIZE * AccessPointSession.PAGE_SIZE;
         int end = Math.min(offset + AccessPointSession.PAGE_SIZE, networks.size());
-        var choices = networks.subList(offset, end).stream()
-                .map(network -> new AccessPointSession.NetworkChoice(network.id(), network.name())).toList();
+        var choices = List.copyOf(networks.subList(offset, end));
         return new AccessPointSession(point.getBlockPos(), point.networkId(), choices, offset,
                 end < networks.size(), point instanceof HomeServerBlockEntity);
     }
 
     public static ActionResult.Code create(ServerPlayer player, AccessPointBlockEntity point) {
+        return create(player, point, "HomeLink · " + player.getGameProfile().getName());
+    }
+    public static ActionResult.Code create(ServerPlayer player, AccessPointBlockEntity point, String name) {
         if (!acquire(player)) return ActionResult.Code.RATE_LIMITED;
         if (!canSetup(player, point) || !(point instanceof HomeServerBlockEntity)) return ActionResult.Code.DENIED;
-        var network = DashboardAPI.networks(player.server).createNetwork("HomeLink · " + player.getGameProfile().getName(), player.getUUID());
+        if (!validName(name)) return ActionResult.Code.INVALID_PARAMETER;
+        var network = DashboardAPI.networks(player.server).createNetwork(name.strip(), player.getUUID());
         point.setNetworkId(network.id());
+        return ActionResult.Code.SUCCESS;
+    }
+
+    public static boolean validName(String name) {
+        return fr.lkdm.homelink.dashboard.network.NetworkNames.isValid(name);
+    }
+    public static ActionResult.Code rename(ServerPlayer player, AccessPointBlockEntity point, String name) {
+        if (!acquire(player)) return ActionResult.Code.RATE_LIMITED;
+        if (!DashboardAccess.canView(player, point) || point.networkId().isEmpty()
+                || !DashboardAPI.hasPermission(player, point.networkId().orElseThrow(), Permission.MANAGE_NETWORK))
+            return ActionResult.Code.DENIED;
+        if (!validName(name)) return ActionResult.Code.INVALID_PARAMETER;
+        DashboardAPI.networks(player.server).renameNetwork(point.networkId().orElseThrow(), name.strip());
         return ActionResult.Code.SUCCESS;
     }
 
@@ -61,8 +80,25 @@ public final class DashboardNetworks {
         if (!canSetup(player, point) || network == null
                 || !DashboardAPI.hasPermission(player, network, Permission.CONFIGURE)
                 || !DashboardAPI.hasPermission(player, network, Permission.VIEW)) return ActionResult.Code.DENIED;
+        if (!(point instanceof HomeServerBlockEntity) && !RadioNetworkService.canReceive(point, network))
+            return ActionResult.Code.DEVICE_OFFLINE;
         point.setNetworkId(network);
         return ActionResult.Code.SUCCESS;
+    }
+
+    /** Explicit owner gesture; permits repair even when the old network has no radio signal. */
+    public static boolean resetBinding(ServerPlayer player, AccessPointBlockEntity point) {
+        if (point.isRemoved() || !point.active() || player.level() != point.getLevel()
+                || player.level().getBlockEntity(point.getBlockPos()) != point
+                || !point.getBlockPos().closerToCenterThan(player.position(), 8.0)
+                || point.owner().filter(player.getUUID()::equals).isEmpty()) return false;
+        if (point.networkId().isPresent()) {
+            UUID network = point.networkId().orElseThrow();
+            if (DashboardAPI.networks(player.server).getNetwork(network).isPresent()
+                    && !DashboardAPI.hasPermission(player, network, Permission.CONFIGURE)) return false;
+        }
+        point.setNetworkId(null);
+        return true;
     }
 
     private static boolean acquire(ServerPlayer player) {

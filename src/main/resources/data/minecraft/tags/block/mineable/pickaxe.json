@@ -1,7 +1,8 @@
 {
-  "replace": false,
-  "values": [
-    "homelink_dashboard:home_server",
-    "homelink_dashboard:dashboard_display"
-  ]
+    "replace":  false,
+    "values":  [
+                   "homelink_dashboard:home_server",
+                   "homelink_dashboard:dashboard_display",
+                   "homelink_dashboard:signal_repeater"
+               ]
 }

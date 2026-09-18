@@ -2,7 +2,7 @@
 
 ## Contrat et architecture
 
-Dashboard est un consommateur générique de **HomeCore 1.1.0**. Les classes HomeCore ne sont pas recopiées dans ce projet. Les imports d’intégration utilisent `fr.lkdm.homecore.api.*` ; aucun import de `fr.lkdm.homecore.internal.*` n’est nécessaire ou autorisé côté Dashboard.
+Dashboard est un consommateur générique de **HomeCore 1.3.0**. Les classes HomeCore ne sont pas recopiées dans ce projet. Les imports d’intégration utilisent `fr.lkdm.homecore.api.*` ; aucun import de `fr.lkdm.homecore.internal.*` n’est nécessaire ou autorisé côté Dashboard.
 
 ```text
 Mod fournisseur / adaptateur HomeCore
@@ -23,7 +23,11 @@ Mod fournisseur / adaptateur HomeCore
 | `dashboard/layout`, `dashboard/widget` | Modèle de profils et widgets référencés par UUID |
 | `config` | Paramètres visuels client |
 
-Les blocs stockent seulement le propriétaire, l’UUID du réseau et leur état actif. Ils ne conservent pas une copie des appareils. Le Display est relié au HomeNetwork, pas à une simulation de liaison radio ou à un Server particulier.
+Les blocs stockent seulement le propriétaire, l’UUID du réseau et leur état actif. Ils ne conservent pas une copie des appareils. Le serveur et les répéteurs émettent à 64 blocs dans leur dimension ; un écran est un terminal sans fonction de relais. RadioNetworkService suit les BlockEntities chargées et calcule les chaînes reliées à un serveur actif. Les graphes sont partagés entre les requêtes d’un tick et invalidés immédiatement lors des changements de topologie. Aucun chunk n’est chargé à distance.
+
+HomeCore 1.3.0 expose `HomeNetworkManager.setReachabilityPolicy(id, predicate)` et `isReachable(network, device)`. Les contraintes s’ajoutent aux permissions, jamais ne les remplacent. HomeCore applique ces règles aux listes, snapshots, deltas, événements et actions. Les erreurs de politique refusent l’accès. Dashboard n’importe aucune classe interne HomeCore.
+
+RadioNetworksSavedData conserve les UUID des réseaux physiques afin que retirer tous les émetteurs ne rétablisse jamais une portée illimitée. Un réseau externe jamais associé à un point HomeLink conserve son fonctionnement logique HomeCore. Les appareils sans position ET sans dimension sont logiques et exigent un émetteur serveur connecté ; une localisation partielle est refusée. Les appareils physiques utilisent une distance euclidienne inclusive de 64 blocs, dans la même dimension. Les métriques ne sont pas dupliquées et les appartenances ne sont pas modifiées par la portée.
 
 ## API HomeCore effectivement utilisée
 
@@ -85,7 +89,7 @@ HomeCore gère séparément `data/homecore_networks.dat`. Les associations des p
 
 ## Construire le projet
 
-Java 21 est nécessaire. Les versions de référence sont dans `gradle.properties` et `build.gradle` : Minecraft 1.21.1, NeoForge 21.1.250, Dashboard 1.0.0, HomeCore 1.1.0. Conserver les versions de mappings du projet à moins d’une migration explicite.
+Java 21 est nécessaire. Les versions de référence sont dans `gradle.properties` et `build.gradle` : Minecraft 1.21.1, NeoForge 21.1.250, Dashboard 1.0.0, HomeCore 1.3.0. Conserver les versions de mappings du projet à moins d’une migration explicite.
 
 `settings.gradle` inclut réellement le build source `../HomeCore` et substitue `fr.lkdm.homecore:homecore`. Ce projet source est requis avec la configuration actuelle ; un JAR isolé placé arbitrairement dans `libs` ne remplace pas cette configuration.
 
@@ -126,3 +130,7 @@ Les vérifications propres au transport HomeCore se lancent depuis son projet, a
 Les libellés fixes sont dans `assets/homelink_dashboard/lang/fr_fr.json` et `en_us.json`. `DashboardText` traduit les codes uniquement au moment de l'affichage ; les valeurs utilisées par le protocole, les filtres et les permissions restent inchangées. Les codes inconnus gardent leur texte d'origine.
 
 Les profils de vérification acceptent `-PsmokeLanguage=fr_fr`, par exemple `gradlew.bat runActionSmoke runAlertsSmoke runConnectionSmoke -PsmokeLanguage=fr_fr`. Cette option définit la langue des clients de test sans changer les préférences du client de jeu normal. Le scénario `runPreferencesSmoke` vérifie également les états, rôles, interrupteurs, résultats et caractères français lorsque cette langue est chargée.
+
+## Noms des réseaux
+
+HomeCore 1.3.0 expose HomeNetworkManager.renameNetwork : remplacement du snapshot immuable, conservation de l'identité et notification de persistance uniquement si le nom change. Dashboard utilise un payload de nom borné à 128 caractères. Le réseau cible est déduit du menu serveur courant ; les identités et permissions ne viennent jamais du client. Création : propriétaire du serveur non associé. Renommage : VIEW et MANAGE_NETWORK, menu vivant et point accessible. Les mutations partagent la limite de deux opérations par seconde. Le listener de résultat est supprimé à la fermeture de l'écran.

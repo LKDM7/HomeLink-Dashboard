@@ -30,6 +30,10 @@ public final class DashboardRegistries {
             () -> new HomeServerBlock(properties()));
     public static final DeferredBlock<DashboardDisplayBlock> DASHBOARD_DISPLAY = BLOCKS.register("dashboard_display",
             () -> new DashboardDisplayBlock(properties().noOcclusion()));
+    public static final DeferredBlock<fr.lkdm.homelink.dashboard.block.SignalRepeaterBlock> SIGNAL_REPEATER = BLOCKS.register("signal_repeater",
+            () -> new fr.lkdm.homelink.dashboard.block.SignalRepeaterBlock(properties().noOcclusion()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<fr.lkdm.homelink.dashboard.blockentity.SignalRepeaterBlockEntity>> REPEATER_ENTITY = BLOCK_ENTITIES.register("signal_repeater",
+            () -> BlockEntityType.Builder.of(fr.lkdm.homelink.dashboard.blockentity.SignalRepeaterBlockEntity::new, SIGNAL_REPEATER.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<HomeServerBlockEntity>> SERVER_ENTITY = BLOCK_ENTITIES.register("home_server",
             () -> BlockEntityType.Builder.of(HomeServerBlockEntity::new, HOME_SERVER.get()).build(null));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DashboardDisplayBlockEntity>> DISPLAY_ENTITY = BLOCK_ENTITIES.register("dashboard_display",
@@ -45,12 +49,14 @@ public final class DashboardRegistries {
     public static void register(IEventBus bus) {
         ITEMS.registerSimpleBlockItem(HOME_SERVER);
         ITEMS.registerSimpleBlockItem(DASHBOARD_DISPLAY);
+        ITEMS.registerSimpleBlockItem(SIGNAL_REPEATER);
         TABS.register("dashboard", () -> CreativeModeTab.builder()
                 .title(Component.translatable("itemGroup.homelink_dashboard"))
                 .icon(() -> HOME_SERVER.get().asItem().getDefaultInstance())
                 .displayItems((parameters, output) -> {
                     output.accept(HOME_SERVER.get());
                     output.accept(DASHBOARD_DISPLAY.get());
+                    output.accept(SIGNAL_REPEATER.get());
                 }).build());
         BLOCKS.register(bus);
         ITEMS.register(bus);

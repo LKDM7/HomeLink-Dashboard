@@ -319,7 +319,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 
 dependencies {
-    implementation 'fr.lkdm.homecore:homecore:1.1.0'
+    implementation 'fr.lkdm.homecore:homecore:1.3.0'
     // Example mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
@@ -364,7 +364,7 @@ def verifyReleaseJar = tasks.register('verifyReleaseJar') {
             def expected = ['META-INF/neoforge.mods.toml', 'LICENSE',
                             'fr/lkdm/homelink/dashboard/HomeLinkDashboard.class',
                             'assets/homelink_dashboard/lang/en_us.json', 'assets/homelink_dashboard/lang/fr_fr.json']
-            ['home_server', 'dashboard_display'].each { block ->
+            ['home_server', 'dashboard_display', 'signal_repeater'].each { block ->
                 expected += ['assets/homelink_dashboard/blockstates/' + block + '.json',
                              'assets/homelink_dashboard/models/item/' + block + '.json',
                              'data/homelink_dashboard/recipe/' + block + '.json',
@@ -374,7 +374,7 @@ def verifyReleaseJar = tasks.register('verifyReleaseJar') {
             def read = { String name -> archive.getInputStream(archive.getEntry(name)).withCloseable { it.getText('UTF-8') } }
             def metadata = read('META-INF/neoforge.mods.toml')
             if (!metadata.contains('version = "' + releaseVersion + '"') || metadata.contains('${') ||
-                    !metadata.contains('versionRange = "[1.1.0,2.0.0)"') || !metadata.contains('versionRange = "[1.21.1]"'))
+                    !metadata.contains('versionRange = "[1.3.0,2.0.0)"') || !metadata.contains('versionRange = "[1.21.1]"'))
                 throw new GradleException('Release metadata/version/dependency mismatch')
             def parser = new groovy.json.JsonSlurper()
             def english = parser.parseText(read('assets/homelink_dashboard/lang/en_us.json'))

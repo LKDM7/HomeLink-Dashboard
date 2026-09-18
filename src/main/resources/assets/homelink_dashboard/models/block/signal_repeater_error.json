@@ -1,0 +1,6 @@
+{
+    "textures":  {
+                     "led":  "minecraft:block/red_concrete"
+                 },
+    "parent":  "homelink_dashboard:block/signal_repeater"
+}

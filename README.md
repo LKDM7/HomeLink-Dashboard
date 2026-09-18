@@ -11,12 +11,12 @@ Dashboard interprète les schémas publics HomeCore. Il ne contient aucune inté
 | Minecraft | 1.21.1 |
 | NeoForge | 21.1.250 |
 | Java | 21 |
-| HomeCore, obligatoire | 1.1.0 |
+| HomeCore, obligatoire | 1.3.0 |
 | HomeLink Dashboard | 1.0.0 |
 
-Installer `homecore-1.1.0.jar` et `homelink_dashboard-1.0.0.jar` dans le dossier `mods` du client **et** du serveur. En solo, les deux JAR sont nécessaires dans l’installation Minecraft. HomeCore reste une dépendance séparée ; son code n’est pas embarqué dans le JAR Dashboard.
+Installer `homecore-1.3.0.jar` et `homelink_dashboard-1.0.0.jar` dans le dossier `mods` du client **et** du serveur. En solo, les deux JAR sont nécessaires dans l’installation Minecraft. HomeCore reste une dépendance séparée ; son code n’est pas embarqué dans le JAR Dashboard.
 
-**English installation:** use Minecraft 1.21.1, NeoForge 21.1.250 and Java 21. Put both HomeCore 1.1.0 and HomeLink Dashboard 1.0.0 in the client and server `mods` folders. Place a HomeLink Server, create or link a HomeNetwork, then link a Dashboard Display to the same network. Devices must be exposed by a HomeCore-compatible mod.
+**English installation:** use Minecraft 1.21.1, NeoForge 21.1.250 and Java 21. Put both HomeCore 1.3.0 and HomeLink Dashboard 1.0.0 in the client and server `mods` folders. Place a HomeLink Server, create or link a HomeNetwork, then link a Dashboard Display to the same network. Devices must be exposed by a HomeCore-compatible mod.
 
 ## Première utilisation
 

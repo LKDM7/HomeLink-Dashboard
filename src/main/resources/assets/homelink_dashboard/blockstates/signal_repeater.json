@@ -1,0 +1,49 @@
+{
+    "variants":  {
+                     "facing=north,status=online":  {
+                                                        "model":  "homelink_dashboard:block/signal_repeater_online"
+                                                    },
+                     "facing=north,status=offline":  {
+                                                         "model":  "homelink_dashboard:block/signal_repeater_offline"
+                                                     },
+                     "facing=north,status=error":  {
+                                                       "model":  "homelink_dashboard:block/signal_repeater_error"
+                                                   },
+                     "facing=east,status=online":  {
+                                                       "model":  "homelink_dashboard:block/signal_repeater_online",
+                                                       "y":  90
+                                                   },
+                     "facing=east,status=offline":  {
+                                                        "model":  "homelink_dashboard:block/signal_repeater_offline",
+                                                        "y":  90
+                                                    },
+                     "facing=east,status=error":  {
+                                                      "model":  "homelink_dashboard:block/signal_repeater_error",
+                                                      "y":  90
+                                                  },
+                     "facing=south,status=online":  {
+                                                        "model":  "homelink_dashboard:block/signal_repeater_online",
+                                                        "y":  180
+                                                    },
+                     "facing=south,status=offline":  {
+                                                         "model":  "homelink_dashboard:block/signal_repeater_offline",
+                                                         "y":  180
+                                                     },
+                     "facing=south,status=error":  {
+                                                       "model":  "homelink_dashboard:block/signal_repeater_error",
+                                                       "y":  180
+                                                   },
+                     "facing=west,status=online":  {
+                                                       "model":  "homelink_dashboard:block/signal_repeater_online",
+                                                       "y":  270
+                                                   },
+                     "facing=west,status=offline":  {
+                                                        "model":  "homelink_dashboard:block/signal_repeater_offline",
+                                                        "y":  270
+                                                    },
+                     "facing=west,status=error":  {
+                                                      "model":  "homelink_dashboard:block/signal_repeater_error",
+                                                      "y":  270
+                                                  }
+                 }
+}

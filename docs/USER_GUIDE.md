@@ -2,11 +2,19 @@
 
 ## Préparer le jeu
 
-Installer Minecraft 1.21.1, NeoForge 21.1.250 et Java 21. Les deux mods **HomeCore 1.1.0** et **HomeLink Dashboard 1.0.0** doivent être présents côté client et côté serveur. Les traductions françaises et anglaises suivent la langue choisie dans Minecraft.
+Installer Minecraft 1.21.1, NeoForge 21.1.250 et Java 21. Les deux mods **HomeCore 1.3.0** et **HomeLink Dashboard 1.0.0** doivent être présents côté client et côté serveur. Les traductions françaises et anglaises suivent la langue choisie dans Minecraft.
 
 Pour l'interface française, choisir **Français (France)** dans les langues de Minecraft. Les menus, états d'appareils, rôles, filtres, interrupteurs et résultats d'action sont traduits. Les noms personnalisés, messages et intitulés de mesures fournis par un autre mod restent ceux de ce mod ; Dashboard ne traduit pas arbitrairement les données reçues. Les codes inconnus conservent un affichage de secours lisible.
 
 **English quick start:** install both mods on client and server. Right-click a HomeLink Server to create or select a HomeNetwork. Place a Dashboard Display and link it to that network. HOME contains your personal favorites and widgets; DEVICES lists compatible devices; ALERTS shows live events; NETWORK shows connection details; SETTINGS changes local display preferences.
+
+## Manuel intégré
+
+Le bouton **?**, à côté de **Fermer**, ouvre le manuel dans le jeu, même avant l’association à un réseau. Cinq chapitres expliquent les premiers pas, les appareils et actions, les favoris et la disposition, les alertes et permissions, puis le dépannage. La langue suit celle de Minecraft (français ou anglais).
+
+Les flèches **< / >** changent de chapitre. La molette et les boutons **Haut / Bas** font défiler le texte ; ces boutons sont également accessibles au clavier. **Retour** ou **Échap** revient à la page précédente sans fermer la connexion au réseau. Les mesures continuent de se mettre à jour pendant la lecture. **Fermer** quitte le Dashboard.
+
+Chaque étape possède un titre sur bandeau gris et un repère ambre. Les noms de commandes et permissions sont mis en couleur ; le texte courant reste clair, avec un interligne et des séparations entre les sections pour faciliter la lecture.
 
 ## Créer le point d’accès
 
@@ -19,9 +27,19 @@ Dans l’onglet créatif HomeLink Dashboard, les deux blocs sont **HomeLink Serv
 
 Le Display possède une façade rectangulaire et un voyant d'état. Son petit schéma de façade est décoratif ; les données réelles sont dans l'interface ouverte au clic. La GUI prend la forme d'un terminal industriel gris : boutons en relief, onglet actif enfoncé et focus clavier visible. HOME regroupe ses compteurs sur une ligne lorsque la fenêtre est assez grande et présente les favoris dans des lignes compactes. La taille de l'interface suit le réglage d'échelle GUI de Minecraft.
 
-Les deux blocs sont des points d’accès logiques au HomeNetwork. Le Display n’exige ni câble, ni distance radio au Server, ni maintien du Server chargé. La V1 ne simule pas d’antennes ou de répéteurs. Le joueur doit rester à moins de huit blocs du point d’accès utilisé ; le menu se ferme si ce point est détruit, désactivé ou devient inaccessible.
+Les points d’accès utilisent le même HomeNetwork. Le serveur émet dans un rayon de **64 blocs**, hauteur comprise, dans sa dimension. L’écran et les appareils physiques doivent être couverts par un serveur ou un répéteur connecté. Aucun câble n’est nécessaire et les murs ne bloquent pas le signal. Le joueur doit rester à moins de huit blocs du point d’accès utilisé ; le menu se ferme si ce point est détruit, désactivé ou perd le signal.
 
-Un point non associé est hors ligne. Un réseau associé existant donne l’état en ligne. Une association vers un réseau supprimé donne une erreur. Ces états indiquent la disponibilité du point d’accès, pas la santé de chacun des appareils du réseau.
+### Étendre le signal
+
+Fabriquer un **Répéteur HomeLink**, le placer à 64 blocs maximum d’un émetteur connecté, puis faire un clic droit et l’associer au même réseau. Son voyant vert confirme la liaison ; gris indique l’absence de signal, rouge un réseau supprimé. Plusieurs répéteurs peuvent se relayer : serveur → relais à 64 blocs → relais à 128 blocs → appareil à 192 blocs, si les positions sont alignées. Un écran ne relaie pas le signal.
+
+Le serveur et les relais doivent rester dans des chunks chargés. Ils ne chargent pas le monde à distance et ne traversent pas les dimensions. Une chaîne sans serveur actif ne transmet rien. Un relais appartenant à un autre réseau ne prolonge pas le vôtre. Les associations sont conservées après redémarrage.
+
+Les appareils doivent toujours être enregistrés et associés au réseau par leur mod HomeCore : il n’y a pas de détection automatique des blocs voisins. Les appareils physiques hors portée sont retirés de la liste en environ une seconde ; leurs actions, mesures et événements sont bloqués côté serveur dès la perte du signal. Ils réapparaissent quand la liaison revient. Leurs favoris et widgets restent enregistrés. Les appareils purement logiques (sans position ni dimension) restent accessibles lorsqu’un serveur de leur réseau est chargé ; une localisation partielle est refusée.
+
+Cette fonctionnalité exige **HomeCore 1.3.0** ou une version compatible plus récente sur le client et le serveur. Mettre à jour les deux JAR ensemble.
+
+Un point non associé ou hors portée est hors ligne. Un point associé à un réseau existant et recevant le signal est en ligne. Une association vers un réseau supprimé donne une erreur. Ces états indiquent la disponibilité du point d’accès, pas la santé de chacun des appareils du réseau.
 
 Le serveur possède trois baies et des voyants animés : vert et orange pour l’activité visuelle, bleu pour le panneau, rouge clignotant en erreur. Hors ligne, les voyants restent gris. Le clignotement est décoratif et ne représente pas un débit réel HomeCore. Cliquer sur l’une ou l’autre moitié ouvre la même interface. Casser une moitié retire tout le serveur et ne rend qu’un objet avec une pioche adaptée ; en créatif, aucun objet n’est lâché.
 
@@ -48,6 +66,14 @@ Fer    Redstone  Fer
 ```
 
 Les définitions livrées sont [home_server.json](../src/main/resources/data/homelink_dashboard/recipe/home_server.json) et [dashboard_display.json](../src/main/resources/data/homelink_dashboard/recipe/dashboard_display.json). Utiliser une pioche adaptée pour récupérer les blocs. Casser un point d’accès ne supprime pas le HomeNetwork ; son association locale devra être choisie de nouveau après placement.
+
+**Répéteur HomeLink** : quatre lingots de fer, un répéteur de redstone et une poudre de redstone.
+
+```text
+Fer    Vide       Fer
+Vide   Répéteur   Vide
+Fer    Redstone   Fer
+```
 
 ## HOME : favoris et widgets
 
@@ -133,7 +159,19 @@ Un test en jeu a exercé 100 appareils avec huit métriques chacun. Les performa
 | RATE_LIMITED | Attendre brièvement avant une nouvelle demande. |
 | Synchronisation interrompue | Utiliser **Actualiser** ; si nécessaire fermer puis rouvrir l’interface après rétablissement de la connexion. |
 | Widget d’appareil indisponible | L’appareil a été supprimé, déchargé ou n’est pas dans la sélection reçue. Vérifier le mod fournisseur et le plafond de suivi. |
-| Ancien point lié à un réseau supprimé | La V1 ne propose pas de bouton de réassociation d’un point déjà lié : casser puis replacer ce point et l’associer au bon réseau. |
+| Ancien point lié à un réseau supprimé | Faire Maj + clic droit, main vide, pour réinitialiser l’association, puis choisir le réseau voulu. Le propriétaire doit avoir les droits de configuration si l’ancien réseau existe encore. |
 | Préférences impossibles à charger | Consulter le journal serveur. Un fichier global illisible n’est pas remplacé automatiquement ; restaurer une sauvegarde valide du monde. |
 
 Pour les commandes de test et les résultats réellement observés, consulter le [guide développeur](DEVELOPER_GUIDE.md) et les rapports [phase 7](PHASE_7.md) / [release](PHASE_8.md).
+
+### Serveur à côté, mais écran ou répéteur sans signal
+
+Plusieurs réseaux peuvent avoir le même nom. Le sélecteur les distingue par un identifiant court et propose les réseaux à portée en premier. Pour corriger un bloc déjà associé au mauvais réseau : **Maj + clic droit, main vide**, puis choisir **Signal disponible ici**. Cette opération conserve les réseaux et les appareils. Une association hors portée est désormais refusée avant enregistrement.
+
+## Nommer et renommer un réseau
+
+Le formulaire de création du serveur comporte un champ de nom. Saisir de 1 à 128 caractères puis créer le réseau ; les espaces en début et fin sont retirés. Les noms vides, caractères de contrôle et codes de couleur sont refusés.
+
+Pour renommer : **Réseau → Renommer → Enregistrer**. Le propriétaire et les administrateurs disposant de **MANAGE_NETWORK** y ont accès. Le résultat apparaît dans le formulaire et le nouveau nom est synchronisé. L'identifiant, les appareils, les membres, favoris et dispositions ne changent pas. Le nom est conservé après redémarrage.
+
+Le répéteur affiche désormais un petit voyant vert clignotant lorsqu'il est connecté ; hors connexion, il reste gris. L'animation est décorative et n'indique pas le débit du réseau.

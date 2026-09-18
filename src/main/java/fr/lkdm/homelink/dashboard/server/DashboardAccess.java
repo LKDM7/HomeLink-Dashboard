@@ -16,7 +16,8 @@ public final class DashboardAccess {
     public static boolean canView(ServerPlayer player, AccessPointBlockEntity point) {
         if (point.isRemoved() || player.level() != point.getLevel() || !point.active()
                 || !point.getBlockPos().closerToCenterThan(player.position(), 8.0)) return false;
-        return point.networkId().map(id -> DashboardAPI.hasPermission(player, id, Permission.VIEW))
+        return point.networkId().map(id -> RadioNetworkService.hasSignal(point)
+                        && DashboardAPI.hasPermission(player, id, Permission.VIEW))
                 .orElseGet(() -> point.owner().map(player.getUUID()::equals).orElse(false));
     }
 
@@ -27,7 +28,10 @@ public final class DashboardAccess {
     public static void open(ServerPlayer player, AccessPointBlockEntity point, int directoryOffset) {
         refreshStatus(point);
         if (!canView(player, point)) {
-            player.displayClientMessage(Component.translatable("message.homelink_dashboard.access_denied"), true);
+            player.displayClientMessage(Component.translatable(point.networkId().isPresent()
+                    && DashboardAPI.hasPermission(player, point.networkId().orElseThrow(), Permission.VIEW)
+                    && !RadioNetworkService.hasSignal(point) ? "message.homelink_dashboard.no_signal"
+                    : "message.homelink_dashboard.access_denied"), true);
             return;
         }
         var session = DashboardNetworks.describe(player, point, directoryOffset);
@@ -38,7 +42,7 @@ public final class DashboardAccess {
     public static void refreshStatus(AccessPointBlockEntity point) {
         var status = !point.active() || point.networkId().isEmpty() ? AccessPointStatus.OFFLINE
                 : DashboardAPI.networks(point.getLevel().getServer()).getNetwork(point.networkId().orElseThrow()).isPresent()
-                    ? AccessPointStatus.ONLINE : AccessPointStatus.ERROR;
+                    ? (RadioNetworkService.hasSignal(point) ? AccessPointStatus.ONLINE : AccessPointStatus.OFFLINE) : AccessPointStatus.ERROR;
         point.setStatus(status);
     }
 }

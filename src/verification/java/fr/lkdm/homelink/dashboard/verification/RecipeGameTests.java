@@ -37,6 +37,14 @@ public final class RecipeGameTests {
                 Items.IRON_INGOT, Items.REDSTONE, Items.IRON_INGOT));
     }
 
+    @GameTest(template = "empty")
+    public static void signalRepeaterSurvivalRecipe(GameTestHelper helper) {
+        verify(helper, "signal_repeater", DashboardRegistries.SIGNAL_REPEATER.get(), List.of(
+                Items.IRON_INGOT, Items.AIR, Items.IRON_INGOT,
+                Items.AIR, Items.REPEATER, Items.AIR,
+                Items.IRON_INGOT, Items.REDSTONE, Items.IRON_INGOT));
+    }
+
     private static void verify(GameTestHelper helper, String path, Block block, List<Item> ingredients) {
         var level = helper.getLevel();
         var recipeId = ResourceLocation.fromNamespaceAndPath("homelink_dashboard", path);

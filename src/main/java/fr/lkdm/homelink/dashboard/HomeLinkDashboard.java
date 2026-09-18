@@ -15,6 +15,7 @@ public final class HomeLinkDashboard {
     public HomeLinkDashboard(IEventBus bus, ModContainer container) {
         DashboardRegistries.register(bus);
         bus.addListener(PreferencesPayloads::register);
+        bus.addListener(fr.lkdm.homelink.dashboard.network.NetworkNamePayloads::register);
         container.registerConfig(ModConfig.Type.CLIENT, DashboardConfig.SPEC);
     }
 }
