@@ -1,15 +1,15 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_circuit_board": {
+    "has_communication_module": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": { "items": [{ "items": ["homecore:homelink_circuit_board"] }] }
+      "conditions": { "items": [{ "items": ["homecore:homelink_communication_module"] }] }
     },
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": { "recipe": "homelink_dashboard:signal_repeater" }
     }
   },
-  "requirements": [["has_circuit_board", "has_the_recipe"]],
+  "requirements": [["has_communication_module", "has_the_recipe"]],
   "rewards": { "recipes": ["homelink_dashboard:signal_repeater"] }
 }

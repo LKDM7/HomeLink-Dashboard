@@ -2,7 +2,7 @@
 
 ## Préparer le jeu
 
-Installer Minecraft 1.21.1, NeoForge 21.1.250 et Java 21. Les deux mods **HomeCore 1.6.1** et **HomeLink Dashboard 1.1.0** doivent être présents côté client et côté serveur. Les traductions françaises et anglaises suivent la langue choisie dans Minecraft.
+Installer Minecraft 1.21.1, NeoForge 21.1.250 et Java 21. Les deux mods **HomeCore 1.7.0** et **HomeLink Dashboard 1.2.0** doivent être présents côté client et côté serveur. Les traductions françaises et anglaises suivent la langue choisie dans Minecraft.
 
 Pour l'interface française, choisir **Français (France)** dans les langues de Minecraft. Les menus, états d'appareils, rôles, filtres, interrupteurs et résultats d'action sont traduits. Les noms personnalisés, messages et intitulés de mesures fournis par un autre mod restent ceux de ce mod ; Dashboard ne traduit pas arbitrairement les données reçues. Les codes inconnus conservent un affichage de secours lisible.
 
@@ -37,7 +37,7 @@ Le serveur et les relais doivent rester dans des chunks chargés. Ils ne chargen
 
 Les appareils doivent toujours être enregistrés et associés au réseau par leur mod HomeCore : il n’y a pas de détection automatique des blocs voisins. Les appareils physiques hors portée sont retirés de la liste en environ une seconde ; leurs actions, mesures et événements sont bloqués côté serveur dès la perte du signal. Ils réapparaissent quand la liaison revient. Leurs favoris et widgets restent enregistrés. Les appareils purement logiques (sans position ni dimension) restent accessibles lorsqu’un serveur de leur réseau est chargé ; une localisation partielle est refusée.
 
-Cette fonctionnalité exige **HomeCore 1.6.1** ou une version compatible plus récente sur le client et le serveur. Mettre à jour les deux JAR ensemble.
+Cette fonctionnalité exige **HomeCore 1.7.0** ou une version compatible plus récente sur le client et le serveur. Mettre à jour les deux JAR ensemble.
 
 Un point non associé ou hors portée est hors ligne. Un point associé à un réseau existant et recevant le signal est en ligne. Une association vers un réseau supprimé donne une erreur. Ces états indiquent la disponibilité du point d’accès, pas la santé de chacun des appareils du réseau.
 
@@ -47,13 +47,13 @@ Après la mise à jour depuis le modèle d’un bloc, redémarrer Minecraft puis
 
 ## Recettes
 
-Les blocs se fabriquent dans une table de fabrication et produisent un bloc chacun. Ils utilisent les composants partagés de HomeCore : le **Circuit imprimé HomeLink** et le **Microprocesseur HomeLink**. Ces composants s’assemblent uniquement dans l’**Établi électronique HomeLink** de HomeCore, lui-même fabriqué avec du fer, du cuivre, de la redstone, une table de fabrication et des planches ; ils n’ont pas de recette en table de fabrication. Une recette se débloque dans le livre de recettes dès que le composant correspondant entre dans l’inventaire.
+Les blocs se fabriquent dans une table de fabrication et produisent un bloc chacun. Ils utilisent les composants partagés de HomeCore : le **Circuit imprimé HomeLink**, le **Microprocesseur HomeLink** et le **Module de communication HomeLink**. Ces composants s’assemblent uniquement dans l’**Établi électronique HomeLink** de HomeCore, lui-même fabriqué avec du fer, du cuivre, de la redstone, une table de fabrication et des planches ; ils n’ont pas de recette en table de fabrication. Une recette se débloque dans le livre de recettes dès que le composant correspondant entre dans l’inventaire.
 
-**HomeLink Server** : cinq lingots de fer, un microprocesseur, un circuit imprimé et deux poudres de redstone.
+**HomeLink Server** : cinq lingots de fer, un microprocesseur, un module de communication et deux poudres de redstone.
 
 ```text
 Fer       Microprocesseur  Fer
-Redstone  Circuit          Redstone
+Redstone  Module comm.     Redstone
 Fer       Fer              Fer
 ```
 
@@ -65,12 +65,12 @@ Verre  Verre    Verre
 Fer    Circuit  Fer
 ```
 
-**Répéteur HomeLink** : quatre lingots de fer, un répéteur de redstone et un circuit imprimé.
+**Répéteur HomeLink** : quatre lingots de fer, un répéteur de redstone et un module de communication.
 
 ```text
-Fer    Vide       Fer
-Vide   Répéteur   Vide
-Fer    Circuit    Fer
+Fer    Vide          Fer
+Vide   Répéteur      Vide
+Fer    Module comm.  Fer
 ```
 
 Les définitions livrées sont [home_server.json](../src/main/resources/data/homelink_dashboard/recipe/home_server.json), [dashboard_display.json](../src/main/resources/data/homelink_dashboard/recipe/dashboard_display.json) et [signal_repeater.json](../src/main/resources/data/homelink_dashboard/recipe/signal_repeater.json). Utiliser une pioche adaptée pour récupérer les blocs. Casser un point d’accès ne supprime pas le HomeNetwork ; son association locale devra être choisie de nouveau après placement.

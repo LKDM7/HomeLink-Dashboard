@@ -1,11 +1,11 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
-  "pattern": ["I I", " R ", "IBI"],
+  "pattern": ["I I", " R ", "ICI"],
   "key": {
     "I": { "item": "minecraft:iron_ingot" },
     "R": { "item": "minecraft:repeater" },
-    "B": { "item": "homecore:homelink_circuit_board" }
+    "C": { "item": "homecore:homelink_communication_module" }
   },
   "result": { "id": "homelink_dashboard:signal_repeater", "count": 1 }
 }

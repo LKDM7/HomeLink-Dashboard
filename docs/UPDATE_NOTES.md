@@ -1,3 +1,17 @@
+# Version 1.2.0 — HomeCore 1.7.0 et module de communication
+
+Cette mise à jour nécessite **HomeCore 1.7.0** sur le client et le serveur. La plage déclarée devient `[1.7.0,2.0.0)`.
+
+- Le **module de communication HomeLink** (`homecore:homelink_communication_module`), assemblé dans l’établi électronique, équipe désormais les appareils radio :
+  - **HomeLink Server** : le module de communication remplace le circuit imprimé ; le microprocesseur reste.
+  - **Répéteur HomeLink** : le module de communication remplace le circuit imprimé.
+  - **HomeLink Dashboard** : inchangé, avec un circuit imprimé.
+- Les recettes du serveur et du répéteur se débloquent à l’obtention du module de communication.
+- Les recettes 1.1.0 à circuit imprimé du serveur et du répéteur ne fonctionnent plus. Les blocs déjà posés et les réseaux existants ne changent pas.
+- Le chapitre « Premiers pas » du manuel intégré est mis à jour.
+
+Vérifications du 26 septembre 2026 : `build` et contrôle du JAR `homelink_dashboard-1.2.0.jar` réussis, **44 GameTests serveur** passés avec HomeCore 1.7.0. Les tests vérifient les nouvelles recettes et refusent les variantes du serveur et du répéteur à circuit imprimé.
+
 # Version 1.1.0 — HomeCore 1.6.1, recettes à composants et interface HomeLink Storage
 
 Cette mise à jour nécessite **HomeCore 1.6.1** sur le client et le serveur. La plage déclarée devient `[1.6.1,2.0.0)`.

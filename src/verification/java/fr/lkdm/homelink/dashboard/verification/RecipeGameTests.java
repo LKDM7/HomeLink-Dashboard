@@ -26,7 +26,7 @@ public final class RecipeGameTests {
     public static void homeServerSurvivalRecipe(GameTestHelper helper) {
         verify(helper, "home_server", DashboardRegistries.HOME_SERVER.get(), List.of(
                 Items.IRON_INGOT, homeCore("homelink_microprocessor"), Items.IRON_INGOT,
-                Items.REDSTONE, homeCore("homelink_circuit_board"), Items.REDSTONE,
+                Items.REDSTONE, homeCore("homelink_communication_module"), Items.REDSTONE,
                 Items.IRON_INGOT, Items.IRON_INGOT, Items.IRON_INGOT));
     }
 
@@ -43,7 +43,7 @@ public final class RecipeGameTests {
         verify(helper, "signal_repeater", DashboardRegistries.SIGNAL_REPEATER.get(), List.of(
                 Items.IRON_INGOT, Items.AIR, Items.IRON_INGOT,
                 Items.AIR, Items.REPEATER, Items.AIR,
-                Items.IRON_INGOT, homeCore("homelink_circuit_board"), Items.IRON_INGOT));
+                Items.IRON_INGOT, homeCore("homelink_communication_module"), Items.IRON_INGOT));
     }
 
     @GameTest(template = "empty")
@@ -55,6 +55,18 @@ public final class RecipeGameTests {
                 Items.IRON_INGOT, Items.REDSTONE, Items.IRON_INGOT).stream().map(ItemStack::new).toList());
         helper.assertTrue(level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, formerRepeater, level).isEmpty(),
                 "Redstone must no longer replace the HomeLink Circuit Board");
+        var circuitBoardRepeater = CraftingInput.of(3, 3, List.of(
+                Items.IRON_INGOT, Items.AIR, Items.IRON_INGOT,
+                Items.AIR, Items.REPEATER, Items.AIR,
+                Items.IRON_INGOT, homeCore("homelink_circuit_board"), Items.IRON_INGOT).stream().map(ItemStack::new).toList());
+        helper.assertTrue(level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, circuitBoardRepeater, level).isEmpty(),
+                "The repeater must require the HomeLink Communication Module");
+        var circuitBoardServer = CraftingInput.of(3, 3, List.of(
+                Items.IRON_INGOT, homeCore("homelink_microprocessor"), Items.IRON_INGOT,
+                Items.REDSTONE, homeCore("homelink_circuit_board"), Items.REDSTONE,
+                Items.IRON_INGOT, Items.IRON_INGOT, Items.IRON_INGOT).stream().map(ItemStack::new).toList());
+        helper.assertTrue(level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, circuitBoardServer, level).isEmpty(),
+                "The server must require the HomeLink Communication Module");
         helper.succeed();
     }
 

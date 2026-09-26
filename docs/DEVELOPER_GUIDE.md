@@ -1,8 +1,8 @@
-# Guide développeur — HomeLink Dashboard 1.1.0
+# Guide développeur — HomeLink Dashboard 1.2.0
 
 ## Contrat et architecture
 
-Dashboard est un consommateur générique de **HomeCore 1.6.1** (API `1.3.0`). Les classes HomeCore ne sont pas recopiées dans ce projet. Les imports d’intégration utilisent `fr.lkdm.homecore.api.*` ; aucun import de `fr.lkdm.homecore.internal.*` n’est nécessaire ou autorisé côté Dashboard.
+Dashboard est un consommateur générique de **HomeCore 1.7.0** (API `1.3.0`). Les classes HomeCore ne sont pas recopiées dans ce projet. Les imports d’intégration utilisent `fr.lkdm.homecore.api.*` ; aucun import de `fr.lkdm.homecore.internal.*` n’est nécessaire ou autorisé côté Dashboard.
 
 ```text
 Mod fournisseur / adaptateur HomeCore
@@ -89,7 +89,7 @@ HomeCore gère séparément `data/homecore_networks.dat`. Les associations des p
 
 ## Construire le projet
 
-Java 21 est nécessaire. Les versions de référence sont dans `gradle.properties` et `build.gradle` : Minecraft 1.21.1, NeoForge 21.1.250, Dashboard 1.1.0, HomeCore 1.6.1 (API 1.3.0). Les recettes de Dashboard référencent `homecore:homelink_circuit_board` et `homecore:homelink_microprocessor` par identifiant, sans importer de classe HomeCore. Conserver les versions de mappings du projet à moins d’une migration explicite.
+Java 21 est nécessaire. Les versions de référence sont dans `gradle.properties` et `build.gradle` : Minecraft 1.21.1, NeoForge 21.1.250, Dashboard 1.2.0, HomeCore 1.7.0 (API 1.3.0). Les recettes de Dashboard référencent `homecore:homelink_circuit_board`, `homecore:homelink_microprocessor` et `homecore:homelink_communication_module` par identifiant, sans importer de classe HomeCore. Conserver les versions de mappings du projet à moins d’une migration explicite.
 
 `settings.gradle` inclut réellement le build source `../HomeCore` et substitue `fr.lkdm.homecore:homecore`. Ce projet source est requis avec la configuration actuelle ; un JAR isolé placé arbitrairement dans `libs` ne remplace pas cette configuration.
 

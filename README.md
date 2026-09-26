@@ -1,4 +1,4 @@
-# HomeLink Dashboard 1.1.0
+# HomeLink Dashboard 1.2.0
 
 Centre de contrôle visuel générique de l’écosystème HomeLink : consulter les appareils HomeCore, exécuter leurs actions autorisées, recevoir leurs événements et organiser un tableau de bord personnel.
 
@@ -11,12 +11,16 @@ Dashboard interprète les schémas publics HomeCore. Il ne contient aucune inté
 | Minecraft | 1.21.1 |
 | NeoForge | 21.1.250 |
 | Java | 21 |
-| HomeCore, obligatoire | 1.6.1 ou plus récent (< 2.0.0) |
-| HomeLink Dashboard | 1.1.0 |
+| HomeCore, obligatoire | 1.7.0 ou plus récent (< 2.0.0) |
+| HomeLink Dashboard | 1.2.0 |
 
-Installer `homecore-1.6.1.jar` et `homelink_dashboard-1.1.0.jar` dans le dossier `mods` du client **et** du serveur. En solo, les deux JAR sont nécessaires dans l’installation Minecraft. HomeCore reste une dépendance séparée ; son code n’est pas embarqué dans le JAR Dashboard.
+Installer `homecore-1.7.0.jar` et `homelink_dashboard-1.2.0.jar` dans le dossier `mods` du client **et** du serveur. En solo, les deux JAR sont nécessaires dans l’installation Minecraft. HomeCore reste une dépendance séparée ; son code n’est pas embarqué dans le JAR Dashboard.
 
-**English installation:** use Minecraft 1.21.1, NeoForge 21.1.250 and Java 21. Put both HomeCore 1.6.1 and HomeLink Dashboard 1.1.0 in the client and server `mods` folders. Crafting recipes use the HomeLink Circuit Board and Microprocessor assembled at the HomeCore Electronics Workbench. Place a HomeLink Server, create or link a HomeNetwork, then link a Dashboard Display to the same network. Extend the 64-block range with HomeLink Repeaters. Devices must be exposed by a HomeCore-compatible mod. The **?** button in the header opens the in-game manual.
+**English installation:** use Minecraft 1.21.1, NeoForge 21.1.250 and Java 21. Put both HomeCore 1.7.0 and HomeLink Dashboard 1.2.0 in the client and server `mods` folders. Crafting recipes use the HomeLink Circuit Board, Microprocessor and Communication Module assembled at the HomeCore Electronics Workbench. Place a HomeLink Server, create or link a HomeNetwork, then link a Dashboard Display to the same network. Extend the 64-block range with HomeLink Repeaters. Devices must be exposed by a HomeCore-compatible mod. The **?** button in the header opens the in-game manual.
+
+## Nouveautés de la 1.2.0
+
+- Le serveur et le répéteur demandent le **module de communication HomeLink** de HomeCore 1.7.0 à la place du circuit imprimé ; requiert HomeCore 1.7.0.
 
 ## Nouveautés de la 1.1.0
 
@@ -32,9 +36,9 @@ Les blocs se fabriquent en table de fabrication. Leurs composants s’assemblent
 
 | Bloc | Ingrédients |
 | --- | --- |
-| HomeLink Server | 5 lingots de fer, 1 microprocesseur HomeLink, 1 circuit imprimé HomeLink, 2 redstone |
+| HomeLink Server | 5 lingots de fer, 1 microprocesseur HomeLink, 1 module de communication HomeLink, 2 redstone |
 | HomeLink Dashboard | 5 lingots de fer, 3 verres, 1 circuit imprimé HomeLink |
-| Répéteur HomeLink | 4 lingots de fer, 1 répéteur de redstone, 1 circuit imprimé HomeLink |
+| Répéteur HomeLink | 4 lingots de fer, 1 répéteur de redstone, 1 module de communication HomeLink |
 
 Les grilles détaillées figurent dans le [guide utilisateur](docs/USER_GUIDE.md#recettes).
 

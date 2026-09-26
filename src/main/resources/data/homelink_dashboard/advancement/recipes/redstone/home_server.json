@@ -1,15 +1,15 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_microprocessor": {
+    "has_communication_module": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": { "items": [{ "items": ["homecore:homelink_microprocessor"] }] }
+      "conditions": { "items": [{ "items": ["homecore:homelink_communication_module"] }] }
     },
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": { "recipe": "homelink_dashboard:home_server" }
     }
   },
-  "requirements": [["has_microprocessor", "has_the_recipe"]],
+  "requirements": [["has_communication_module", "has_the_recipe"]],
   "rewards": { "recipes": ["homelink_dashboard:home_server"] }
 }

@@ -1,12 +1,12 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
-  "pattern": ["IMI", "RBR", "III"],
+  "pattern": ["IMI", "RCR", "III"],
   "key": {
     "I": { "item": "minecraft:iron_ingot" },
     "M": { "item": "homecore:homelink_microprocessor" },
     "R": { "item": "minecraft:redstone" },
-    "B": { "item": "homecore:homelink_circuit_board" }
+    "C": { "item": "homecore:homelink_communication_module" }
   },
   "result": { "id": "homelink_dashboard:home_server", "count": 1 }
 }
