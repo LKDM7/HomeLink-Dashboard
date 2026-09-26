@@ -41,27 +41,27 @@ public final class NetworkView {
         this.x = x; this.y = y; this.width = width; this.height = height;
         renameButton = null; saveButton = null;
         if (editing) {
-            var input = new net.minecraft.client.gui.components.EditBox(font, x, y + 26, width, 20,
-                    Component.translatable("screen.homelink_dashboard.network_name"));
+            var input = DashboardTheme.input(new net.minecraft.client.gui.components.EditBox(font, x, y + 26, width,
+                    DashboardTheme.CONTROL_HEIGHT, Component.translatable("screen.homelink_dashboard.network_name")));
             input.setMaxLength(128); input.setValue(draft);
             input.setResponder(value -> draft = value);
             addWidget.accept(input);
             saveButton = DashboardButton.builder(Component.translatable("screen.homelink_dashboard.save_name"), button -> {
                 pending = true; result = ""; submitName.accept(draft);
-            }).bounds(x, y + 54, (width - 4) / 2, 20).build();
+            }).bounds(x, y + 54, (width - 4) / 2, DashboardTheme.CONTROL_HEIGHT).build();
             addWidget.accept(saveButton);
             addWidget.accept(DashboardButton.builder(Component.translatable("screen.homelink_dashboard.cancel_name"), button -> {
                 editing = false; rebuild.run();
-            }).bounds(x + (width + 4) / 2, y + 54, (width - 4) / 2, 20).build());
+            }).bounds(x + (width + 4) / 2, y + 54, (width - 4) / 2, DashboardTheme.CONTROL_HEIGHT).build());
             tick();
             return;
         }
         renameButton = DashboardButton.builder(Component.translatable("screen.homelink_dashboard.rename"), button -> {
             editing = true; draft = state.networkName(); result = ""; rebuild.run();
-        }).bounds(x + Math.max(0, width - 184), y, 90, 20).build();
+        }).bounds(x + Math.max(0, width - 184), y, 90, DashboardTheme.CONTROL_HEIGHT).build();
         addWidget.accept(renameButton);
         addWidget.accept(DashboardButton.builder(Component.translatable("screen.homelink_dashboard.network_advanced"), button -> advanced = !advanced)
-                .bounds(x + Math.max(0, width - 90), y, Math.min(90, width), 20).build());
+                .bounds(x + Math.max(0, width - 90), y, Math.min(90, width), DashboardTheme.CONTROL_HEIGHT).build());
         tick();
     }
     public void tick() {

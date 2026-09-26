@@ -1,15 +1,15 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_redstone": {
+    "has_circuit_board": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": { "items": [{ "items": ["minecraft:redstone"] }] }
+      "conditions": { "items": [{ "items": ["homecore:homelink_circuit_board"] }] }
     },
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": { "recipe": "homelink_dashboard:dashboard_display" }
     }
   },
-  "requirements": [["has_redstone", "has_the_recipe"]],
+  "requirements": [["has_circuit_board", "has_the_recipe"]],
   "rewards": { "recipes": ["homelink_dashboard:dashboard_display"] }
 }

@@ -1,15 +1,15 @@
 {
   "parent": "minecraft:recipes/root",
   "criteria": {
-    "has_comparator": {
+    "has_microprocessor": {
       "trigger": "minecraft:inventory_changed",
-      "conditions": { "items": [{ "items": ["minecraft:comparator"] }] }
+      "conditions": { "items": [{ "items": ["homecore:homelink_microprocessor"] }] }
     },
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": { "recipe": "homelink_dashboard:home_server" }
     }
   },
-  "requirements": [["has_comparator", "has_the_recipe"]],
+  "requirements": [["has_microprocessor", "has_the_recipe"]],
   "rewards": { "recipes": ["homelink_dashboard:home_server"] }
 }

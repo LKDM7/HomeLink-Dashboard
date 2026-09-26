@@ -22,13 +22,13 @@ public final class SettingsView {
             DashboardConfig.setAlertLimit(value < 64 ? 64 : value < 128 ? 128 : value < 256 ? 256 : value < 512 ? 512 : 32);
             button.setMessage(alertLabel());
             changed.run();
-        }).bounds(x, y + 24, width, 20).build());
+        }).bounds(x, y + 24, width, DashboardTheme.CONTROL_HEIGHT).build());
         addWidget.accept(DashboardButton.builder(intervalLabel(), button -> {
             int value = DashboardConfig.uiInterval();
             DashboardConfig.setUiInterval(value < 2 ? 2 : value < 4 ? 4 : value < 10 ? 10 : value < 20 ? 20 : 1);
             button.setMessage(intervalLabel());
             changed.run();
-        }).bounds(x, y + 50, width, 20).build());
+        }).bounds(x, y + 50, width, DashboardTheme.CONTROL_HEIGHT).build());
     }
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.enableScissor(x, y, x + width, y + Math.max(0, height));

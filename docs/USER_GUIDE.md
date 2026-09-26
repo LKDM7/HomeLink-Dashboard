@@ -1,8 +1,8 @@
-# Guide utilisateur — HomeLink Dashboard 1.0.0
+# Guide utilisateur — HomeLink Dashboard 1.1.0
 
 ## Préparer le jeu
 
-Installer Minecraft 1.21.1, NeoForge 21.1.250 et Java 21. Les deux mods **HomeCore 1.3.0** et **HomeLink Dashboard 1.0.0** doivent être présents côté client et côté serveur. Les traductions françaises et anglaises suivent la langue choisie dans Minecraft.
+Installer Minecraft 1.21.1, NeoForge 21.1.250 et Java 21. Les deux mods **HomeCore 1.6.1** et **HomeLink Dashboard 1.1.0** doivent être présents côté client et côté serveur. Les traductions françaises et anglaises suivent la langue choisie dans Minecraft.
 
 Pour l'interface française, choisir **Français (France)** dans les langues de Minecraft. Les menus, états d'appareils, rôles, filtres, interrupteurs et résultats d'action sont traduits. Les noms personnalisés, messages et intitulés de mesures fournis par un autre mod restent ceux de ce mod ; Dashboard ne traduit pas arbitrairement les données reçues. Les codes inconnus conservent un affichage de secours lisible.
 
@@ -10,9 +10,9 @@ Pour l'interface française, choisir **Français (France)** dans les langues de 
 
 ## Manuel intégré
 
-Le bouton **?**, à côté de **Fermer**, ouvre le manuel dans le jeu, même avant l’association à un réseau. Cinq chapitres expliquent les premiers pas, les appareils et actions, les favoris et la disposition, les alertes et permissions, puis le dépannage. La langue suit celle de Minecraft (français ou anglais).
+Le bouton **?**, en haut à droite de l’en-tête (même emplacement que dans HomeLink Storage), ouvre le manuel dans le jeu, même avant l’association à un réseau. Cinq chapitres expliquent les premiers pas, les appareils et actions, les favoris et la disposition, les alertes et permissions, puis le dépannage. La langue suit celle de Minecraft (français ou anglais).
 
-Les flèches **< / >** changent de chapitre. La molette et les boutons **Haut / Bas** font défiler le texte ; ces boutons sont également accessibles au clavier. **Retour** ou **Échap** revient à la page précédente sans fermer la connexion au réseau. Les mesures continuent de se mettre à jour pendant la lecture. **Fermer** quitte le Dashboard.
+Les flèches **< / >** changent de chapitre. La molette et les boutons **Haut / Bas** font défiler le texte ; ces boutons sont également accessibles au clavier. Raccourcis : **Page préc. / Page suiv.** pour défiler, **Début / Fin** pour aller au début ou à la fin du chapitre, **← / →** pour changer de chapitre. **Retour** ou **Échap** revient à la page précédente sans fermer la connexion au réseau. Les mesures continuent de se mettre à jour pendant la lecture. **Fermer** quitte le Dashboard.
 
 Chaque étape possède un titre sur bandeau gris et un repère ambre. Les noms de commandes et permissions sont mis en couleur ; le texte courant reste clair, avec un interligne et des séparations entre les sections pour faciliter la lecture.
 
@@ -25,7 +25,7 @@ Dans l’onglet créatif HomeLink Dashboard, les deux blocs sont **HomeLink Serv
 3. Placer le Dashboard Display et ouvrir sa configuration. Sélectionner le même réseau et confirmer l’association. Le Display peut associer un réseau existant ; la création d’un réseau se fait sur le Server.
 4. Faire un clic droit sur l’un des deux blocs associés pour ouvrir la même interface réseau.
 
-Le Display possède une façade rectangulaire et un voyant d'état. Son petit schéma de façade est décoratif ; les données réelles sont dans l'interface ouverte au clic. La GUI prend la forme d'un terminal industriel gris : boutons en relief, onglet actif enfoncé et focus clavier visible. HOME regroupe ses compteurs sur une ligne lorsque la fenêtre est assez grande et présente les favoris dans des lignes compactes. La taille de l'interface suit le réglage d'échelle GUI de Minecraft.
+Le Display possède une façade rectangulaire et un voyant d'état. Son petit schéma de façade est décoratif ; les données réelles sont dans l'interface ouverte au clic. La GUI prend la forme d'un terminal industriel gris : boutons en relief, onglet actif enfoncé et focus clavier visible. Elle partage le cadre, la palette, les contrôles de 18 pixels, les info-bulles et la disposition de l’en-tête (voyant d’état puis **?**) avec HomeLink Storage. HOME regroupe ses compteurs sur une ligne lorsque la fenêtre est assez grande et présente les favoris dans des lignes compactes. La taille de l'interface suit le réglage d'échelle GUI de Minecraft.
 
 Les points d’accès utilisent le même HomeNetwork. Le serveur émet dans un rayon de **64 blocs**, hauteur comprise, dans sa dimension. L’écran et les appareils physiques doivent être couverts par un serveur ou un répéteur connecté. Aucun câble n’est nécessaire et les murs ne bloquent pas le signal. Le joueur doit rester à moins de huit blocs du point d’accès utilisé ; le menu se ferme si ce point est détruit, désactivé ou perd le signal.
 
@@ -37,7 +37,7 @@ Le serveur et les relais doivent rester dans des chunks chargés. Ils ne chargen
 
 Les appareils doivent toujours être enregistrés et associés au réseau par leur mod HomeCore : il n’y a pas de détection automatique des blocs voisins. Les appareils physiques hors portée sont retirés de la liste en environ une seconde ; leurs actions, mesures et événements sont bloqués côté serveur dès la perte du signal. Ils réapparaissent quand la liaison revient. Leurs favoris et widgets restent enregistrés. Les appareils purement logiques (sans position ni dimension) restent accessibles lorsqu’un serveur de leur réseau est chargé ; une localisation partielle est refusée.
 
-Cette fonctionnalité exige **HomeCore 1.3.0** ou une version compatible plus récente sur le client et le serveur. Mettre à jour les deux JAR ensemble.
+Cette fonctionnalité exige **HomeCore 1.6.1** ou une version compatible plus récente sur le client et le serveur. Mettre à jour les deux JAR ensemble.
 
 Un point non associé ou hors portée est hors ligne. Un point associé à un réseau existant et recevant le signal est en ligne. Une association vers un réseau supprimé donne une erreur. Ces états indiquent la disponibilité du point d’accès, pas la santé de chacun des appareils du réseau.
 
@@ -47,33 +47,33 @@ Après la mise à jour depuis le modèle d’un bloc, redémarrer Minecraft puis
 
 ## Recettes
 
-Les recettes ci-dessous se réalisent dans une table de fabrication et produisent un bloc chacune.
+Les blocs se fabriquent dans une table de fabrication et produisent un bloc chacun. Ils utilisent les composants partagés de HomeCore : le **Circuit imprimé HomeLink** et le **Microprocesseur HomeLink**. Ces composants s’assemblent uniquement dans l’**Établi électronique HomeLink** de HomeCore, lui-même fabriqué avec du fer, du cuivre, de la redstone, une table de fabrication et des planches ; ils n’ont pas de recette en table de fabrication. Une recette se débloque dans le livre de recettes dès que le composant correspondant entre dans l’inventaire.
 
-**HomeLink Server** : cinq lingots de fer, un quartz du Nether, deux poudres de redstone et un comparateur.
-
-```text
-Fer       Quartz       Fer
-Redstone  Comparateur  Redstone
-Fer       Fer          Fer
-```
-
-**HomeLink Dashboard** : cinq lingots de fer, trois blocs de verre et une poudre de redstone.
+**HomeLink Server** : cinq lingots de fer, un microprocesseur, un circuit imprimé et deux poudres de redstone.
 
 ```text
-Fer    Fer       Fer
-Verre  Verre     Verre
-Fer    Redstone  Fer
+Fer       Microprocesseur  Fer
+Redstone  Circuit          Redstone
+Fer       Fer              Fer
 ```
 
-Les définitions livrées sont [home_server.json](../src/main/resources/data/homelink_dashboard/recipe/home_server.json) et [dashboard_display.json](../src/main/resources/data/homelink_dashboard/recipe/dashboard_display.json). Utiliser une pioche adaptée pour récupérer les blocs. Casser un point d’accès ne supprime pas le HomeNetwork ; son association locale devra être choisie de nouveau après placement.
+**HomeLink Dashboard** : cinq lingots de fer, trois blocs de verre et un circuit imprimé.
 
-**Répéteur HomeLink** : quatre lingots de fer, un répéteur de redstone et une poudre de redstone.
+```text
+Fer    Fer      Fer
+Verre  Verre    Verre
+Fer    Circuit  Fer
+```
+
+**Répéteur HomeLink** : quatre lingots de fer, un répéteur de redstone et un circuit imprimé.
 
 ```text
 Fer    Vide       Fer
 Vide   Répéteur   Vide
-Fer    Redstone   Fer
+Fer    Circuit    Fer
 ```
+
+Les définitions livrées sont [home_server.json](../src/main/resources/data/homelink_dashboard/recipe/home_server.json), [dashboard_display.json](../src/main/resources/data/homelink_dashboard/recipe/dashboard_display.json) et [signal_repeater.json](../src/main/resources/data/homelink_dashboard/recipe/signal_repeater.json). Utiliser une pioche adaptée pour récupérer les blocs. Casser un point d’accès ne supprime pas le HomeNetwork ; son association locale devra être choisie de nouveau après placement.
 
 ## HOME : favoris et widgets
 

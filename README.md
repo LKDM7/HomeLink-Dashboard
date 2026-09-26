@@ -1,8 +1,8 @@
-# HomeLink Dashboard 1.0.0
+# HomeLink Dashboard 1.1.0
 
 Centre de contrôle visuel générique de l’écosystème HomeLink : consulter les appareils HomeCore, exécuter leurs actions autorisées, recevoir leurs événements et organiser un tableau de bord personnel.
 
-Dashboard interprète les schémas publics HomeCore. Il ne contient aucune intégration spécifique à Farm Monitor, Holographique Map, Create ou Mekanism.
+Dashboard interprète les schémas publics HomeCore. Il ne contient aucune intégration spécifique à Farm Monitor, Holographique Map, Create ou Mekanism. Son interface partage le cadre, la palette et les contrôles de [HomeLink Storage](https://github.com/LKDM7/HomeLink-Storage).
 
 ## Installation
 
@@ -11,19 +11,39 @@ Dashboard interprète les schémas publics HomeCore. Il ne contient aucune inté
 | Minecraft | 1.21.1 |
 | NeoForge | 21.1.250 |
 | Java | 21 |
-| HomeCore, obligatoire | 1.3.0 |
-| HomeLink Dashboard | 1.0.0 |
+| HomeCore, obligatoire | 1.6.1 ou plus récent (< 2.0.0) |
+| HomeLink Dashboard | 1.1.0 |
 
-Installer `homecore-1.3.0.jar` et `homelink_dashboard-1.0.0.jar` dans le dossier `mods` du client **et** du serveur. En solo, les deux JAR sont nécessaires dans l’installation Minecraft. HomeCore reste une dépendance séparée ; son code n’est pas embarqué dans le JAR Dashboard.
+Installer `homecore-1.6.1.jar` et `homelink_dashboard-1.1.0.jar` dans le dossier `mods` du client **et** du serveur. En solo, les deux JAR sont nécessaires dans l’installation Minecraft. HomeCore reste une dépendance séparée ; son code n’est pas embarqué dans le JAR Dashboard.
 
-**English installation:** use Minecraft 1.21.1, NeoForge 21.1.250 and Java 21. Put both HomeCore 1.3.0 and HomeLink Dashboard 1.0.0 in the client and server `mods` folders. Place a HomeLink Server, create or link a HomeNetwork, then link a Dashboard Display to the same network. Devices must be exposed by a HomeCore-compatible mod.
+**English installation:** use Minecraft 1.21.1, NeoForge 21.1.250 and Java 21. Put both HomeCore 1.6.1 and HomeLink Dashboard 1.1.0 in the client and server `mods` folders. Crafting recipes use the HomeLink Circuit Board and Microprocessor assembled at the HomeCore Electronics Workbench. Place a HomeLink Server, create or link a HomeNetwork, then link a Dashboard Display to the same network. Extend the 64-block range with HomeLink Repeaters. Devices must be exposed by a HomeCore-compatible mod. The **?** button in the header opens the in-game manual.
+
+## Nouveautés de la 1.1.0
+
+- Recettes basées sur les composants HomeCore (circuit imprimé et microprocesseur), requiert HomeCore 1.6.1.
+- Interface alignée sur HomeLink Storage : contrôles de 18 pixels, info-bulles, bouton **?** dans l’en-tête.
+- Manuel intégré bilingue, portée radio de 64 blocs avec répéteurs, réseaux renommables.
+
+Détails : [notes de mise à jour](docs/UPDATE_NOTES.md) et [portée et répéteurs](docs/RADIO.md).
+
+## Fabrication
+
+Les blocs se fabriquent en table de fabrication. Leurs composants s’assemblent dans l’**Établi électronique HomeLink** de HomeCore.
+
+| Bloc | Ingrédients |
+| --- | --- |
+| HomeLink Server | 5 lingots de fer, 1 microprocesseur HomeLink, 1 circuit imprimé HomeLink, 2 redstone |
+| HomeLink Dashboard | 5 lingots de fer, 3 verres, 1 circuit imprimé HomeLink |
+| Répéteur HomeLink | 4 lingots de fer, 1 répéteur de redstone, 1 circuit imprimé HomeLink |
+
+Les grilles détaillées figurent dans le [guide utilisateur](docs/USER_GUIDE.md#recettes).
 
 ## Première utilisation
 
 1. Placer un **HomeLink Server** et faire un clic droit.
-2. Créer un HomeNetwork ou choisir un réseau existant pour lequel vous avez les droits de configuration.
-3. Placer un **HomeLink Dashboard** et l’associer au même réseau.
-4. Utiliser **HOME**, **DEVICES**, **ALERTS**, **NETWORK** et **SETTINGS**.
+2. Créer un HomeNetwork (nom personnalisable) ou choisir un réseau existant pour lequel vous avez les droits de configuration.
+3. Placer un **HomeLink Dashboard** à moins de 64 blocs et l’associer au même réseau. Au-delà, poser des **Répéteurs HomeLink** associés à ce réseau.
+4. Utiliser **HOME**, **DEVICES**, **ALERTS**, **NETWORK** et **SETTINGS** ; le bouton **?** ouvre le manuel.
 
 Les appareils proviennent des mods compatibles HomeCore. Un réseau neuf peut donc être vide. Les exemples et appareils de vérification ne sont pas inclus dans le JAR de production.
 

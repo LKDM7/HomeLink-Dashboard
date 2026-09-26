@@ -1,5 +1,6 @@
 package fr.lkdm.homelink.dashboard.client.widget;
 
+import fr.lkdm.homelink.dashboard.client.rendering.DashboardTheme;
 import fr.lkdm.homelink.dashboard.client.state.DashboardClientState;
 import fr.lkdm.homelink.dashboard.client.state.DebugDeviceView;
 import fr.lkdm.homelink.dashboard.client.state.DeviceActionView;
@@ -40,8 +41,8 @@ public final class ActionPanel {
         this.width = width;
         this.height = height;
         editors.clear();
-        previous = DashboardButton.builder(Component.literal("<"), button -> changeAction(-1)).bounds(x, y, 24, 20).build();
-        next = DashboardButton.builder(Component.literal(">"), button -> changeAction(1)).bounds(x + width - 24, y, 24, 20).build();
+        previous = DashboardButton.builder(Component.literal("<"), button -> changeAction(-1)).bounds(x, y, 24, DashboardTheme.CONTROL_HEIGHT).build();
+        next = DashboardButton.builder(Component.literal(">"), button -> changeAction(1)).bounds(x + width - 24, y, 24, DashboardTheme.CONTROL_HEIGHT).build();
         addWidget.accept(previous);
         addWidget.accept(next);
         for (String type : ActionControlRegistry.TYPES) editors.put(type,
@@ -51,7 +52,7 @@ public final class ActionPanel {
             if (action == null || !editors.containsKey(action.type())) return;
             try { submit(editors.get(action.type()).value()); }
             catch (IllegalArgumentException exception) { localError = "INVALID_PARAMETER: " + exception.getMessage(); }
-        }).bounds(x, y + 68, Math.min(160, width), 20).build();
+        }).bounds(x, y + 68, Math.min(160, width), DashboardTheme.CONTROL_HEIGHT).build();
         addWidget.accept(submit);
         action = null;
         tick();

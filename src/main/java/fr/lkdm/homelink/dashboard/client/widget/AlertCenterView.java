@@ -1,5 +1,6 @@
 package fr.lkdm.homelink.dashboard.client.widget;
 
+import fr.lkdm.homelink.dashboard.client.rendering.DashboardTheme;
 import fr.lkdm.homelink.dashboard.client.state.AlertView;
 import fr.lkdm.homelink.dashboard.client.state.DashboardClientState;
 import java.time.ZoneId;
@@ -45,7 +46,7 @@ public final class AlertCenterView {
     public void init(int x, int y, int width, int height, Consumer<AbstractWidget> addWidget) {
         this.x = x; this.y = y; this.width = width; this.height = height;
         filterButton = DashboardButton.builder(filterLabel(), button -> setFilter(FILTERS.get((FILTERS.indexOf(filter) + 1) % FILTERS.size())))
-                .bounds(x, y, Math.min(width, 146), 20).build();
+                .bounds(x, y, Math.min(width, 146), DashboardTheme.CONTROL_HEIGHT).build();
         addWidget.accept(filterButton);
         tick();
         rebuild();

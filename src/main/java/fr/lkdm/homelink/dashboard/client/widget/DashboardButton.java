@@ -15,6 +15,8 @@ public final class DashboardButton extends Button {
         this.selected = selected;
         return this;
     }
+    /** Pressed-in toggle state, as used by HomeLink Storage, without the navigation marker. */
+    public DashboardButton selected(boolean value) { selected = value; return this; }
     private DashboardButton(Builder builder) { super(builder); }
     public static Builder builder(Component message, OnPress onPress) {
         return new Builder(message, onPress) {
@@ -29,7 +31,7 @@ public final class DashboardButton extends Button {
         graphics.fill(left + 1, top + 1, left + width - 1, top + height - 1, background);
         graphics.fill(left + 1, top + 1, left + width - 1, top + 2, selected ? 0xFF202224 : active ? 0xFF74787A : 0xFF484B4D);
         graphics.fill(left + 1, top + 2, left + 2, top + height - 1, selected ? 0xFF202224 : 0xFF626669);
-        if (selected) graphics.fill(left + 5, top + height / 2 - 1, left + 7, top + height / 2 + 1, DashboardTheme.ACCENT);
+        if (selected && navigation) graphics.fill(left + 5, top + height / 2 - 1, left + 7, top + height / 2 + 1, DashboardTheme.ACCENT);
         if (isFocused() && active) graphics.renderOutline(left, top, width, height, DashboardTheme.ACCENT);
         var font = Minecraft.getInstance().font;
         String text = getMessage().getString();

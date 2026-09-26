@@ -1,95 +1,114 @@
 package fr.lkdm.homelink.dashboard.client.widget;
 
 import fr.lkdm.homelink.dashboard.client.rendering.DashboardTheme;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.FormattedCharSequence;
+import org.lwjgl.glfw.GLFW;
 
-/** Local reference pages, independent of network access and device integrations. */
+/** Local translated reference pages, independent of network access and device integrations. */
 public final class ManualView {
     private static final String[] CHAPTERS = {"start", "devices", "home", "alerts", "trouble"};
-    private final Font font;
-    private int chapter, offset, x, y, width, height;
     private record Line(FormattedCharSequence text, boolean heading) { }
+    private final Font font;
     private List<Line> lines = List.of();
+    private int chapter, offset, x, y, width, height;
+    private Button up, down;
+    private Runnable rebuild;
 
     public ManualView(Font font) { this.font = font; }
     public int chapter() { return chapter; }
     public int offset() { return offset; }
-    private Component text(String suffix) {
-        return Component.translatable("manual.homelink_dashboard." + CHAPTERS[chapter] + "." + suffix);
-    }
+    private Component text(String key) { return Component.translatable("manual.homelink_dashboard." + key); }
+
     public void init(int x, int y, int width, int height, Consumer<AbstractWidget> add, Runnable rebuild) {
-        this.x = x; this.y = y; this.width = width; this.height = height;
+        this.x = x; this.y = y; this.width = width; this.height = height; this.rebuild = rebuild;
         List<Line> wrapped = new ArrayList<>();
-        for (String paragraph : text("body").getString().split("\n\n")) {
+        for (String paragraph : text(CHAPTERS[chapter] + ".body").getString().split("\n\n")) {
             if (!wrapped.isEmpty()) wrapped.add(new Line(FormattedCharSequence.EMPTY, false));
             for (String row : paragraph.split("\n")) {
                 boolean heading = row.startsWith("# ");
-                MutableComponent content = Component.empty();
+                var content = Component.empty();
                 String[] spans = (heading ? row.substring(2) : row).split("\\*\\*", -1);
                 for (int i = 0; i < spans.length; i++) {
-                    boolean emphasized = heading || i % 2 == 1;
+                    boolean emphasis = heading || i % 2 == 1;
                     content.append(Component.literal(spans[i]).withStyle(style -> style
-                            .withColor(emphasized ? DashboardTheme.ACCENT : DashboardTheme.TEXT)
-                            .withBold(heading)));
+                            .withColor(emphasis ? DashboardTheme.ACCENT : DashboardTheme.TEXT).withBold(heading)));
                 }
-                for (FormattedCharSequence line : font.split(content, width - 28)) wrapped.add(new Line(line, heading));
+                for (var line : font.split(content, width - 28)) wrapped.add(new Line(line, heading));
             }
         }
         lines = List.copyOf(wrapped);
         offset = Math.min(offset, maxOffset());
-        var previous = DashboardButton.builder(Component.literal("<"), ignored -> {
-            chapter--; offset = 0; rebuild.run();
-        }).bounds(x, y, 24, 20).build();
+        Button previous = DashboardButton.builder(Component.literal("<"), ignored -> changeChapter(-1)).bounds(x, y, 24, 18).build();
         previous.active = chapter > 0;
-        previous.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("manual.homelink_dashboard.previous")));
+        previous.setTooltip(Tooltip.create(text("previous")));
         add.accept(previous);
-        var next = DashboardButton.builder(Component.literal(">"), ignored -> {
-            chapter++; offset = 0; rebuild.run();
-        }).bounds(x + width - 24, y, 24, 20).build();
+        Button next = DashboardButton.builder(Component.literal(">"), ignored -> changeChapter(1)).bounds(x + width - 24, y, 24, 18).build();
         next.active = chapter < CHAPTERS.length - 1;
-        next.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("manual.homelink_dashboard.next")));
+        next.setTooltip(Tooltip.create(text("next")));
         add.accept(next);
-        var up = DashboardButton.builder(Component.translatable("manual.homelink_dashboard.up"), ignored -> offset = Math.max(0, offset - visibleLines()))
-                .bounds(x, y + height - 20, (width - 4) / 2, 20).build();
-        var down = DashboardButton.builder(Component.translatable("manual.homelink_dashboard.down"), ignored -> offset = Math.min(maxOffset(), offset + visibleLines()))
-                .bounds(x + (width - 4) / 2 + 4, y + height - 20, (width - 4) / 2, 20).build();
+        up = DashboardButton.builder(text("up"), ignored -> scroll(-visibleLines())).bounds(x, y + height - 18, (width - 4) / 2, 18).build();
+        down = DashboardButton.builder(text("down"), ignored -> scroll(visibleLines())).bounds(x + (width - 4) / 2 + 4, y + height - 18, (width - 4) / 2, 18).build();
         add.accept(up); add.accept(down);
+        updateButtons();
     }
-    private int visibleLines() { return Math.max(1, (height - 56) / 14); }
+
+    private int visibleLines() { return Math.max(1, (height - 52) / 14); }
     private int maxOffset() { return Math.max(0, lines.size() - visibleLines()); }
+    private void updateButtons() { up.active = offset > 0; down.active = offset < maxOffset(); }
+    private void scroll(int amount) { offset = Math.max(0, Math.min(maxOffset(), offset + amount)); updateButtons(); }
+    private void changeChapter(int delta) {
+        int next = Math.max(0, Math.min(CHAPTERS.length - 1, chapter + delta));
+        if (next != chapter) { chapter = next; offset = 0; rebuild.run(); }
+    }
+
     public void render(GuiGraphics graphics) {
-        String heading = (chapter + 1) + "/" + CHAPTERS.length + "  " + text("title").getString();
-        graphics.drawCenteredString(font, font.plainSubstrByWidth(heading, width - 60), x + width / 2, y + 6, DashboardTheme.ACCENT);
-        DashboardTheme.panel(graphics, x, y + 25, width, height - 49);
-        graphics.enableScissor(x + 4, y + 28, x + width - 4, y + height - 25);
+        String title = (chapter + 1) + "/" + CHAPTERS.length + "  " + text(CHAPTERS[chapter] + ".title").getString();
+        graphics.drawCenteredString(font, font.plainSubstrByWidth(title, width - 60), x + width / 2, y + 5, DashboardTheme.ACCENT);
+        DashboardTheme.panel(graphics, x, y + 23, width, height - 45);
+        graphics.enableScissor(x + 4, y + 26, x + width - 4, y + height - 23);
         for (int i = offset; i < Math.min(lines.size(), offset + visibleLines()); i++) {
             Line line = lines.get(i);
-            int lineY = y + 30 + (i - offset) * 14;
+            int rowY = y + 28 + (i - offset) * 14;
             if (line.heading()) {
-                graphics.fill(x + 6, lineY - 2, x + width - 9, lineY + 11, DashboardTheme.HEADER);
-                graphics.fill(x + 6, lineY - 2, x + 8, lineY + 11, DashboardTheme.ACCENT);
+                graphics.fill(x + 6, rowY - 2, x + width - 9, rowY + 11, DashboardTheme.HEADER);
+                graphics.fill(x + 6, rowY - 2, x + 8, rowY + 11, DashboardTheme.ACCENT);
             }
-            graphics.drawString(font, line.text(), x + 12, lineY, DashboardTheme.TEXT, false);
+            graphics.drawString(font, line.text(), x + 12, rowY, DashboardTheme.TEXT, false);
         }
         graphics.disableScissor();
         if (maxOffset() > 0) {
-            int track = Math.max(1, height - 59);
+            int track = Math.max(1, height - 55);
             int thumb = Math.max(6, track * visibleLines() / lines.size());
-            int top = y + 30 + (track - thumb) * offset / maxOffset();
+            int top = y + 28 + (track - thumb) * offset / maxOffset();
             graphics.fill(x + width - 5, top, x + width - 3, top + thumb, DashboardTheme.ACCENT);
         }
     }
-    public boolean mouseScrolled(double mx, double my, double vertical) {
-        if (mx < x || mx >= x + width || my < y + 25 || my >= y + height - 24) return false;
-        offset = Math.max(0, Math.min(maxOffset(), offset - (int) (vertical * 3)));
+
+    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+        if (mouseX < x || mouseX >= x + width || mouseY < y + 23 || mouseY >= y + height - 22) return false;
+        scroll(-(int) (amount * 3));
+        return true;
+    }
+
+    public boolean keyPressed(int key) {
+        switch (key) {
+            case GLFW.GLFW_KEY_PAGE_UP -> scroll(-visibleLines());
+            case GLFW.GLFW_KEY_PAGE_DOWN -> scroll(visibleLines());
+            case GLFW.GLFW_KEY_HOME -> scroll(-lines.size());
+            case GLFW.GLFW_KEY_END -> scroll(lines.size());
+            case GLFW.GLFW_KEY_LEFT -> changeChapter(-1);
+            case GLFW.GLFW_KEY_RIGHT -> changeChapter(1);
+            default -> { return false; }
+        }
         return true;
     }
 }

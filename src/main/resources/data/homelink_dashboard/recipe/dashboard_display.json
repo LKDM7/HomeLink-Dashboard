@@ -1,11 +1,11 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
-  "pattern": ["III", "GGG", "IRI"],
+  "pattern": ["III", "GGG", "IBI"],
   "key": {
     "I": { "item": "minecraft:iron_ingot" },
     "G": { "item": "minecraft:glass" },
-    "R": { "item": "minecraft:redstone" }
+    "B": { "item": "homecore:homelink_circuit_board" }
   },
   "result": { "id": "homelink_dashboard:dashboard_display", "count": 1 }
 }

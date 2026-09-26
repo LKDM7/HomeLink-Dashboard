@@ -62,7 +62,7 @@ public final class DeviceExplorerView {
         this.width = Math.max(32, width);
         this.height = Math.max(20, height);
         int filterWidth = Math.min(94, this.width / 2);
-        searchBox = new EditBox(font, x, y, Math.max(16, this.width - filterWidth - 6), 20, label("search"));
+        searchBox = DashboardTheme.input(new EditBox(font, x, y, Math.max(16, this.width - filterWidth - 6), DashboardTheme.CONTROL_HEIGHT, label("search")));
         searchBox.setMaxLength(128);
         searchBox.setTextColor(DashboardTheme.TEXT);
         searchBox.setHint(label("search"));
@@ -72,10 +72,10 @@ public final class DeviceExplorerView {
         filterButton = DashboardButton.builder(filterLabel(), button -> {
             int current = STATUSES.indexOf(statusFilter);
             setStatusFilter(STATUSES.get((current + 1) % STATUSES.size()));
-        }).bounds(x + this.width - filterWidth, y, filterWidth, 20).build();
+        }).bounds(x + this.width - filterWidth, y, filterWidth, DashboardTheme.CONTROL_HEIGHT).build();
         addWidget.accept(filterButton);
         backButton = DashboardButton.builder(label("back_devices"), button -> back())
-                .bounds(x, y, Math.min(this.width, 140), 20).build();
+                .bounds(x, y, Math.min(this.width, 140), DashboardTheme.CONTROL_HEIGHT).build();
         addWidget.accept(backButton);
         tick();
         updateVisibility();

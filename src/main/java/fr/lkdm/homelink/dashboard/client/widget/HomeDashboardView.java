@@ -352,7 +352,7 @@ public final class HomeDashboardView {
     private void mutation(Button button) { mutationButtons.add(button); }
     private Button button(String key, int left, int top, int width, Runnable action) { return buttonText(label(key), left, top, width, action); }
     private Button buttonText(Component title, int left, int top, int width, Runnable action) {
-        Button button = DashboardButton.builder(title, ignored -> action.run()).bounds(x + left, y + top, Math.max(16, width), 20).build();
+        Button button = DashboardButton.builder(title, ignored -> action.run()).bounds(x + left, y + top, Math.max(16, width), DashboardTheme.CONTROL_HEIGHT).build();
         addWidget.accept(button);
         return button;
     }

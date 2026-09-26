@@ -1,3 +1,25 @@
+# Version 1.1.0 — HomeCore 1.6.1, recettes à composants et interface HomeLink Storage
+
+Cette mise à jour nécessite **HomeCore 1.6.1** sur le client et le serveur. La plage déclarée devient `[1.6.1,2.0.0)`.
+
+- Les recettes utilisent les composants partagés de HomeCore, assemblés dans l’**Établi électronique HomeLink** :
+  - **HomeLink Server** : le microprocesseur remplace le quartz et le circuit imprimé remplace le comparateur.
+  - **HomeLink Dashboard** et **Répéteur HomeLink** : le circuit imprimé remplace la poudre de redstone.
+- Les recettes se débloquent dans le livre de recettes à l’obtention du composant (microprocesseur pour le serveur, circuit imprimé pour l’écran et le répéteur).
+- Le chapitre « Premiers pas » du manuel intégré présente ces composants et l’établi.
+- Les anciennes recettes ne fonctionnent plus. Les blocs déjà posés et les réseaux existants ne changent pas.
+
+Vérifications du 26 septembre 2026 : compilation et contrôle du JAR de release `homelink_dashboard-1.1.0.jar` réussis, **44 GameTests serveur** passés. Les tests couvrent les trois nouvelles recettes avec les composants HomeCore chargés et vérifient que l’ancienne recette du répéteur est refusée. Journal local : `build/homecore-161-validation.log`.
+
+## Interface alignée sur HomeLink Storage
+
+- Cadre commun (`DashboardTheme.frame`), avec le filet de pied au-dessus de la rangée de boutons.
+- Boutons et champs de saisie de 18 pixels ; chaque bouton affiche son libellé en info-bulle ; les champs utilisent les couleurs du thème.
+- Le bouton **?** passe dans l’en-tête, en haut à droite, et reste enfoncé tant que le manuel est ouvert ; le voyant et l’état de connexion se placent juste à sa gauche.
+- Manuel : chapitres bornés, boutons Haut/Bas désactivés en butée, raccourcis Page préc./suiv., Début/Fin et ←/→.
+
+Vérifications de l’interface : 44 GameTests serveur, puis scénarios client connexion, manuel (ouverture par l’en-tête, 5 chapitres, défilement, Échap), actions, préférences, alertes et création/réparation de réseaux, tous réussis ; captures relues.
+
 # Manuel, réseau radio et noms personnalisés
 
 Cette mise à jour nécessite **HomeCore 1.3.0** sur le client et le serveur.

@@ -4,6 +4,7 @@ import fr.lkdm.homelink.dashboard.registry.DashboardRegistries;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -24,8 +25,8 @@ public final class RecipeGameTests {
     @GameTest(template = "empty")
     public static void homeServerSurvivalRecipe(GameTestHelper helper) {
         verify(helper, "home_server", DashboardRegistries.HOME_SERVER.get(), List.of(
-                Items.IRON_INGOT, Items.QUARTZ, Items.IRON_INGOT,
-                Items.REDSTONE, Items.COMPARATOR, Items.REDSTONE,
+                Items.IRON_INGOT, homeCore("homelink_microprocessor"), Items.IRON_INGOT,
+                Items.REDSTONE, homeCore("homelink_circuit_board"), Items.REDSTONE,
                 Items.IRON_INGOT, Items.IRON_INGOT, Items.IRON_INGOT));
     }
 
@@ -34,7 +35,7 @@ public final class RecipeGameTests {
         verify(helper, "dashboard_display", DashboardRegistries.DASHBOARD_DISPLAY.get(), List.of(
                 Items.IRON_INGOT, Items.IRON_INGOT, Items.IRON_INGOT,
                 Items.GLASS, Items.GLASS, Items.GLASS,
-                Items.IRON_INGOT, Items.REDSTONE, Items.IRON_INGOT));
+                Items.IRON_INGOT, homeCore("homelink_circuit_board"), Items.IRON_INGOT));
     }
 
     @GameTest(template = "empty")
@@ -42,7 +43,27 @@ public final class RecipeGameTests {
         verify(helper, "signal_repeater", DashboardRegistries.SIGNAL_REPEATER.get(), List.of(
                 Items.IRON_INGOT, Items.AIR, Items.IRON_INGOT,
                 Items.AIR, Items.REPEATER, Items.AIR,
-                Items.IRON_INGOT, Items.REDSTONE, Items.IRON_INGOT));
+                Items.IRON_INGOT, homeCore("homelink_circuit_board"), Items.IRON_INGOT));
+    }
+
+    @GameTest(template = "empty")
+    public static void formerRecipesNeedHomeCoreComponents(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var formerRepeater = CraftingInput.of(3, 3, List.of(
+                Items.IRON_INGOT, Items.AIR, Items.IRON_INGOT,
+                Items.AIR, Items.REPEATER, Items.AIR,
+                Items.IRON_INGOT, Items.REDSTONE, Items.IRON_INGOT).stream().map(ItemStack::new).toList());
+        helper.assertTrue(level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, formerRepeater, level).isEmpty(),
+                "Redstone must no longer replace the HomeLink Circuit Board");
+        helper.succeed();
+    }
+
+    private static Item homeCore(String path) {
+        var id = ResourceLocation.fromNamespaceAndPath("homecore", path);
+        if (!BuiltInRegistries.ITEM.containsKey(id)) {
+            throw new IllegalStateException("HomeCore component missing: " + id);
+        }
+        return BuiltInRegistries.ITEM.get(id);
     }
 
     private static void verify(GameTestHelper helper, String path, Block block, List<Item> ingredients) {

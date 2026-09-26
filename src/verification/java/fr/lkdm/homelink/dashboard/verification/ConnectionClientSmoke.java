@@ -149,7 +149,7 @@ public final class ConnectionClientSmoke {
                         result -> LogUtils.getLogger().info("HOMELINK_SCREENSHOT {}", result.getString()));
                 snapshots = state.snapshotCount();
                 int w = Math.min(520, screen.width - 16), h = Math.min(340, screen.height - 16);
-                screen.mouseClicked((screen.width - w) / 2 + w - 100, (screen.height - h) / 2 + h - 18, 0);
+                screen.mouseClicked((screen.width - w) / 2 + w - 24, (screen.height - h) / 2 + 15, 0);
                 if (!screen.manualOpen()) fail("Manual help button did not open the manual");
                 serverTask(client, () -> fixture(client).progress.setValue(85.0));
                 stage = 301;
