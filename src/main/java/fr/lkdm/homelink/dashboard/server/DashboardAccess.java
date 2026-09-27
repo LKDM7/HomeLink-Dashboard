@@ -14,7 +14,7 @@ public final class DashboardAccess {
     private DashboardAccess() { }
 
     public static boolean canView(ServerPlayer player, AccessPointBlockEntity point) {
-        if (point.isRemoved() || player.level() != point.getLevel() || !point.active()
+        if (point.isRemoved() || player.level() != point.getLevel() || !point.working()
                 || !point.getBlockPos().closerToCenterThan(player.position(), 8.0)) return false;
         return point.networkId().map(id -> RadioNetworkService.hasSignal(point)
                         && DashboardAPI.hasPermission(player, id, Permission.VIEW))
@@ -28,6 +28,10 @@ public final class DashboardAccess {
     public static void open(ServerPlayer player, AccessPointBlockEntity point, int directoryOffset) {
         refreshStatus(point);
         if (!canView(player, point)) {
+            if (point.active() && !point.powered()) {
+                player.displayClientMessage(Component.translatable("message.homelink_dashboard.no_power"), true);
+                return;
+            }
             player.displayClientMessage(Component.translatable(point.networkId().isPresent()
                     && DashboardAPI.hasPermission(player, point.networkId().orElseThrow(), Permission.VIEW)
                     && !RadioNetworkService.hasSignal(point) ? "message.homelink_dashboard.no_signal"
@@ -40,7 +44,7 @@ public final class DashboardAccess {
     }
 
     public static void refreshStatus(AccessPointBlockEntity point) {
-        var status = !point.active() || point.networkId().isEmpty() ? AccessPointStatus.OFFLINE
+        var status = !point.working() || point.networkId().isEmpty() ? AccessPointStatus.OFFLINE
                 : DashboardAPI.networks(point.getLevel().getServer()).getNetwork(point.networkId().orElseThrow()).isPresent()
                     ? (RadioNetworkService.hasSignal(point) ? AccessPointStatus.ONLINE : AccessPointStatus.OFFLINE) : AccessPointStatus.ERROR;
         point.setStatus(status);

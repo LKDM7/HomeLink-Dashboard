@@ -8,4 +8,8 @@ public final class DashboardDisplayBlockEntity extends AccessPointBlockEntity {
     public DashboardDisplayBlockEntity(BlockPos pos, BlockState state) {
         super(DashboardRegistries.DISPLAY_ENTITY.get(), pos, state);
     }
+
+    @Override protected long energyPerMinute() {
+        return fr.lkdm.homelink.dashboard.config.DashboardEnergyConfig.get(fr.lkdm.homelink.dashboard.config.DashboardEnergyConfig.DISPLAY_ENERGY);
+    }
 }

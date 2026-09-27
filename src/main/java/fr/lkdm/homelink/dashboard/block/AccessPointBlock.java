@@ -50,6 +50,7 @@ public abstract class AccessPointBlock extends BaseEntityBlock {
 
     @Override protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         if (level.getBlockEntity(pos) instanceof AccessPointBlockEntity point) {
+            if (point.active()) point.drawEnergy();
             DashboardAccess.refreshStatus(point);
             level.scheduleTick(pos, this, 20);
         }

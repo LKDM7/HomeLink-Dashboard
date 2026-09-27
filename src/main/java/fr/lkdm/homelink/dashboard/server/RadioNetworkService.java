@@ -68,7 +68,7 @@ public final class RadioNetworkService {
     }
     private boolean loaded(AccessPointBlockEntity point) {
         Level level = point.getLevel();
-        return !point.isRemoved() && point.active() && level != null && level.hasChunkAt(point.getBlockPos())
+        return !point.isRemoved() && point.working() && level != null && level.hasChunkAt(point.getBlockPos())
                 && level.getBlockEntity(point.getBlockPos()) == point;
     }
     private List<AccessPointBlockEntity> transmitters(UUID network) {

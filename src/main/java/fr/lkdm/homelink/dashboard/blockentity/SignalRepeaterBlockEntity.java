@@ -8,4 +8,8 @@ public final class SignalRepeaterBlockEntity extends AccessPointBlockEntity {
     public SignalRepeaterBlockEntity(BlockPos pos, BlockState state) {
         super(DashboardRegistries.REPEATER_ENTITY.get(), pos, state);
     }
+
+    @Override protected long energyPerMinute() {
+        return fr.lkdm.homelink.dashboard.config.DashboardEnergyConfig.get(fr.lkdm.homelink.dashboard.config.DashboardEnergyConfig.REPEATER_ENERGY);
+    }
 }

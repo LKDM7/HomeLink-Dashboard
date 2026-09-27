@@ -19,8 +19,16 @@ side = "BOTH"
 [[dependencies."${mod_id}"]]
 modId = "homecore"
 type = "required"
-versionRange = "[1.7.0,2.0.0)"
+versionRange = "[1.8.0,2.0.0)"
 ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
+modId = "homelink_energy"
+type = "required"
+reason = "Home Servers, Signal Repeaters and Dashboard Displays run on HE supplied by HomeLink Energy (solar panels, wind turbines, batteries, cables)."
+versionRange = "[0.1.0,1.0.0)"
+ordering = "NONE"
 side = "BOTH"
 
 [[dependencies."${mod_id}"]]
