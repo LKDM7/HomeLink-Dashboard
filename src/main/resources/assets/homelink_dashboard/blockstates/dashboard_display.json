@@ -1,49 +1,544 @@
 {
-  "variants": {
-    "facing=north,status=offline": {
-      "model": "homelink_dashboard:block/dashboard_display_offline"
-    },
-    "facing=north,status=online": {
-      "model": "homelink_dashboard:block/dashboard_display_online"
-    },
-    "facing=north,status=error": {
-      "model": "homelink_dashboard:block/dashboard_display_error"
-    },
-    "facing=east,status=offline": {
-      "model": "homelink_dashboard:block/dashboard_display_offline",
-      "y": 90
-    },
-    "facing=east,status=online": {
-      "model": "homelink_dashboard:block/dashboard_display_online",
-      "y": 90
-    },
-    "facing=east,status=error": {
-      "model": "homelink_dashboard:block/dashboard_display_error",
-      "y": 90
-    },
-    "facing=south,status=offline": {
-      "model": "homelink_dashboard:block/dashboard_display_offline",
-      "y": 180
-    },
-    "facing=south,status=online": {
-      "model": "homelink_dashboard:block/dashboard_display_online",
-      "y": 180
-    },
-    "facing=south,status=error": {
-      "model": "homelink_dashboard:block/dashboard_display_error",
-      "y": 180
-    },
-    "facing=west,status=offline": {
-      "model": "homelink_dashboard:block/dashboard_display_offline",
-      "y": 270
-    },
-    "facing=west,status=online": {
-      "model": "homelink_dashboard:block/dashboard_display_online",
-      "y": 270
-    },
-    "facing=west,status=error": {
-      "model": "homelink_dashboard:block/dashboard_display_error",
-      "y": 270
-    }
-  }
+    "variants":  {
+                     "facing=north,part=bottom_left,size=single,status=offline":  {
+                                                                                      "model":  "homelink_dashboard:block/dashboard_display_offline"
+                                                                                  },
+                     "facing=north,part=bottom_left,size=wide,status=offline":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_left_offline"
+                                                                                },
+                     "facing=north,part=bottom_right,size=wide,status=offline":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_right_offline"
+                                                                                 },
+                     "facing=north,part=bottom_left,size=large,status=offline":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_large_bottom_left_offline"
+                                                                                 },
+                     "facing=north,part=bottom_right,size=large,status=offline":  {
+                                                                                      "model":  "homelink_dashboard:block/dashboard_display_large_bottom_right_offline"
+                                                                                  },
+                     "facing=north,part=top_left,size=large,status=offline":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_large_top_left_offline"
+                                                                              },
+                     "facing=north,part=top_right,size=large,status=offline":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_large_top_right_offline"
+                                                                               },
+                     "facing=north,part=bottom_left,size=single,status=online":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_online"
+                                                                                 },
+                     "facing=north,part=bottom_left,size=wide,status=online":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_left_online"
+                                                                               },
+                     "facing=north,part=bottom_right,size=wide,status=online":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_right_online"
+                                                                                },
+                     "facing=north,part=bottom_left,size=large,status=online":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_large_bottom_left_online"
+                                                                                },
+                     "facing=north,part=bottom_right,size=large,status=online":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_large_bottom_right_online"
+                                                                                 },
+                     "facing=north,part=top_left,size=large,status=online":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_large_top_left_online"
+                                                                             },
+                     "facing=north,part=top_right,size=large,status=online":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_large_top_right_online"
+                                                                              },
+                     "facing=north,part=bottom_left,size=single,status=error":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_error"
+                                                                                },
+                     "facing=north,part=bottom_left,size=wide,status=error":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_left_error"
+                                                                              },
+                     "facing=north,part=bottom_right,size=wide,status=error":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_right_error"
+                                                                               },
+                     "facing=north,part=bottom_left,size=large,status=error":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_large_bottom_left_error"
+                                                                               },
+                     "facing=north,part=bottom_right,size=large,status=error":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_large_bottom_right_error"
+                                                                                },
+                     "facing=north,part=top_left,size=large,status=error":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_large_top_left_error"
+                                                                            },
+                     "facing=north,part=top_right,size=large,status=error":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_large_top_right_error"
+                                                                             },
+                     "facing=east,part=bottom_left,size=single,status=offline":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                     "y":  90
+                                                                                 },
+                     "facing=east,part=bottom_left,size=wide,status=offline":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_left_offline",
+                                                                                   "y":  90
+                                                                               },
+                     "facing=east,part=bottom_right,size=wide,status=offline":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_right_offline",
+                                                                                    "y":  90
+                                                                                },
+                     "facing=east,part=bottom_left,size=large,status=offline":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_large_bottom_left_offline",
+                                                                                    "y":  90
+                                                                                },
+                     "facing=east,part=bottom_right,size=large,status=offline":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_large_bottom_right_offline",
+                                                                                     "y":  90
+                                                                                 },
+                     "facing=east,part=top_left,size=large,status=offline":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_large_top_left_offline",
+                                                                                 "y":  90
+                                                                             },
+                     "facing=east,part=top_right,size=large,status=offline":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_large_top_right_offline",
+                                                                                  "y":  90
+                                                                              },
+                     "facing=east,part=bottom_left,size=single,status=online":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                    "y":  90
+                                                                                },
+                     "facing=east,part=bottom_left,size=wide,status=online":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_left_online",
+                                                                                  "y":  90
+                                                                              },
+                     "facing=east,part=bottom_right,size=wide,status=online":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_right_online",
+                                                                                   "y":  90
+                                                                               },
+                     "facing=east,part=bottom_left,size=large,status=online":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_large_bottom_left_online",
+                                                                                   "y":  90
+                                                                               },
+                     "facing=east,part=bottom_right,size=large,status=online":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_large_bottom_right_online",
+                                                                                    "y":  90
+                                                                                },
+                     "facing=east,part=top_left,size=large,status=online":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_large_top_left_online",
+                                                                                "y":  90
+                                                                            },
+                     "facing=east,part=top_right,size=large,status=online":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_large_top_right_online",
+                                                                                 "y":  90
+                                                                             },
+                     "facing=east,part=bottom_left,size=single,status=error":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                                   "y":  90
+                                                                               },
+                     "facing=east,part=bottom_left,size=wide,status=error":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_left_error",
+                                                                                 "y":  90
+                                                                             },
+                     "facing=east,part=bottom_right,size=wide,status=error":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_right_error",
+                                                                                  "y":  90
+                                                                              },
+                     "facing=east,part=bottom_left,size=large,status=error":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_large_bottom_left_error",
+                                                                                  "y":  90
+                                                                              },
+                     "facing=east,part=bottom_right,size=large,status=error":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_large_bottom_right_error",
+                                                                                   "y":  90
+                                                                               },
+                     "facing=east,part=top_left,size=large,status=error":  {
+                                                                               "model":  "homelink_dashboard:block/dashboard_display_large_top_left_error",
+                                                                               "y":  90
+                                                                           },
+                     "facing=east,part=top_right,size=large,status=error":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_large_top_right_error",
+                                                                                "y":  90
+                                                                            },
+                     "facing=south,part=bottom_left,size=single,status=offline":  {
+                                                                                      "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                      "y":  180
+                                                                                  },
+                     "facing=south,part=bottom_left,size=wide,status=offline":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_left_offline",
+                                                                                    "y":  180
+                                                                                },
+                     "facing=south,part=bottom_right,size=wide,status=offline":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_right_offline",
+                                                                                     "y":  180
+                                                                                 },
+                     "facing=south,part=bottom_left,size=large,status=offline":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_large_bottom_left_offline",
+                                                                                     "y":  180
+                                                                                 },
+                     "facing=south,part=bottom_right,size=large,status=offline":  {
+                                                                                      "model":  "homelink_dashboard:block/dashboard_display_large_bottom_right_offline",
+                                                                                      "y":  180
+                                                                                  },
+                     "facing=south,part=top_left,size=large,status=offline":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_large_top_left_offline",
+                                                                                  "y":  180
+                                                                              },
+                     "facing=south,part=top_right,size=large,status=offline":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_large_top_right_offline",
+                                                                                   "y":  180
+                                                                               },
+                     "facing=south,part=bottom_left,size=single,status=online":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                     "y":  180
+                                                                                 },
+                     "facing=south,part=bottom_left,size=wide,status=online":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_left_online",
+                                                                                   "y":  180
+                                                                               },
+                     "facing=south,part=bottom_right,size=wide,status=online":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_right_online",
+                                                                                    "y":  180
+                                                                                },
+                     "facing=south,part=bottom_left,size=large,status=online":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_large_bottom_left_online",
+                                                                                    "y":  180
+                                                                                },
+                     "facing=south,part=bottom_right,size=large,status=online":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_large_bottom_right_online",
+                                                                                     "y":  180
+                                                                                 },
+                     "facing=south,part=top_left,size=large,status=online":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_large_top_left_online",
+                                                                                 "y":  180
+                                                                             },
+                     "facing=south,part=top_right,size=large,status=online":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_large_top_right_online",
+                                                                                  "y":  180
+                                                                              },
+                     "facing=south,part=bottom_left,size=single,status=error":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                                    "y":  180
+                                                                                },
+                     "facing=south,part=bottom_left,size=wide,status=error":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_left_error",
+                                                                                  "y":  180
+                                                                              },
+                     "facing=south,part=bottom_right,size=wide,status=error":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_right_error",
+                                                                                   "y":  180
+                                                                               },
+                     "facing=south,part=bottom_left,size=large,status=error":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_large_bottom_left_error",
+                                                                                   "y":  180
+                                                                               },
+                     "facing=south,part=bottom_right,size=large,status=error":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_large_bottom_right_error",
+                                                                                    "y":  180
+                                                                                },
+                     "facing=south,part=top_left,size=large,status=error":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_large_top_left_error",
+                                                                                "y":  180
+                                                                            },
+                     "facing=south,part=top_right,size=large,status=error":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_large_top_right_error",
+                                                                                 "y":  180
+                                                                             },
+                     "facing=west,part=bottom_left,size=single,status=offline":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                     "y":  270
+                                                                                 },
+                     "facing=west,part=bottom_left,size=wide,status=offline":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_left_offline",
+                                                                                   "y":  270
+                                                                               },
+                     "facing=west,part=bottom_right,size=wide,status=offline":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_right_offline",
+                                                                                    "y":  270
+                                                                                },
+                     "facing=west,part=bottom_left,size=large,status=offline":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_large_bottom_left_offline",
+                                                                                    "y":  270
+                                                                                },
+                     "facing=west,part=bottom_right,size=large,status=offline":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_large_bottom_right_offline",
+                                                                                     "y":  270
+                                                                                 },
+                     "facing=west,part=top_left,size=large,status=offline":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_large_top_left_offline",
+                                                                                 "y":  270
+                                                                             },
+                     "facing=west,part=top_right,size=large,status=offline":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_large_top_right_offline",
+                                                                                  "y":  270
+                                                                              },
+                     "facing=west,part=bottom_left,size=single,status=online":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                    "y":  270
+                                                                                },
+                     "facing=west,part=bottom_left,size=wide,status=online":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_left_online",
+                                                                                  "y":  270
+                                                                              },
+                     "facing=west,part=bottom_right,size=wide,status=online":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_right_online",
+                                                                                   "y":  270
+                                                                               },
+                     "facing=west,part=bottom_left,size=large,status=online":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_large_bottom_left_online",
+                                                                                   "y":  270
+                                                                               },
+                     "facing=west,part=bottom_right,size=large,status=online":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_large_bottom_right_online",
+                                                                                    "y":  270
+                                                                                },
+                     "facing=west,part=top_left,size=large,status=online":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_large_top_left_online",
+                                                                                "y":  270
+                                                                            },
+                     "facing=west,part=top_right,size=large,status=online":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_large_top_right_online",
+                                                                                 "y":  270
+                                                                             },
+                     "facing=west,part=bottom_left,size=single,status=error":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                                   "y":  270
+                                                                               },
+                     "facing=west,part=bottom_left,size=wide,status=error":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_left_error",
+                                                                                 "y":  270
+                                                                             },
+                     "facing=west,part=bottom_right,size=wide,status=error":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_wide_bottom_right_error",
+                                                                                  "y":  270
+                                                                              },
+                     "facing=west,part=bottom_left,size=large,status=error":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_large_bottom_left_error",
+                                                                                  "y":  270
+                                                                              },
+                     "facing=west,part=bottom_right,size=large,status=error":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_large_bottom_right_error",
+                                                                                   "y":  270
+                                                                               },
+                     "facing=west,part=top_left,size=large,status=error":  {
+                                                                               "model":  "homelink_dashboard:block/dashboard_display_large_top_left_error",
+                                                                               "y":  270
+                                                                           },
+                     "facing=west,part=top_right,size=large,status=error":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_large_top_right_error",
+                                                                                "y":  270
+                                                                            },
+                     "facing=north,part=bottom_right,size=single,status=offline":  {
+                                                                                       "model":  "homelink_dashboard:block/dashboard_display_offline"
+                                                                                   },
+                     "facing=north,part=top_left,size=single,status=offline":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_offline"
+                                                                               },
+                     "facing=north,part=top_right,size=single,status=offline":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_offline"
+                                                                                },
+                     "facing=north,part=top_left,size=wide,status=offline":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_offline"
+                                                                             },
+                     "facing=north,part=top_right,size=wide,status=offline":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_offline"
+                                                                              },
+                     "facing=north,part=bottom_right,size=single,status=online":  {
+                                                                                      "model":  "homelink_dashboard:block/dashboard_display_online"
+                                                                                  },
+                     "facing=north,part=top_left,size=single,status=online":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_online"
+                                                                              },
+                     "facing=north,part=top_right,size=single,status=online":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_online"
+                                                                               },
+                     "facing=north,part=top_left,size=wide,status=online":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_online"
+                                                                            },
+                     "facing=north,part=top_right,size=wide,status=online":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_online"
+                                                                             },
+                     "facing=north,part=bottom_right,size=single,status=error":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_error"
+                                                                                 },
+                     "facing=north,part=top_left,size=single,status=error":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_error"
+                                                                             },
+                     "facing=north,part=top_right,size=single,status=error":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_error"
+                                                                              },
+                     "facing=north,part=top_left,size=wide,status=error":  {
+                                                                               "model":  "homelink_dashboard:block/dashboard_display_error"
+                                                                           },
+                     "facing=north,part=top_right,size=wide,status=error":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_error"
+                                                                            },
+                     "facing=east,part=bottom_right,size=single,status=offline":  {
+                                                                                      "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                      "y":  90
+                                                                                  },
+                     "facing=east,part=top_left,size=single,status=offline":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                  "y":  90
+                                                                              },
+                     "facing=east,part=top_right,size=single,status=offline":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                   "y":  90
+                                                                               },
+                     "facing=east,part=top_left,size=wide,status=offline":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                "y":  90
+                                                                            },
+                     "facing=east,part=top_right,size=wide,status=offline":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                 "y":  90
+                                                                             },
+                     "facing=east,part=bottom_right,size=single,status=online":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                     "y":  90
+                                                                                 },
+                     "facing=east,part=top_left,size=single,status=online":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                 "y":  90
+                                                                             },
+                     "facing=east,part=top_right,size=single,status=online":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                  "y":  90
+                                                                              },
+                     "facing=east,part=top_left,size=wide,status=online":  {
+                                                                               "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                               "y":  90
+                                                                           },
+                     "facing=east,part=top_right,size=wide,status=online":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                "y":  90
+                                                                            },
+                     "facing=east,part=bottom_right,size=single,status=error":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                                    "y":  90
+                                                                                },
+                     "facing=east,part=top_left,size=single,status=error":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                                "y":  90
+                                                                            },
+                     "facing=east,part=top_right,size=single,status=error":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                                 "y":  90
+                                                                             },
+                     "facing=east,part=top_left,size=wide,status=error":  {
+                                                                              "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                              "y":  90
+                                                                          },
+                     "facing=east,part=top_right,size=wide,status=error":  {
+                                                                               "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                               "y":  90
+                                                                           },
+                     "facing=south,part=bottom_right,size=single,status=offline":  {
+                                                                                       "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                       "y":  180
+                                                                                   },
+                     "facing=south,part=top_left,size=single,status=offline":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                   "y":  180
+                                                                               },
+                     "facing=south,part=top_right,size=single,status=offline":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                    "y":  180
+                                                                                },
+                     "facing=south,part=top_left,size=wide,status=offline":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                 "y":  180
+                                                                             },
+                     "facing=south,part=top_right,size=wide,status=offline":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                  "y":  180
+                                                                              },
+                     "facing=south,part=bottom_right,size=single,status=online":  {
+                                                                                      "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                      "y":  180
+                                                                                  },
+                     "facing=south,part=top_left,size=single,status=online":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                  "y":  180
+                                                                              },
+                     "facing=south,part=top_right,size=single,status=online":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                   "y":  180
+                                                                               },
+                     "facing=south,part=top_left,size=wide,status=online":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                "y":  180
+                                                                            },
+                     "facing=south,part=top_right,size=wide,status=online":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                 "y":  180
+                                                                             },
+                     "facing=south,part=bottom_right,size=single,status=error":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                                     "y":  180
+                                                                                 },
+                     "facing=south,part=top_left,size=single,status=error":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                                 "y":  180
+                                                                             },
+                     "facing=south,part=top_right,size=single,status=error":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                                  "y":  180
+                                                                              },
+                     "facing=south,part=top_left,size=wide,status=error":  {
+                                                                               "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                               "y":  180
+                                                                           },
+                     "facing=south,part=top_right,size=wide,status=error":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                                "y":  180
+                                                                            },
+                     "facing=west,part=bottom_right,size=single,status=offline":  {
+                                                                                      "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                      "y":  270
+                                                                                  },
+                     "facing=west,part=top_left,size=single,status=offline":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                  "y":  270
+                                                                              },
+                     "facing=west,part=top_right,size=single,status=offline":  {
+                                                                                   "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                   "y":  270
+                                                                               },
+                     "facing=west,part=top_left,size=wide,status=offline":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                "y":  270
+                                                                            },
+                     "facing=west,part=top_right,size=wide,status=offline":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_offline",
+                                                                                 "y":  270
+                                                                             },
+                     "facing=west,part=bottom_right,size=single,status=online":  {
+                                                                                     "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                     "y":  270
+                                                                                 },
+                     "facing=west,part=top_left,size=single,status=online":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                 "y":  270
+                                                                             },
+                     "facing=west,part=top_right,size=single,status=online":  {
+                                                                                  "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                  "y":  270
+                                                                              },
+                     "facing=west,part=top_left,size=wide,status=online":  {
+                                                                               "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                               "y":  270
+                                                                           },
+                     "facing=west,part=top_right,size=wide,status=online":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_online",
+                                                                                "y":  270
+                                                                            },
+                     "facing=west,part=bottom_right,size=single,status=error":  {
+                                                                                    "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                                    "y":  270
+                                                                                },
+                     "facing=west,part=top_left,size=single,status=error":  {
+                                                                                "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                                "y":  270
+                                                                            },
+                     "facing=west,part=top_right,size=single,status=error":  {
+                                                                                 "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                                 "y":  270
+                                                                             },
+                     "facing=west,part=top_left,size=wide,status=error":  {
+                                                                              "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                              "y":  270
+                                                                          },
+                     "facing=west,part=top_right,size=wide,status=error":  {
+                                                                               "model":  "homelink_dashboard:block/dashboard_display_error",
+                                                                               "y":  270
+                                                                           }
+                 }
 }

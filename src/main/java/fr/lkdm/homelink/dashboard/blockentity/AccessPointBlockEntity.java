@@ -91,6 +91,10 @@ public abstract class AccessPointBlockEntity extends BlockEntity {
     public void setStatus(AccessPointStatus status) {
         requireServer();
         var state = getBlockState();
+        if (state.getBlock() instanceof fr.lkdm.homelink.dashboard.block.DashboardDisplayBlock display) {
+            display.synchronizeStatus(level, worldPosition, state, status);
+            return;
+        }
         if (state.getValue(AccessPointBlock.STATUS) != status) {
             level.setBlock(worldPosition, state.setValue(AccessPointBlock.STATUS, status), 3);
         }

@@ -1,11 +1,27 @@
 package fr.lkdm.homelink.dashboard.verification;
 
 import com.mojang.logging.LogUtils;
+import fr.lkdm.homelink.dashboard.block.DashboardDisplayBlock;
 import fr.lkdm.homelink.dashboard.blockentity.AccessPointBlockEntity;
 import fr.lkdm.homelink.dashboard.client.screen.DashboardScreen;
+import fr.lkdm.homelink.dashboard.client.state.DisplaySummaryClient;
+import fr.lkdm.homelink.dashboard.blockentity.DashboardDisplayBlockEntity;
+import fr.lkdm.homelink.dashboard.network.DisplaySummary;
+import fr.lkdm.homecore.api.DashboardAPI;
+import fr.lkdm.homecore.api.device.DashboardDevice;
+import fr.lkdm.homecore.api.device.DeviceStatus;
+import fr.lkdm.homecore.api.metric.DeviceMetric;
+import fr.lkdm.homecore.api.metric.MetricTypes;
+import fr.lkdm.homecore.api.metric.Percentage;
+import fr.lkdm.homelink.dashboard.dashboard.layout.DashboardProfile;
+import fr.lkdm.homelink.dashboard.server.DashboardPreferencesSavedData;
 import fr.lkdm.homelink.dashboard.registry.DashboardRegistries;
 import fr.lkdm.homelink.dashboard.menu.DashboardMenu;
 import java.util.UUID;
+import java.util.List;
+import java.util.Set;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.AccessibilityOnboardingScreen;
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -34,6 +50,9 @@ public final class DashboardClientSmoke {
     private static volatile BlockPos serverPosition;
     private static volatile BlockPos displayPosition;
     private static volatile BlockPos repeaterPosition;
+    private static volatile BlockPos sizedDisplayPosition;
+    private static volatile BlockPos singleFacadePosition;
+    private static final List<FacadeFixture> FACADE_FIXTURES = new java.util.ArrayList<>();
     private static volatile Throwable serverFailure;
     private static int stage;
     private static int visibleTicks;
@@ -139,11 +158,74 @@ public final class DashboardClientSmoke {
                 net.minecraft.client.Screenshot.grab(client.gameDirectory, "homelink-network-rename.png", client.getMainRenderTarget(),
                         message -> LogUtils.getLogger().info("Network rename screenshot: {}", message.getString()));
                 LogUtils.getLogger().info("HOMELINK_NETWORK_NAMES_OK create_field=true rename_form=true live_update=true unicode=true");
+                // A real HomeLink Energy solar panel, placed like a player would, outside any network.
+                var server = client.getSingleplayerServer();
+                UUID owner = client.player.getUUID();
+                server.execute(() -> {
+                    try {
+                        var player = server.getPlayerList().getPlayer(owner);
+                        var item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
+                                net.minecraft.resources.ResourceLocation.parse("homelink_energy:solar_panel_1"));
+                        var ground = serverPosition.offset(4, -1, -5);
+                        player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, new net.minecraft.world.item.ItemStack(item));
+                        var placed = player.getMainHandItem().useOn(new net.minecraft.world.item.context.UseOnContext(player,
+                                net.minecraft.world.InteractionHand.MAIN_HAND, new net.minecraft.world.phys.BlockHitResult(
+                                        net.minecraft.world.phys.Vec3.atCenterOf(ground).add(0, 0.5, 0), net.minecraft.core.Direction.UP, ground, false)));
+                        player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, net.minecraft.world.item.ItemStack.EMPTY);
+                        if (!placed.consumesAction()) throw new IllegalStateException("Solar panel fixture could not be placed: " + placed);
+                    } catch (Throwable failure) { serverFailure = failure; }
+                });
+                visibleTicks = 0;
+                stage = 33;
+            } else if (stage == 33 && client.screen instanceof DashboardScreen screen) {
+                // Give HomeLink Energy a moment to register the panel with HomeCore, then list the radio area.
+                if (++visibleTicks == 20) screen.showDiscovery();
+                if (visibleTicks < 20 || screen.discovery() == null || screen.discovery().pending()) return;
+                var panel = screen.discovery().entries().stream()
+                        .filter(entry -> entry.type().equals("homelink_energy:solar_panel") && entry.canAdd()).findFirst();
+                if (panel.isEmpty()) {
+                    if (visibleTicks > 200) throw new IllegalStateException("Add tab did not list the nearby solar panel: " + screen.discovery().entries());
+                    if (visibleTicks % 20 == 0) screen.discovery().refresh();
+                    return;
+                }
+                net.minecraft.client.Screenshot.grab(client.gameDirectory, "homelink-discovery.png", client.getMainRenderTarget(),
+                        message -> LogUtils.getLogger().info("Discovery screenshot: {}", message.getString()));
+                screen.discovery().add(panel.orElseThrow().id());
+                visibleTicks = 0;
+                stage = 34;
+            } else if (stage == 34 && client.screen instanceof DashboardScreen screen && !screen.discovery().pending()) {
+                if (screen.state().devices().stream().noneMatch(device -> device.type().equals("homelink_energy:solar_panel"))) {
+                    if (++visibleTicks > 200) throw new IllegalStateException("Added solar panel never reached the Dashboard");
+                    return;
+                }
+                LogUtils.getLogger().info("HOMELINK_DISCOVERY_OK listed=true added=true");
+                screen.showMachines();
+                visibleTicks = 0;
+                stage = 32;
+            } else if (stage == 32 && client.screen instanceof DashboardScreen screen) {
+                if (++visibleTicks < 10) return;
+                screen.machines().tick();
+                var energy = screen.machines().summaries().get(fr.lkdm.homelink.dashboard.client.state.MachineSystems.Group.ENERGY);
+                if (screen.machines().summaries().size() != 3 || energy == null || energy.total() != 1)
+                    throw new IllegalStateException("Machines must show the added panel under Energy and hide empty storage");
+                screen.machines().select(fr.lkdm.homelink.dashboard.client.state.MachineSystems.Group.ENERGY);
+                net.minecraft.client.Screenshot.grab(client.gameDirectory, "homelink-machines.png", client.getMainRenderTarget(),
+                        message -> LogUtils.getLogger().info("Machines screenshot: {}", message.getString()));
+                LogUtils.getLogger().info("HOMELINK_MACHINES_OK energy=1");
                 var server = client.getSingleplayerServer();
                 server.execute(() -> {
                     try {
                         var manager = fr.lkdm.homecore.api.DashboardAPI.networks(server);
                         for (var network : manager.getAll()) manager.renameNetwork(network.id(), "Entrepôt principal");
+                        for (int index = 0; index < 4; index++) {
+                            var fixture = new FacadeFixture(index);
+                            FACADE_FIXTURES.add(fixture);
+                            DashboardAPI.devices(server).register(fixture);
+                            manager.addDevice(createdNetwork, fixture.id());
+                        }
+                        DashboardPreferencesSavedData.get(server).put(client.player.getUUID(), createdNetwork,
+                                new DashboardProfile(List.of(), FACADE_FIXTURES.stream().map(FacadeFixture::id)
+                                        .collect(java.util.stream.Collectors.toSet())));
                         namesReady = true;
                     } catch (Throwable failure) { serverFailure = failure; }
                 });
@@ -226,12 +308,83 @@ public final class DashboardClientSmoke {
                         player.serverLevel().setBlock(pos.south(), net.minecraft.world.level.block.Blocks.SMOOTH_STONE.defaultBlockState(), 3);
                         place(player.serverLevel(), pos, DashboardRegistries.DASHBOARD_DISPLAY.get(), owner);
                         ((AccessPointBlockEntity) player.serverLevel().getBlockEntity(pos)).setNetworkId(createdNetwork);
+                        singleFacadePosition = pos;
                         player.connection.teleport(pos.getX() + 1.5, pos.getY() - 1, pos.getZ() - 3.5, 12.53f, 1.5f);
                     }
                 });
-            } else if (stage == 61 && ++visibleTicks >= 30) {
+            } else if (stage == 61 && facadeReady(client, singleFacadePosition, 73) && ++visibleTicks >= 30) {
                 net.minecraft.client.Screenshot.grab(client.gameDirectory, "homelink-display-model.png", client.getMainRenderTarget(),
                         message -> LogUtils.getLogger().info("Display model screenshot: {}", message.getString()));
+                stage = 610; visibleTicks = 0;
+                showDisplay(client, DashboardDisplayBlock.Size.WIDE);
+            } else if (stage == 610 && sizedDisplayReady(client, DashboardDisplayBlock.Size.WIDE)
+                    && facadeReady(client, sizedDisplayPosition, 73) && ++visibleTicks >= 30) {
+                verifyDisplayCamera(client, DashboardDisplayBlock.Size.WIDE);
+                net.minecraft.client.Screenshot.grab(client.gameDirectory, "homelink-display-wide-model.png", client.getMainRenderTarget(),
+                        message -> LogUtils.getLogger().info("Wide display model screenshot: {}", message.getString()));
+                client.options.hideGui = false;
+                interact(client, sizedDisplayPosition.west());
+                stage = 6101;
+            } else if (stage == 6101 && isExpectedScreen(client, sizedDisplayPosition)
+                    && ((DashboardScreen) client.screen).state() != null
+                    && !((DashboardScreen) client.screen).state().loading()) {
+                if (!((DashboardScreen) client.screen).state().networkId().equals(createdNetwork))
+                    throw new IllegalStateException("Wide satellite opened the wrong network");
+                client.screen.onClose(); client.options.hideGui = true;
+                stage = 611; visibleTicks = 0;
+                showDisplay(client, DashboardDisplayBlock.Size.LARGE);
+            } else if (stage == 611 && sizedDisplayReady(client, DashboardDisplayBlock.Size.LARGE)
+                    && facadeReady(client, sizedDisplayPosition, 73) && ++visibleTicks >= 30) {
+                if (client.screen != null || client.player.containerMenu != client.player.inventoryMenu)
+                    throw new IllegalStateException("Facade must update with no menu open");
+                client.getSingleplayerServer().execute(() -> FACADE_FIXTURES.getFirst().charge.setValue(new Percentage(81)));
+                stage = 6110; visibleTicks = 0;
+            } else if (stage == 6110 && facadeReady(client, sizedDisplayPosition, 81) && ++visibleTicks >= 10) {
+                if (client.screen != null) throw new IllegalStateException("Live facade unexpectedly opened a menu");
+                LogUtils.getLogger().info("HOMELINK_DISPLAY_FAVORITES_OK favorites=4 metrics_each=2 live_value=73_to_81 menu_open=false");
+                verifyDisplayCamera(client, DashboardDisplayBlock.Size.LARGE);
+                net.minecraft.client.Screenshot.grab(client.gameDirectory, "homelink-display-large-model.png", client.getMainRenderTarget(),
+                        message -> LogUtils.getLogger().info("Large display model screenshot: {}", message.getString()));
+                LogUtils.getLogger().info("HOMELINK_DISPLAY_SIZES_OK sizes=3 screenshots=3 facing_right=counterclockwise");
+                client.options.hideGui = false;
+                interact(client, sizedDisplayPosition.west().above());
+                stage = 612;
+            } else if (stage == 612 && isExpectedScreen(client, sizedDisplayPosition)
+                    && ((DashboardScreen) client.screen).state() != null
+                    && !((DashboardScreen) client.screen).state().loading()) {
+                if (!((DashboardScreen) client.screen).state().networkId().equals(createdNetwork))
+                    throw new IllegalStateException("Large satellite opened the wrong network");
+                client.screen.onClose();
+                stage = 613; visibleTicks = 0;
+            } else if (stage == 613 && client.screen == null && ++visibleTicks >= 10) {
+                if (!client.player.getMainHandItem().isEmpty())
+                    throw new IllegalStateException("Satellite reassociation requires an empty hand");
+                client.player.setShiftKeyDown(true);
+                client.player.connection.send(new net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket(client.player,
+                        net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket.Action.PRESS_SHIFT_KEY));
+                interact(client, sizedDisplayPosition.west().above());
+                client.player.connection.send(new net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket(client.player,
+                        net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket.Action.RELEASE_SHIFT_KEY));
+                client.player.setShiftKeyDown(false);
+                stage = 614;
+            } else if (stage == 614 && isExpectedScreen(client, sizedDisplayPosition)) {
+                var screen = (DashboardScreen) client.screen;
+                if (screen.state() != null)
+                    throw new IllegalStateException("Sneaking on a satellite did not reset the master's binding");
+                int index = -1;
+                for (int i = 0; i < screen.getMenu().session().choices().size(); i++) {
+                    if (screen.getMenu().session().choices().get(i).id().equals(createdNetwork)) index = i;
+                }
+                if (index < 0) throw new IllegalStateException("Network missing from satellite reassociation");
+                client.gameMode.handleInventoryButtonClick(screen.getMenu().containerId, DashboardMenu.BIND_NETWORK_BASE + index);
+                stage = 615;
+            } else if (stage == 615 && isExpectedScreen(client, sizedDisplayPosition)
+                    && ((DashboardScreen) client.screen).state() != null
+                    && !((DashboardScreen) client.screen).state().loading()) {
+                if (!((DashboardScreen) client.screen).state().networkId().equals(createdNetwork))
+                    throw new IllegalStateException("Satellite reassociated the wrong network");
+                LogUtils.getLogger().info("HOMELINK_DISPLAY_INTERACTION_OK wide=bottom_right large=top_right menu=master sneak_rebind=true");
+                client.screen.onClose(); client.options.hideGui = true;
                 stage = 62; visibleTicks = 0;
                 UUID owner = client.player.getUUID();
                 client.getSingleplayerServer().execute(() -> {
@@ -320,14 +473,129 @@ public final class DashboardClientSmoke {
                 && client.level.getBlockState(position).is(block);
     }
 
+    private static void showDisplay(Minecraft client, DashboardDisplayBlock.Size size) {
+        UUID owner = client.player.getUUID();
+        client.player.getAbilities().flying = true;
+        client.player.setNoGravity(true);
+        client.player.setDeltaMovement(Vec3.ZERO);
+        sizedDisplayPosition = null;
+        var server = client.getSingleplayerServer();
+        server.execute(() -> {
+            try {
+                var player = server.getPlayerList().getPlayer(owner);
+                if (player == null) throw new IllegalStateException("Connected player missing");
+                var level = player.serverLevel();
+                var pos = serverPosition.offset(size == DashboardDisplayBlock.Size.WIDE ? 10 : 15, 3, 0);
+                var block = DashboardRegistries.DASHBOARD_DISPLAY.get();
+                var state = block.defaultBlockState().setValue(DashboardDisplayBlock.SIZE, size)
+                        .setValue(DashboardDisplayBlock.PART, DashboardDisplayBlock.Part.BOTTOM_LEFT)
+                        .setValue(DashboardDisplayBlock.FACING, Direction.NORTH);
+                for (int column = 0; column < size.width(); column++) {
+                    for (int row = 0; row < size.height(); row++) {
+                        level.setBlock(pos.west(column).above(row).south(),
+                                net.minecraft.world.level.block.Blocks.SMOOTH_STONE.defaultBlockState(), Block.UPDATE_ALL);
+                    }
+                }
+                if (!level.setBlock(pos, state, Block.UPDATE_CLIENTS)) throw new IllegalStateException("Display placement failed");
+                block.setPlacedBy(level, pos, state, player, new net.minecraft.world.item.ItemStack(block));
+                if (!(level.getBlockEntity(pos) instanceof AccessPointBlockEntity point))
+                    throw new IllegalStateException("Display master missing");
+                point.setNetworkId(createdNetwork);
+                sizedDisplayPosition = pos;
+                // North-facing panels extend west: face them head-on to expose frame seams.
+                player.getAbilities().flying = true;
+                player.onUpdateAbilities();
+                player.setNoGravity(true);
+                player.setDeltaMovement(Vec3.ZERO);
+                player.connection.teleport(pos.getX() + 1.0 - size.width() / 2.0,
+                        pos.getY() + size.height() / 2.0 - player.getEyeHeight(), pos.getZ() - 4.5, 0, 0);
+            } catch (Throwable failure) { serverFailure = failure; }
+        });
+    }
+
+    private static void verifyDisplayCamera(Minecraft client, DashboardDisplayBlock.Size size) {
+        var pos = sizedDisplayPosition;
+        var expectedEye = new Vec3(pos.getX() + 1.0 - size.width() / 2.0,
+                pos.getY() + size.height() / 2.0, pos.getZ() - 4.5);
+        if (client.player.getEyePosition().distanceTo(expectedEye) > 0.1
+                || Math.abs(client.player.getXRot()) > 0.1 || Math.abs(client.player.getYRot()) > 0.1)
+            throw new IllegalStateException("Display camera moved before capture: " + client.player.getEyePosition());
+    }
+
+    private static boolean sizedDisplayReady(Minecraft client, DashboardDisplayBlock.Size size) {
+        var pos = sizedDisplayPosition;
+        if (pos == null || client.level == null) return false;
+        for (var part : DashboardDisplayBlock.Part.values()) {
+            if (part.column() >= size.width() || part.row() >= size.height()) continue;
+            var cell = pos.west(part.column()).above(part.row());
+            var state = client.level.getBlockState(cell);
+            if (!state.is(DashboardRegistries.DASHBOARD_DISPLAY.get())
+                    || state.getValue(DashboardDisplayBlock.SIZE) != size
+                    || state.getValue(DashboardDisplayBlock.PART) != part) return false;
+            if ((client.level.getBlockEntity(cell) != null) != (part == DashboardDisplayBlock.Part.BOTTOM_LEFT))
+                throw new IllegalStateException("Display block entity on wrong part: " + part);
+        }
+        return true;
+    }
+
+    private static boolean facadeReady(Minecraft client, BlockPos pos, int charge) {
+        if (pos == null || !(client.level.getBlockEntity(pos) instanceof DashboardDisplayBlockEntity display)) return false;
+        var summary = DisplaySummaryClient.get(display);
+        if (summary == null || summary.mode() != DisplaySummary.Mode.LIVE) return false;
+        if (summary.total() != 4 || summary.devices().size() != 4
+                || summary.devices().stream().anyMatch(device -> device.metrics().size() != 2))
+            throw new IllegalStateException("Facade must receive only the four personal favorites and their two metrics");
+        return summary.devices().getFirst().metrics().getFirst().value().value() instanceof Percentage percent
+                && percent.value() == charge;
+    }
+
+    private static final class FacadeFixture implements DashboardDevice {
+        private final UUID id;
+        private final int index;
+        private final DeviceMetric<Percentage> charge;
+        private final List<DeviceMetric<?>> metrics;
+        FacadeFixture(int index) {
+            this.index = index;
+            id = UUID.nameUUIDFromBytes(("facade-fixture-" + index).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            charge = DeviceMetric.builder(ResourceLocation.parse("homelink_dashboard_validation:level"),
+                    Component.literal(new String[] {"Charge", "Humidite", "Progression", "Remplissage"}[index]),
+                    MetricTypes.PERCENTAGE, new Percentage(new int[] {73, 82, 42, 65}[index])).build();
+            metrics = List.of(charge, DeviceMetric.builder(ResourceLocation.parse("homelink_dashboard_validation:quantity"),
+                    Component.literal(new String[] {"Energie HE", "Cultures", "Blocs extraits", "Volume mB"}[index]),
+                    MetricTypes.INTEGER, new int[] {18000, 240, 1536, 12000}[index]).build());
+        }
+        @Override public UUID id() { return id; }
+        @Override public ResourceLocation deviceType() { return ResourceLocation.parse("homelink_dashboard_validation:facade_fixture"); }
+        @Override public Component displayName() {
+            return Component.literal(new String[] {"Batterie", "Culture", "Excavatrice", "Reservoir"}[index]);
+        }
+        @Override public DeviceStatus status() { return index == 2 ? DeviceStatus.WARNING : DeviceStatus.ONLINE; }
+        @Override public List<DeviceMetric<?>> metrics() { return metrics; }
+    }
+
     private static void verifyModels(Minecraft client, Block block) {
         var missing = client.getModelManager().getMissingModel();
+        int checked = 0;
         for (var state : block.getStateDefinition().getPossibleStates()) {
+            if (block instanceof DashboardDisplayBlock) {
+                var size = state.getValue(DashboardDisplayBlock.SIZE);
+                var part = state.getValue(DashboardDisplayBlock.PART);
+                if (part.column() >= size.width() || part.row() >= size.height()) continue;
+            }
             var model = client.getBlockRenderer().getBlockModel(state);
             if (model == missing) throw new IllegalStateException("Missing baked model: " + state);
             if (model.getParticleIcon().contents().name().getPath().equals("missingno")) {
                 throw new IllegalStateException("Missing particle texture: " + state);
             }
+            for (var quad : model.getQuads(state, null, net.minecraft.util.RandomSource.create(1))) {
+                if (quad.getSprite().contents().name().getPath().equals("missingno"))
+                    throw new IllegalStateException("Missing face texture: " + state);
+            }
+            checked++;
+        }
+        if (block instanceof DashboardDisplayBlock) {
+            if (checked != 84) throw new IllegalStateException("Expected 84 valid display models, checked " + checked);
+            LogUtils.getLogger().info("HOMELINK_DISPLAY_MODELS_OK states={}", checked);
         }
     }
 
@@ -347,6 +615,8 @@ public final class DashboardClientSmoke {
         try {
             if (client.level != null) client.level.disconnect();
             client.disconnect();
+            if (DisplaySummaryClient.size() != 0) throw new IllegalStateException("Facade cache survived disconnect");
+            LogUtils.getLogger().info("HOMELINK_DISPLAY_CACHE_CLEARED_OK");
         } finally {
             LogUtils.getLogger().info("HOMELINK_CLIENT_SMOKE_SHUTDOWN_OK");
             client.stop();

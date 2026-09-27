@@ -62,6 +62,10 @@ public final class RadioNetworkService {
         return point.networkId().isPresent() && point.getLevel() != null && !point.getLevel().isClientSide
                 && get(point.getLevel().getServer()).covers(point.networkId().orElseThrow(), point.getLevel().dimension(), point.getBlockPos());
     }
+    /** Whether a position lies within 64 blocks of a connected server or relay of this network. Server thread. */
+    public static boolean covers(MinecraftServer server, UUID network, ResourceKey<Level> dimension, BlockPos position) {
+        return get(server).covers(network, dimension, position);
+    }
     public static boolean canReceive(AccessPointBlockEntity point, UUID network) {
         return point.getLevel() != null && !point.getLevel().isClientSide
                 && get(point.getLevel().getServer()).covers(network, point.getLevel().dimension(), point.getBlockPos());

@@ -1,8 +1,8 @@
-# Guide développeur — HomeLink Dashboard 1.2.0
+# Guide développeur — HomeLink Dashboard 1.3.0
 
 ## Contrat et architecture
 
-Dashboard est un consommateur générique de **HomeCore 1.7.0** (API `1.3.0`). Les classes HomeCore ne sont pas recopiées dans ce projet. Les imports d’intégration utilisent `fr.lkdm.homecore.api.*` ; aucun import de `fr.lkdm.homecore.internal.*` n’est nécessaire ou autorisé côté Dashboard.
+Dashboard est un consommateur générique de **HomeCore 1.9.0** (API `1.5.0`). Les classes HomeCore ne sont pas recopiées dans ce projet. Les imports d’intégration utilisent `fr.lkdm.homecore.api.*` ; aucun import de `fr.lkdm.homecore.internal.*` n’est nécessaire ou autorisé côté Dashboard.
 
 ```text
 Mod fournisseur / adaptateur HomeCore
@@ -81,6 +81,18 @@ L’interface reflète les rôles de la politique HomeCore courante de référen
 
 La séparation des vues et du modèle prépare de futurs widgets spécialisés. La version 1.0 ne revendique pas d’API publique stabilisée de rendu de widgets tiers. Une intégration générique HomeCore reste suffisante et prioritaire.
 
+## Résumé sur la façade
+
+`DashboardDisplayBlock` utilise son tick serveur existant (20 ticks) pour appeler `DisplaySummaryService.refresh` sur le seul maître. Le service compose les favoris personnels autorisés du destinataire via les API publiques HomeCore et les profils Dashboard : quatre favoris au maximum, deux mesures chacun. Aucun abonnement de menu ni chargement de chunk n'est requis. Les paquets `DisplaySummaryPayloads.Update` sont envoyés individuellement aux joueurs à 16 blocs maximum ; VIEW, appartenance, portée radio et alimentation sont revérifiées avant chaque envoi. Ils ne sont jamais distribués dans les tags de mise à jour du block entity.
+
+`DisplaySummaryClient` conserve au plus 256 résumés pendant 45 ticks, associés à l'instance du maître et au monde courant. Éloignement, remplacement du bloc, changement de monde et déconnexion invalident le cache. `DashboardDisplayRenderer` dessine une seule surface couvrant le multibloc, avec une boîte de rendu englobant toutes ses cases. Les valeurs ne sont pas sauvegardées. Le transport et les droits de l'interface ouverte restent indépendants.
+
+## Machines et découverte
+
+`MachineSystems` regroupe côté client les appareils suivis par espace de noms de type (`homelink_energy`, `homelink_farm`, `homelink_quarry`, `homelink_storage`) et calcule les résumés à partir des identifiants publics des métriques ; le Dashboard ne dépend d'aucun de ces mods à la compilation. Stockage et Autres n'apparaissent que s'ils contiennent des appareils.
+
+L'onglet Ajouter passe par `DiscoveryPayloads`, lié à la session de menu validée ; le réseau vient toujours de cette session. `MachineDiscoveryService` filtre `DashboardAPI.devices(server).getAll()` : position et dimension connues, couverture par `RadioNetworkService.covers`. Il exige MANAGE_NETWORK, masque le nom des réseaux que le joueur ne peut pas voir, renvoie au plus 128 entrées et ajoute via `DashboardAPI.bindDevice` (HomeCore 1.9.0), qui vérifie aussi les droits de la machine (`NetworkMember.canConfigure`). Les appareils sans `NetworkMember` sont listés comme non compatibles. Les types partagés avec le client sont dans `network/MachineListing`.
+
 ## Persistance
 
 `DashboardPreferencesSavedData` est une `SavedData` du stockage de l’Overworld, avec une clé composée de l’UUID du joueur et de l’UUID du réseau. Son fichier est `data/homelink_dashboard_preferences.dat` à la racine du monde. Le format a une version explicite ; les transactions client sont validées avant sauvegarde. Le serveur conserve au maximum 4 096 profils, dont 64 réseaux par joueur. Les fichiers globalement illisibles ne sont pas écrasés automatiquement.
@@ -89,7 +101,7 @@ HomeCore gère séparément `data/homecore_networks.dat`. Les associations des p
 
 ## Construire le projet
 
-Java 21 est nécessaire. Les versions de référence sont dans `gradle.properties` et `build.gradle` : Minecraft 1.21.1, NeoForge 21.1.250, Dashboard 1.2.0, HomeCore 1.7.0 (API 1.3.0). Les recettes de Dashboard référencent `homecore:homelink_circuit_board`, `homecore:homelink_microprocessor` et `homecore:homelink_communication_module` par identifiant, sans importer de classe HomeCore. Conserver les versions de mappings du projet à moins d’une migration explicite.
+Java 21 est nécessaire. Les versions de référence sont dans `gradle.properties` et `build.gradle` : Minecraft 1.21.1, NeoForge 21.1.250, Dashboard 1.3.0, HomeCore 1.9.0 (API 1.5.0). Les recettes de Dashboard référencent `homecore:homelink_circuit_board`, `homecore:homelink_microprocessor` et `homecore:homelink_communication_module` par identifiant, sans importer de classe HomeCore. Conserver les versions de mappings du projet à moins d’une migration explicite.
 
 `settings.gradle` inclut réellement le build source `../HomeCore` et substitue `fr.lkdm.homecore:homecore`. Ce projet source est requis avec la configuration actuelle ; un JAR isolé placé arbitrairement dans `libs` ne remplace pas cette configuration.
 

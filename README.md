@@ -1,4 +1,4 @@
-# HomeLink Dashboard 1.2.0
+# HomeLink Dashboard 1.3.0
 
 Centre de contrôle visuel générique de l’écosystème HomeLink : consulter les appareils HomeCore, exécuter leurs actions autorisées, recevoir leurs événements et organiser un tableau de bord personnel.
 
@@ -11,12 +11,21 @@ Dashboard interprète les schémas publics HomeCore. Il ne contient aucune inté
 | Minecraft | 1.21.1 |
 | NeoForge | 21.1.250 |
 | Java | 21 |
-| HomeCore, obligatoire | 1.7.0 ou plus récent (< 2.0.0) |
-| HomeLink Dashboard | 1.2.0 |
+| HomeCore, obligatoire | 1.9.0 ou plus récent (< 2.0.0) |
+| HomeLink Energy, obligatoire | 0.1.0 ou plus récent (< 1.0.0), 0.2.0 conseillé |
+| HomeLink Dashboard | 1.3.0 |
 
-Installer `homecore-1.7.0.jar` et `homelink_dashboard-1.2.0.jar` dans le dossier `mods` du client **et** du serveur. En solo, les deux JAR sont nécessaires dans l’installation Minecraft. HomeCore reste une dépendance séparée ; son code n’est pas embarqué dans le JAR Dashboard.
+Installer `homecore-1.9.0.jar`, `homelink_energy-0.2.0.jar` et `homelink_dashboard-1.3.0.jar` dans le dossier `mods` du client **et** du serveur. En solo, ces JAR sont nécessaires dans l’installation Minecraft. HomeCore reste une dépendance séparée ; son code n’est pas embarqué dans le JAR Dashboard.
 
-**English installation:** use Minecraft 1.21.1, NeoForge 21.1.250 and Java 21. Put both HomeCore 1.7.0 and HomeLink Dashboard 1.2.0 in the client and server `mods` folders. Crafting recipes use the HomeLink Circuit Board, Microprocessor and Communication Module assembled at the HomeCore Electronics Workbench. Place a HomeLink Server, create or link a HomeNetwork, then link a Dashboard Display to the same network. Extend the 64-block range with HomeLink Repeaters. Devices must be exposed by a HomeCore-compatible mod. The **?** button in the header opens the in-game manual.
+**English installation:** use Minecraft 1.21.1, NeoForge 21.1.250 and Java 21. Put HomeCore 1.9.0, HomeLink Energy 0.2.0 and HomeLink Dashboard 1.3.0 in the client and server `mods` folders. Crafting recipes use the HomeLink Circuit Board, Microprocessor and Communication Module assembled at the HomeCore Electronics Workbench. Place a HomeLink Server, create or link a HomeNetwork, then link a Dashboard Display to the same network. Extend the 64-block range with HomeLink Repeaters. Devices must be exposed by a HomeCore-compatible mod. The **Machines** tab summarizes machines by system and the **Add** tab adds machines in radio range to the network. The **?** button in the header opens the in-game manual.
+
+## Nouveautés de la 1.3.0
+
+- Onglet **Machines** : résumé par système (Énergie, Ferme, Carrière ; Stockage s’il est sur le réseau), avec navigation et accès à la fiche de chaque machine.
+- Onglet **Ajouter** : liste les machines dans la zone radio (serveur et répéteurs), avec leur nom, et les ajoute au réseau ; requiert `MANAGE_NETWORK`.
+- Écran en **trois tailles** (1 × 1, 2 × 1, 2 × 2), choisies comme un tableau ; Maj + clic force le 1 × 1. La façade affiche vos favoris en direct.
+- Nom de réseau proposé unique et avertissement en cas de doublon.
+- Requiert HomeCore 1.9.0. Les machines d’Energy 0.2.0, Farm 1.1.0 et Quarry 1.1.0 s’ajoutent depuis le Dashboard.
 
 ## Nouveautés de la 1.2.0
 

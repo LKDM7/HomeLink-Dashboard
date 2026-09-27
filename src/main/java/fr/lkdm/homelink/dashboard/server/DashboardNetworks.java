@@ -46,12 +46,32 @@ public final class DashboardNetworks {
         offset = offset / AccessPointSession.PAGE_SIZE * AccessPointSession.PAGE_SIZE;
         int end = Math.min(offset + AccessPointSession.PAGE_SIZE, networks.size());
         var choices = List.copyOf(networks.subList(offset, end));
+        boolean canCreate = point instanceof HomeServerBlockEntity;
+        var taken = canCreate ? takenNames(player) : List.<String>of();
         return new AccessPointSession(point.getBlockPos(), point.networkId(), choices, offset,
-                end < networks.size(), point instanceof HomeServerBlockEntity);
+                end < networks.size(), canCreate, canCreate ? suggestedName(player, taken) : "",
+                taken.stream().limit(AccessPointSession.MAX_TAKEN_NAMES).toList());
+    }
+
+    /** Names of every network the player belongs to, whatever their role; duplicates are what makes binding ambiguous. */
+    public static List<String> takenNames(ServerPlayer player) {
+        return DashboardAPI.networks(player.server).getNetworksForPlayer(player.getUUID()).stream()
+                .map(network -> network.name()).distinct().sorted().toList();
+    }
+
+    /** "HomeLink · Player", then "HomeLink · Player 2", 3… until no network of the player uses it. */
+    public static String suggestedName(ServerPlayer player, List<String> taken) {
+        var keys = taken.stream().map(AccessPointSession::key).collect(java.util.stream.Collectors.toSet());
+        String base = "HomeLink · " + player.getGameProfile().getName();
+        if (!keys.contains(AccessPointSession.key(base))) return base;
+        for (int index = 2; ; index++) {
+            String candidate = base + " " + index;
+            if (!keys.contains(AccessPointSession.key(candidate))) return candidate;
+        }
     }
 
     public static ActionResult.Code create(ServerPlayer player, AccessPointBlockEntity point) {
-        return create(player, point, "HomeLink · " + player.getGameProfile().getName());
+        return create(player, point, suggestedName(player, takenNames(player)));
     }
     public static ActionResult.Code create(ServerPlayer player, AccessPointBlockEntity point, String name) {
         if (!acquire(player)) return ActionResult.Code.RATE_LIMITED;

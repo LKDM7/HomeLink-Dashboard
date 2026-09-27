@@ -1,0 +1,10 @@
+{
+    "textures":  {
+                     "accent":  "minecraft:block/light_blue_concrete",
+                     "panel":  "minecraft:block/gray_concrete",
+                     "sidebar":  "minecraft:block/gray_concrete",
+                     "muted":  "minecraft:block/light_gray_concrete",
+                     "indicator":  "minecraft:block/red_concrete"
+                 },
+    "parent":  "homelink_dashboard:block/dashboard_display_large_top_left"
+}

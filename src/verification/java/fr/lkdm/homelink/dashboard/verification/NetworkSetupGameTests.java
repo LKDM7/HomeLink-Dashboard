@@ -187,6 +187,29 @@ public final class NetworkSetupGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = "empty")
+    public static void suggestedNameAvoidsPlayersExistingNames(GameTestHelper helper) {
+        var owner = player(helper);
+        var point = place(helper, DashboardRegistries.HOME_SERVER.get(), owner);
+        var manager = DashboardAPI.networks(helper.getLevel().getServer());
+        String base = "HomeLink · NetworkSetupTest";
+        var first = manager.createNetwork(base, owner.getUUID());
+        var second = manager.createNetwork("homelink · networksetuptest 2 ", owner.getUUID());
+        var session = DashboardNetworks.describe(owner, point, 0);
+        helper.assertTrue(session.suggestedName().equals(base + " 3"),
+                "The proposal must skip names already used, ignoring case and spaces: " + session.suggestedName());
+        helper.assertTrue(session.isTaken(" HOMELINK · NETWORKSETUPTEST ") && !session.isTaken(base + " 3"),
+                "The client must be able to warn about a duplicate name");
+        helper.assertTrue(DashboardNetworks.create(owner, point) == ActionResult.Code.SUCCESS
+                        && manager.getNetwork(point.networkId().orElseThrow()).orElseThrow().name().equals(base + " 3"),
+                "The one-click creation must use the unique proposal");
+        var display = DashboardNetworks.describe(owner, place(helper, DashboardRegistries.DASHBOARD_DISPLAY.get(), owner), 0);
+        helper.assertTrue(display.suggestedName().isEmpty() && display.takenNames().isEmpty(),
+                "Displays cannot create networks and must not receive the name list");
+        for (var id : java.util.List.of(first.id(), second.id(), point.networkId().orElseThrow())) manager.deleteNetwork(id);
+        helper.succeed();
+    }
+
     private static AccessPointBlockEntity place(GameTestHelper helper, Block block, ServerPlayer owner) {
         var position = helper.absolutePos(POSITION);
         helper.getLevel().setBlock(position, block.defaultBlockState(), 3);

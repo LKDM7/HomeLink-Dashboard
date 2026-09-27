@@ -1,12 +1,12 @@
-# Guide utilisateur — HomeLink Dashboard 1.1.0
+# Guide utilisateur — HomeLink Dashboard 1.3.0
 
 ## Préparer le jeu
 
-Installer Minecraft 1.21.1, NeoForge 21.1.250 et Java 21. Les deux mods **HomeCore 1.7.0** et **HomeLink Dashboard 1.2.0** doivent être présents côté client et côté serveur. Les traductions françaises et anglaises suivent la langue choisie dans Minecraft.
+Installer Minecraft 1.21.1, NeoForge 21.1.250 et Java 21. Les mods **HomeCore 1.9.0**, **HomeLink Energy** et **HomeLink Dashboard 1.3.0** doivent être présents côté client et côté serveur. Les traductions françaises et anglaises suivent la langue choisie dans Minecraft.
 
 Pour l'interface française, choisir **Français (France)** dans les langues de Minecraft. Les menus, états d'appareils, rôles, filtres, interrupteurs et résultats d'action sont traduits. Les noms personnalisés, messages et intitulés de mesures fournis par un autre mod restent ceux de ce mod ; Dashboard ne traduit pas arbitrairement les données reçues. Les codes inconnus conservent un affichage de secours lisible.
 
-**English quick start:** install both mods on client and server. Right-click a HomeLink Server to create or select a HomeNetwork. Place a Dashboard Display and link it to that network. HOME contains your personal favorites and widgets; DEVICES lists compatible devices; ALERTS shows live events; NETWORK shows connection details; SETTINGS changes local display preferences.
+**English quick start:** install both mods on client and server. Right-click a HomeLink Server to create or select a HomeNetwork. Place a Dashboard Display and link it to that network. Like a painting, it automatically chooses the largest size that fits: 2 × 2, horizontal 2 × 1, or 1 × 1. Hold Shift while placing to force 1 × 1. Breaking any part removes the whole display and returns one item with the appropriate pickaxe (none in creative). HOME contains your personal favorites and widgets; MACHINES summarizes energy, farm and quarry machines by system (storage only when the network holds a controller); DEVICES lists compatible devices; ALERTS shows live events; NETWORK shows connection details; SETTINGS changes local display preferences.
 
 ## Manuel intégré
 
@@ -22,10 +22,16 @@ Dans l’onglet créatif HomeLink Dashboard, les deux blocs sont **HomeLink Serv
 
 1. Placer le serveur en laissant deux blocs de hauteur libres. Un seul objet place les deux moitiés ; le joueur qui le pose devient propriétaire de ce point d’accès.
 2. Faire un clic droit. Choisir **Créer un HomeNetwork** pour créer un réseau nommé automatiquement à partir du joueur, ou sélectionner un réseau existant puis l’associer.
-3. Placer le Dashboard Display et ouvrir sa configuration. Sélectionner le même réseau et confirmer l’association. Le Display peut associer un réseau existant ; la création d’un réseau se fait sur le Server.
+3. Placer le Dashboard Display sur une face murale : comme un tableau, il choisit automatiquement la plus grande taille disponible, **2 × 2**, **2 × 1 horizontal**, puis **1 × 1**, en préférant la droite et le haut. **Maj + clic à la pose** force le 1 × 1. Aucun mur plein derrière n’est requis. Ouvrir sa configuration depuis n’importe quelle case. Sélectionner le même réseau et confirmer l’association. Le Display peut associer un réseau existant ; la création d’un réseau se fait sur le Server.
 4. Faire un clic droit sur l’un des deux blocs associés pour ouvrir la même interface réseau.
 
-Le Display possède une façade rectangulaire et un voyant d'état. Son petit schéma de façade est décoratif ; les données réelles sont dans l'interface ouverte au clic. La GUI prend la forme d'un terminal industriel gris : boutons en relief, onglet actif enfoncé et focus clavier visible. Elle partage le cadre, la palette, les contrôles de 18 pixels, les info-bulles et la disposition de l’en-tête (voyant d’état puis **?**) avec HomeLink Storage. HOME regroupe ses compteurs sur une ligne lorsque la fenêtre est assez grande et présente les favoris dans des lignes compactes. La taille de l'interface suit le réglage d'échelle GUI de Minecraft.
+Un seul objet place l’écran entier, quelle que soit sa taille. **Casser une case retire tout l’écran** et rend un seul objet avec une pioche adaptée ; aucun objet n’est lâché en créatif. Les anciens écrans restent en 1 × 1 sans manipulation. La consommation d’énergie et l’interface sont identiques pour les trois tailles. **Maj + clic droit, main vide**, sur n’importe quelle case permet de réassocier l’écran.
+
+Le Display possède une façade rectangulaire, un cadre continu et un voyant d'état. **Sans cliquer**, vous voyez vos favoris du Dashboard et leurs deux premières mesures, actualisées environ chaque seconde à moins de **16 blocs**. Ajoutez les appareils dans **HOME → Favoris** : le 1 × 1 en présente un, le 2 × 1 deux et le 2 × 2 quatre, triés par nom. Un indicateur signale les autres favoris accessibles. Chaque joueur voit ses propres favoris et uniquement les données auxquelles il a accès ; les appareils hors portée radio ou déchargés ne sont pas affichés. L'écran indique quand il est hors ligne, non associé ou sans favori accessible.
+
+The display face shows your personal Dashboard favorites and their first two metrics without clicking, refreshing about once per second within 16 blocks. Add favorites in **HOME → Favorites**. The three sizes show one, two or four devices, sorted by name; additional accessible favorites are indicated. Access permissions and radio coverage still apply.
+
+La GUI prend la forme d'un terminal industriel gris : boutons en relief, onglet actif enfoncé et focus clavier visible. Elle partage le cadre, la palette, les contrôles de 18 pixels, les info-bulles et la disposition de l’en-tête (voyant d’état puis **?**) avec HomeLink Storage. HOME regroupe ses compteurs sur une ligne lorsque la fenêtre est assez grande et présente les favoris dans des lignes compactes. La taille de l'interface suit le réglage d'échelle GUI de Minecraft.
 
 Les points d’accès utilisent le même HomeNetwork. Le serveur émet dans un rayon de **64 blocs**, hauteur comprise, dans sa dimension. L’écran et les appareils physiques doivent être couverts par un serveur ou un répéteur connecté. Aucun câble n’est nécessaire et les murs ne bloquent pas le signal. Le joueur doit rester à moins de huit blocs du point d’accès utilisé ; le menu se ferme si ce point est détruit, désactivé ou perd le signal.
 
@@ -37,7 +43,7 @@ Le serveur et les relais doivent rester dans des chunks chargés. Ils ne chargen
 
 Les appareils doivent toujours être enregistrés et associés au réseau par leur mod HomeCore : il n’y a pas de détection automatique des blocs voisins. Les appareils physiques hors portée sont retirés de la liste en environ une seconde ; leurs actions, mesures et événements sont bloqués côté serveur dès la perte du signal. Ils réapparaissent quand la liaison revient. Leurs favoris et widgets restent enregistrés. Les appareils purement logiques (sans position ni dimension) restent accessibles lorsqu’un serveur de leur réseau est chargé ; une localisation partielle est refusée.
 
-Cette fonctionnalité exige **HomeCore 1.7.0** ou une version compatible plus récente sur le client et le serveur. Mettre à jour les deux JAR ensemble.
+Cette fonctionnalité exige **HomeCore 1.7.0** ou une version compatible plus récente (1.9.0 depuis le Dashboard 1.3.0) sur le client et le serveur. Mettre à jour les deux JAR ensemble.
 
 Un point non associé ou hors portée est hors ligne. Un point associé à un réseau existant et recevant le signal est en ligne. Une association vers un réseau supprimé donne une erreur. Ces états indiquent la disponibilité du point d’accès, pas la santé de chacun des appareils du réseau.
 
@@ -90,6 +96,33 @@ Avec la permission CONFIGURE, **Disposition** ouvre l’éditeur :
 Cliquer directement sur un widget dans HOME ouvre son placement si vous êtes autorisé. Les widgets ajoutés occupent 6 × 3 cases ; le redimensionnement propose 12 × 3 et 6 × 3. La grille comporte 12 colonnes et 64 lignes. Les chevauchements et les sorties de grille sont refusés. Chaque modification attend la confirmation serveur avant d’afficher le nouvel état.
 
 La limite est de 32 widgets et 64 favoris par profil. Les préférences stockent des références aux appareils et métriques, pas leurs valeurs. Si un appareil disparaît, le widget reste présent avec une indication d’indisponibilité ; il peut être supprimé dans l’éditeur.
+
+## MACHINES : résumé par système
+
+MACHINES réunit les machines des mods HomeLink dans une seule vue. La colonne de gauche propose **Vue d’ensemble**, puis **Énergie**, **Ferme** et **Carrière**, avec le nombre de machines de chacun. **Stockage** apparaît seulement si le réseau contient un contrôleur de stockage : HomeLink Storage crée son propre réseau et se consulte normalement depuis son terminal. **Autres** apparaît lorsque le réseau contient des appareils d’un autre mod HomeCore.
+
+- **Vue d’ensemble** : une carte par système, avec son voyant d’état, ses compteurs en ligne / attention / hors ligne et ses chiffres clés. Cliquer sur une carte ouvre le système.
+- **Énergie** : production totale des panneaux solaires et éoliennes (HE/t), énergie stockée dans les batteries.
+- **Ferme** : cultures suivies et part prête à récolter, pompes actives, FarmBots au travail, problèmes détectés.
+- **Carrière** : carrières en extraction, progression moyenne, blocs extraits.
+- **Stockage** (si présent) : remplissage moyen, nombre d’objets, inventaires pleins.
+
+Dans un système, les machines qui demandent de l’attention sont listées en premier, avec deux mesures clés. Cliquer sur une machine ouvre sa fiche dans DEVICES, où se trouvent toutes ses mesures et ses actions. Les résumés sont calculés localement à partir des appareils reçus ; ils ne couvrent que les machines suivies par le Dashboard.
+
+## AJOUTER : machines à portée
+
+L'onglet **Ajouter** liste les machines HomeLink situées dans la zone radio du réseau : 64 blocs autour du serveur et de chaque répéteur connecté, dans la même dimension. Seules les machines chargées apparaissent ; le Dashboard ne parcourt pas le monde. La liste se met à jour à chaque ouverture de l'onglet et avec **Actualiser**.
+
+Chaque ligne affiche le nom de la machine (y compris un nom donné à l'enclume), son type, sa distance au point d'accès et son état :
+
+- **Libre** : la machine n'a pas de réseau. Bouton **Ajouter**.
+- **Sur « Atelier »** : elle est sur un autre de vos réseaux. Bouton **Déplacer ici**.
+- **Sur le réseau d'un autre joueur** : son nom de réseau reste masqué et la ligne est **Verrouillée**.
+- **Déjà sur ce réseau** ou **Non compatible** (par exemple HomeLink Storage, qui gère son propre réseau).
+
+**Tout ajouter** rattache en une fois toutes les machines libres ou déplaçables. Une machine ajoutée apparaît aussitôt dans MACHINES et DEVICES, et son propre écran affiche le nouveau réseau.
+
+Droits : il faut **MANAGE_NETWORK** sur le réseau de l'écran pour voir et utiliser cet onglet, les droits de la machine elle-même (propriétaire ou droit de configuration), et MANAGE_NETWORK sur son réseau actuel pour la déplacer. Le serveur vérifie tout à chaque ajout. Nécessite HomeCore 1.9.0, HomeLink Energy 0.2.0, HomeLink Farm 1.1.0 et HomeLink Quarry 1.1.0 ; les versions plus anciennes de ces mods restent visibles mais **Non compatibles**.
 
 ## DEVICES : consulter et contrôler
 

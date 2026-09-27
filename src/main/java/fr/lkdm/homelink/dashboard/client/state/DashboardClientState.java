@@ -397,7 +397,8 @@ public final class DashboardClientState implements AutoCloseable {
         revision++;
     }
 
-    private static String format(WireValue wire, String unit) {
+    /** Shared readable fallback for menu metrics and the in-world display. */
+    public static String format(WireValue wire, String unit) {
         Object value = wire.value();
         String result = switch (value) {
             case Boolean enabled -> enabled ? "ON" : "OFF";

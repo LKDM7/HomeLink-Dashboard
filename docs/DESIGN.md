@@ -15,9 +15,15 @@ Référence : les [terminaux Applied Energistics 2](https://github.com/AppliedEn
 
 ## Bloc écran
 
-L'écran reste un bloc unique. Sa façade est rectangulaire, avec cadre graphite, support arrière et relief peu profond. Les quatre orientations possèdent une forme de collision adaptée. Les modèles Online, Offline et Error héritent de la même géométrie.
+L'écran est un panneau mural multibloc de 1 × 1, 2 × 1 ou 2 × 2 cases. Comme un tableau, sa pose choisit la plus grande taille disponible sur la face cliquée, en préférant la droite et le haut vus de face ; Maj + clic force le 1 × 1. Aucun mur plein derrière le panneau n'est requis. Un seul objet place l'ensemble, et les anciens écrans restent des maîtres 1 × 1 par défaut.
 
-La représentation miniature sur le bloc est décorative : elle ne prétend pas afficher les appareils ou leurs valeurs. Son voyant reflète l'état réel du point d'accès ; le panneau s'éteint hors ligne. Le clic ouvre le véritable Dashboard.
+La case en bas à gauche vue de face est le maître : elle seule conserve le réseau, le propriétaire et l'énergie. Les autres cases relaient le clic et recopient son état. La consommation et l'interface sont identiques pour les trois tailles. Casser une case retire tout l'écran, avec un seul objet rendu si l'outil convient, aucun en créatif.
+
+La façade rectangulaire conserve son cadre graphite, son support arrière et son relief peu profond. Le cadre est continu sur toute la surface, sans joint entre les cases. Les modèles sont découpés dans un dessin commun à chaque taille : sept pièces parents au total, chacune avec ses variantes Online, Offline et Error par textures. Les quatre orientations possèdent une collision fine et continue, sans trou à la jonction des rangées ; le 1 × 1 conserve sa forme initiale. Le modèle d'objet reste le 1 × 1.
+
+La façade affiche directement les favoris personnels du joueur et leurs deux premières mesures, sans ouvrir le Dashboard. Le 1 × 1 présente un favori, le 2 × 1 deux et le 2 × 2 quatre ; un indicateur signale les favoris accessibles supplémentaires. Les noms sont rognés à la place disponible. Le texte utilise la police Minecraft et la palette du terminal, sur une surface lisible indépendante de la lumière ambiante. Le cadre et le voyant restent les modèles existants ; le modèle d'objet conserve son dessin décoratif.
+
+Le maître envoie un résumé autorisé par joueur toutes les secondes, dans un rayon de 16 blocs. Les mesures proviennent de HomeCore et respectent les permissions VIEW ainsi que la portée radio. Un joueur voit ses propres favoris, pas ceux du propriétaire du panneau. L'écran indique les états non associé, hors ligne, accès restreint ou aucun favori accessible. Le cache client expire et se vide à la déconnexion ; aucune valeur de façade n'est sauvegardée dans le bloc. Le clic ouvre toujours le Dashboard complet.
 
 ## Vérification
 

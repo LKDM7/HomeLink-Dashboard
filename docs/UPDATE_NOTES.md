@@ -1,3 +1,15 @@
+# Version 1.3.0 — Machines, ajout de machines et écran en trois tailles
+
+Cette mise à jour nécessite **HomeCore 1.9.0** (API 1.5.0) sur le client et le serveur. La plage déclarée devient `[1.9.0,2.0.0)`. HomeLink Energy reste obligatoire ; la version 0.2.0 est conseillée.
+
+- **Machines** : nouvel onglet qui résume les machines par système (Énergie, Ferme, Carrière ; Stockage seulement s'il est sur le réseau) : production, stockage, cultures, progression des carrières, remplissage. Cliquer sur une machine ouvre sa fiche.
+- **Ajouter** : nouvel onglet qui liste les machines dans la zone radio du serveur et des répéteurs, avec leur nom (y compris un nom d'enclume), leur type, leur distance et leur réseau, puis les ajoute ou les déplace sur ce réseau. Requiert MANAGE_NETWORK et les droits sur la machine. Machines compatibles : HomeLink Energy 0.2.0, Farm 1.1.0 et Quarry 1.1.0.
+- **Écran en trois tailles** : 1 × 1, 2 × 1 ou 2 × 2, choisi à la pose comme un tableau ; Maj + clic force le 1 × 1. Casser une case retire tout l'écran. Un câble d'énergie peut alimenter n'importe quelle case. Les écrans existants restent en 1 × 1.
+- **Façade en direct** : l'écran affiche vos favoris (1, 2 ou 4 selon la taille), selon vos propres droits.
+- **Noms de réseau** : la création propose un nom libre (« HomeLink · Joueur 2 »…) et signale un nom déjà utilisé par un autre de vos réseaux.
+
+Vérifications du 27 septembre 2026 : `build`, **75 GameTests serveur** et le test client connecté réussis avec HomeCore 1.9.0 et HomeLink Energy 0.2.0. Le test client pose un panneau solaire réel, l'ajoute depuis l'onglet Ajouter et le retrouve dans Machines → Énergie.
+
 # Version 1.2.0 — HomeCore 1.7.0 et module de communication
 
 Cette mise à jour nécessite **HomeCore 1.7.0** sur le client et le serveur. La plage déclarée devient `[1.7.0,2.0.0)`.

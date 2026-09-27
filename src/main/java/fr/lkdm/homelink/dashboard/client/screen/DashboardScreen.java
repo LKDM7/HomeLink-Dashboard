@@ -4,6 +4,8 @@ import fr.lkdm.homelink.dashboard.client.state.DashboardClientState;
 import fr.lkdm.homelink.dashboard.client.widget.DeviceExplorerView;
 import fr.lkdm.homelink.dashboard.client.widget.ActionPanel;
 import fr.lkdm.homelink.dashboard.client.widget.HomeDashboardView;
+import fr.lkdm.homelink.dashboard.client.widget.MachinesView;
+import fr.lkdm.homelink.dashboard.client.widget.DiscoveryView;
 import fr.lkdm.homelink.dashboard.client.widget.AlertCenterView;
 import fr.lkdm.homelink.dashboard.client.widget.NetworkView;
 import fr.lkdm.homelink.dashboard.client.widget.SettingsView;
@@ -49,8 +51,13 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
     private String favoriteSymbol = "";
     private DashboardPreferencesClient preferences;
     private HomeDashboardView home;
-    private enum Page { HOME, DEVICES, ALERTS, NETWORK, SETTINGS }
+    private enum Page { HOME, MACHINES, DISCOVER, DEVICES, ALERTS, NETWORK, SETTINGS }
     private Page page = Page.HOME;
+    private MachinesView machines;
+    private DiscoveryView discovery;
+    private final java.util.function.Consumer<fr.lkdm.homelink.dashboard.network.DiscoveryPayloads.Response> discoveryListener = response -> {
+        if (discovery != null) discovery.receive(response);
+    };
     private AlertCenterView alerts;
     private NetworkView network;
     private SettingsView settings;
@@ -65,15 +72,24 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
     public ActionPanel actions() { return actions; }
     public HomeDashboardView home() { return home; }
     public DashboardPreferencesClient preferences() { return preferences; }
+    public MachinesView machines() { return machines; }
+    public DiscoveryView discovery() { return discovery; }
     public AlertCenterView alerts() { return alerts; }
     public NetworkView network() { return network; }
     public void showHome() { show(Page.HOME); }
+    public void showMachines() { show(Page.MACHINES); }
+    public void showDiscovery() { show(Page.DISCOVER); }
     public void showDevices() { show(Page.DEVICES); }
     public void showAlerts() { show(Page.ALERTS); }
     public void showNetwork() { show(Page.NETWORK); }
     public void showSettings() { show(Page.SETTINGS); }
     private void show(Page target) {
-        if (page != target || actionMode) { page = target; actionMode = false; rebuild(); }
+        if (page != target || actionMode) {
+            page = target; actionMode = false;
+            // Machines come and go with chunks and other players: list them afresh each time the tab opens.
+            if (target == Page.DISCOVER && discovery != null) discovery.refresh();
+            rebuild();
+        }
     }
     private void openDevice(java.util.UUID id) {
         if (state.devices().stream().noneMatch(device -> device.id().equals(id))) return;
@@ -81,7 +97,10 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         explorer.select(id);
     }
     private void rebuild() { clearWidgets(); init(); }
-    private void refreshData() { state.refresh(); if (preferences != null) preferences.refresh(); }
+    private void refreshData() {
+        if (page == Page.DISCOVER && discovery != null) { discovery.refresh(); return; }
+        state.refresh(); if (preferences != null) preferences.refresh();
+    }
     public void openActions() {
         if (explorer == null || explorer.selectedDeviceId().isEmpty()) return;
         actions = new ActionPanel(state, font);
@@ -92,6 +111,7 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
     }
     @Override protected void init() {
         fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.listen(nameListener);
+        fr.lkdm.homelink.dashboard.network.DiscoveryPayloads.listen(discoveryListener);
         previous = null; next = null; refresh = null; actionButton = null;
         favoriteButton = null;
         favoriteSymbol = "";
@@ -114,7 +134,8 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         }
         if (state == null) {
             if (menu.session().canCreate()) {
-                if (newNetworkName == null) newNetworkName = "HomeLink · " + minecraft.player.getGameProfile().getName();
+                if (newNetworkName == null) newNetworkName = menu.session().suggestedName().isEmpty()
+                        ? "HomeLink · " + minecraft.player.getGameProfile().getName() : menu.session().suggestedName();
                 var input = DashboardTheme.input(new net.minecraft.client.gui.components.EditBox(font, leftPos + 12, topPos + 66,
                         imageWidth - 132, DashboardTheme.CONTROL_HEIGHT, Component.translatable("screen.homelink_dashboard.network_name")));
                 input.setMaxLength(128); input.setValue(newNetworkName);
@@ -135,6 +156,8 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
             if (explorer == null) explorer = new DeviceExplorerView(state, font);
             if (preferences == null) { preferences = new DashboardPreferencesClient(menu); preferences.start(); }
             if (home == null) home = new HomeDashboardView(state, preferences, font);
+            if (machines == null) machines = new MachinesView(state, font, this::openDevice);
+            if (discovery == null) discovery = new DiscoveryView(font, menu.containerId);
             if (alerts == null) alerts = new AlertCenterView(state, font, this::openDevice);
             if (network == null) network = new NetworkView(state, font, name -> sendName(false, name), this::rebuild);
             if (settings == null) settings = new SettingsView(font, () -> state.setAlertLimit(DashboardConfig.alertLimit()));
@@ -148,6 +171,8 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
                 int contentWidth = imageWidth - 24, contentHeight = imageHeight - 96;
                 switch (page) {
                     case HOME -> home.init(contentX, contentY, contentWidth, contentHeight, this::addRenderableWidget, this::rebuild);
+                    case MACHINES -> machines.init(contentX, contentY, contentWidth, contentHeight, this::addRenderableWidget, this::rebuild);
+                    case DISCOVER -> discovery.init(contentX, contentY, contentWidth, contentHeight, this::addRenderableWidget, this::rebuild);
                     case DEVICES -> explorer.init(contentX, contentY + 20, contentWidth, contentHeight - 20, this::addRenderableWidget);
                     case ALERTS -> alerts.init(contentX, contentY, contentWidth, contentHeight, this::addRenderableWidget);
                     case NETWORK -> network.init(contentX, contentY, contentWidth, contentHeight, this::addRenderableWidget);
@@ -183,7 +208,7 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         return control;
     }
     private void navigation() {
-        String[] keys = {"home", "devices", "alerts_tab", "network_tab", "settings_tab"};
+        String[] keys = {"home", "machines_tab", "discover_tab", "devices", "alerts_tab", "network_tab", "settings_tab"};
         Page[] pages = Page.values();
         int[] natural = new int[keys.length];
         int total = 0;
@@ -216,6 +241,7 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
                 explorer.tick();
                 if (!actionMode) switch (page) {
                 case HOME -> home.tick();
+                case MACHINES -> machines.tick();
                 case ALERTS -> alerts.tick();
                 case NETWORK -> network.tick();
                 default -> { }
@@ -248,6 +274,7 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
     }
     @Override public void removed() {
         fr.lkdm.homelink.dashboard.network.NetworkNamePayloads.stopListening(nameListener);
+        fr.lkdm.homelink.dashboard.network.DiscoveryPayloads.stopListening(discoveryListener);
         if (state != null) state.close();
         if (preferences != null) preferences.close();
         fr.lkdm.homelink.dashboard.client.rendering.MetricRendererRegistry.clearCache();
@@ -260,6 +287,8 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         else if (actionMode) actions.render(graphics, mouseX, mouseY, partialTick);
         else if (state != null) switch (page) {
             case HOME -> home.render(graphics, mouseX, mouseY, partialTick);
+            case MACHINES -> machines.render(graphics, mouseX, mouseY, partialTick);
+            case DISCOVER -> discovery.render(graphics, mouseX, mouseY, partialTick);
             case DEVICES -> explorer.render(graphics, mouseX, mouseY, partialTick);
             case ALERTS -> alerts.render(graphics, mouseX, mouseY, partialTick);
             case NETWORK -> network.render(graphics, mouseX, mouseY, partialTick);
@@ -279,6 +308,9 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
             text(graphics, Component.translatable("manual.homelink_dashboard.title"), 42, DashboardTheme.ACCENT);
         } else if (state == null) {
             text(graphics, Component.translatable("screen.homelink_dashboard.setup"), 42, 0xAFB1AD);
+            // Warning only: several networks may legitimately share a name, but binding machines then becomes ambiguous.
+            if (menu.session().canCreate() && newNetworkName != null && menu.session().isTaken(newNetworkName))
+                text(graphics, Component.translatable("screen.homelink_dashboard.name_taken"), 86, DashboardTheme.WARNING);
             if (!menu.session().choices().isEmpty()) {
                 var choice = menu.session().choices().get(selectedNetwork);
                 text(graphics, Component.literal("[" + choice.id().toString().substring(0, 8) + "] " + choice.name()), 96, DashboardTheme.TEXT);
@@ -301,6 +333,8 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
     @Override public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
         if (manualOpen) return manual.mouseScrolled(mouseX, mouseY, vertical) || super.mouseScrolled(mouseX, mouseY, horizontal, vertical);
         if (!actionMode && page == Page.HOME && home != null && home.mouseScrolled(mouseX, mouseY, horizontal, vertical)) return true;
+        if (!actionMode && page == Page.MACHINES && machines != null && machines.mouseScrolled(mouseX, mouseY, horizontal, vertical)) return true;
+        if (!actionMode && page == Page.DISCOVER && discovery != null && discovery.mouseScrolled(mouseX, mouseY, horizontal, vertical)) return true;
         if (!actionMode && page == Page.DEVICES && explorer != null && explorer.mouseScrolled(mouseX, mouseY, horizontal, vertical)) return true;
         if (!actionMode && page == Page.ALERTS && alerts != null && alerts.mouseScrolled(mouseX, mouseY, horizontal, vertical)) return true;
         return super.mouseScrolled(mouseX, mouseY, horizontal, vertical);
@@ -310,6 +344,8 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         // Container screens consume otherwise unhandled clicks even when there are no slots.
         // Route custom page regions first; each view excludes its native button/input area.
         if (!actionMode && page == Page.HOME && home != null && home.mouseClicked(mouseX, mouseY, button)) return true;
+        if (!actionMode && page == Page.MACHINES && machines != null && machines.mouseClicked(mouseX, mouseY, button)) return true;
+        if (!actionMode && page == Page.DISCOVER && discovery != null && discovery.mouseClicked(mouseX, mouseY, button)) return true;
         if (!actionMode && page == Page.ALERTS && alerts != null && alerts.mouseClicked(mouseX, mouseY, button)) return true;
         if (!actionMode && page == Page.DEVICES && explorer != null && explorer.mouseClicked(mouseX, mouseY, button)) return true;
         return super.mouseClicked(mouseX, mouseY, button);
