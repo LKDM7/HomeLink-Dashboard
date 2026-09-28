@@ -4,29 +4,56 @@ import fr.lkdm.homecore.api.transport.WireValue;
 import java.util.List;
 import java.util.Objects;
 
-/** Small, recipient-authorized view of a display's network; never persisted in block NBT. */
+/**
+ * Small, recipient-authorized view of a display's network; never persisted in block NBT. The recipient's
+ * dashboard widgets, when there are any, travel with their saved grid geometry so the screen mirrors Home.
+ */
 public record DisplaySummary(Mode mode, String networkName, int total, int online, int attention,
-                             int offline, List<DeviceLine> devices) {
+                             int offline, List<DeviceLine> devices, List<WidgetTile> widgets) {
     public static final int MAX_LINES = 4;
     public static final int MAX_METRICS = 2;
     public static final int MAX_NAME_LENGTH = 128;
     public static final int MAX_DEVICES = 100_000;
+    /** More widgets never fit on the largest display. */
+    public static final int MAX_WIDGETS = 12;
     public enum Mode { LIVE, UNBOUND, OFFLINE, RESTRICTED }
 
     public DisplaySummary {
         Objects.requireNonNull(mode);
         Objects.requireNonNull(networkName);
         devices = List.copyOf(devices);
-        if (networkName.length() > MAX_NAME_LENGTH || devices.size() > MAX_LINES
+        widgets = List.copyOf(widgets);
+        if (networkName.length() > MAX_NAME_LENGTH || devices.size() > MAX_LINES || widgets.size() > MAX_WIDGETS
                 || total < 0 || total > MAX_DEVICES || online < 0 || attention < 0 || offline < 0
                 || (long) online + attention + offline != total || devices.size() > total)
             throw new IllegalArgumentException("Invalid display summary");
-        if (mode != Mode.LIVE && (!networkName.isEmpty() || total != 0 || !devices.isEmpty()))
+        if (mode != Mode.LIVE && (!networkName.isEmpty() || total != 0 || !devices.isEmpty() || !widgets.isEmpty()))
             throw new IllegalArgumentException("Inactive display must not expose network data");
+    }
+
+    /** Summary without widgets: the display lists favorites. */
+    public DisplaySummary(Mode mode, String networkName, int total, int online, int attention, int offline, List<DeviceLine> devices) {
+        this(mode, networkName, total, online, attention, offline, devices, List.of());
     }
 
     public static DisplaySummary empty(Mode mode) {
         return new DisplaySummary(mode, "", 0, 0, 0, 0, List.of());
+    }
+
+    /**
+     * One dashboard widget at its saved grid place. A summary tile carries up to two metrics; a metric tile
+     * carries only its metric, or none when the device no longer provides it. An unavailable device has an
+     * empty name.
+     */
+    public record WidgetTile(int x, int y, int width, int height, boolean metric, DeviceLine device) {
+        public WidgetTile {
+            Objects.requireNonNull(device);
+            if (!fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.supportedSize(width, height) || x < 0 || y < 0
+                    || x > fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.COLUMNS - width
+                    || y > fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.MAX_ROWS - height
+                    || metric && device.metrics().size() > 1)
+                throw new IllegalArgumentException("Invalid display widget");
+        }
     }
 
     public record DeviceLine(String name, String status, List<MetricLine> metrics) {

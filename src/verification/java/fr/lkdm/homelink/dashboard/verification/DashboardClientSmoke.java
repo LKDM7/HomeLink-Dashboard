@@ -223,8 +223,18 @@ public final class DashboardClientSmoke {
                             DashboardAPI.devices(server).register(fixture);
                             manager.addDevice(createdNetwork, fixture.id());
                         }
+                        // Widgets make the displays mirror this Home layout: two half tiles above a full one.
+                        var widget = fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.Type.DEVICE_SUMMARY;
+                        var layout = List.of(
+                                new fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget(UUID.randomUUID(), widget,
+                                        FACADE_FIXTURES.get(0).id(), "", 0, 0, 6, 3),
+                                new fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget(UUID.randomUUID(),
+                                        fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.Type.METRIC,
+                                        FACADE_FIXTURES.get(1).id(), "homelink_dashboard_validation:level", 6, 0, 6, 3),
+                                new fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget(UUID.randomUUID(), widget,
+                                        FACADE_FIXTURES.get(2).id(), "", 0, 3, 12, 3));
                         DashboardPreferencesSavedData.get(server).put(client.player.getUUID(), createdNetwork,
-                                new DashboardProfile(List.of(), FACADE_FIXTURES.stream().map(FacadeFixture::id)
+                                new DashboardProfile(layout, FACADE_FIXTURES.stream().map(FacadeFixture::id)
                                         .collect(java.util.stream.Collectors.toSet())));
                         namesReady = true;
                     } catch (Throwable failure) { serverFailure = failure; }

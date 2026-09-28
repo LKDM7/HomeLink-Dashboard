@@ -9,6 +9,7 @@ import fr.lkdm.homelink.dashboard.client.state.DashboardClientState;
 import fr.lkdm.homelink.dashboard.client.state.DebugDeviceView;
 import fr.lkdm.homelink.dashboard.client.state.DisplaySummaryClient;
 import fr.lkdm.homelink.dashboard.network.DisplaySummary;
+import fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -23,6 +24,9 @@ public final class DashboardDisplayRenderer implements BlockEntityRenderer<Dashb
     private static final float PIXELS_PER_BLOCK = 128;
     private static final int BACKGROUND = 0xFF181C1D;
     private static final int RULE = 0xFF394142;
+    private static final int TILE = 0xFF232829;
+    /** Height in pixels of one dashboard grid row: a three-row widget holds a name and two values. */
+    private static final int WIDGET_ROW = 12;
     private final Font font;
 
     public DashboardDisplayRenderer(BlockEntityRendererProvider.Context context) {
@@ -73,10 +77,14 @@ public final class DashboardDisplayRenderer implements BlockEntityRenderer<Dashb
         pose.scale(1 / PIXELS_PER_BLOCK, -1 / PIXELS_PER_BLOCK, 1 / PIXELS_PER_BLOCK);
         fill(pose, buffers, 0, 0, width, height, 0, BACKGROUND);
         fill(pose, buffers, 6, 27, width - 6, 28, 0.02F, RULE);
-        text(pose, buffers, tr("title"), 6, 5, width - 12, DashboardTheme.ACCENT);
+        boolean widgets = summary != null && summary.mode() == DisplaySummary.Mode.LIVE && !summary.widgets().isEmpty();
+        text(pose, buffers, tr(widgets ? "title_home" : "title"), 6, 5, width - 12, DashboardTheme.ACCENT);
 
         if (summary == null || summary.mode() != DisplaySummary.Mode.LIVE) {
             inactive(pose, buffers, summary, width, height);
+        } else if (widgets) {
+            text(pose, buffers, summary.networkName(), 6, 16, width - 12, DashboardTheme.TEXT);
+            widgets(pose, buffers, summary, width, height);
         } else {
             text(pose, buffers, summary.networkName(), 6, 16, width - 12, DashboardTheme.TEXT);
             if (summary.devices().isEmpty()) {
@@ -100,6 +108,58 @@ public final class DashboardDisplayRenderer implements BlockEntityRenderer<Dashb
             }
         }
         pose.popPose();
+    }
+
+    /**
+     * The viewer's Home widgets at their saved grid places: the twelve columns span the screen width and each
+     * grid row is {@link #WIDGET_ROW} pixels high. Tiles below the screen are counted in the footer.
+     */
+    private void widgets(PoseStack pose, MultiBufferSource buffers, DisplaySummary summary, float width, float height) {
+        float left = 6, top = 32, span = width - 12, bottom = height - 13;
+        int hidden = 0;
+        for (var tile : summary.widgets()) {
+            float x = left + tile.x() * span / DashboardWidget.COLUMNS;
+            float y = top + tile.y() * WIDGET_ROW;
+            float w = tile.width() * span / DashboardWidget.COLUMNS - 3;
+            float h = tile.height() * WIDGET_ROW - 3;
+            if (y + h > bottom) { hidden++; continue; }
+            fill(pose, buffers, x, y, x + w, y + h, 0.01F, TILE);
+            var device = tile.device();
+            boolean available = !device.name().isEmpty();
+            fill(pose, buffers, x + 3, y + 5, x + 6, y + 8, 0.02F, DashboardTheme.status(device.status()));
+            text(pose, buffers, available ? device.name() : tr("unavailable"), x + 9, y + 3, w - 12, DashboardTheme.TEXT);
+            if (!available) continue;
+            if (tile.metric()) {
+                if (device.metrics().isEmpty()) { text(pose, buffers, tr("metric_unavailable"), x + 3, y + 14, w - 6, DashboardTheme.MUTED); continue; }
+                var view = view(device.metrics().getFirst());
+                text(pose, buffers, device.metrics().getFirst().name(), x + 3, y + 14, w - 6, DashboardTheme.MUTED);
+                text(pose, buffers, MetricRendererRegistry.localizedValue(view), x + 3, y + 24, w - 6, DashboardTheme.TEXT);
+                double fraction = MetricRendererRegistry.fraction(view);
+                if (fraction >= 0 && h >= 34) {
+                    fill(pose, buffers, x + 3, y + h - 4, x + w - 3, y + h - 2, 0.02F, RULE);
+                    fill(pose, buffers, x + 3, y + h - 4, x + 3 + (float) ((w - 6) * Math.min(1, fraction)), y + h - 2, 0.03F, DashboardTheme.ACCENT);
+                }
+            } else if (device.metrics().isEmpty()) {
+                text(pose, buffers, DashboardText.value(device.status()), x + 3, y + 14, w - 6, DashboardTheme.status(device.status()));
+            } else {
+                for (int index = 0; index < Math.min(2, device.metrics().size()); index++) {
+                    var metric = device.metrics().get(index);
+                    String value = MetricRendererRegistry.localizedValue(view(metric));
+                    int valueWidth = Math.min(font.width(value), (int) w - 6);
+                    float metricY = y + 14 + index * 10;
+                    float labelWidth = w - 6 - valueWidth - 4;
+                    if (labelWidth >= 18) text(pose, buffers, metric.name(), x + 3, metricY, labelWidth, DashboardTheme.MUTED);
+                    text(pose, buffers, value, x + w - 3 - valueWidth, metricY, valueWidth, DashboardTheme.TEXT);
+                }
+            }
+        }
+        String footer = hidden > 0 ? Component.translatable("display.homelink_dashboard.more_widgets", hidden).getString() : tr("open");
+        text(pose, buffers, footer, 6, height - 11, width - 12, DashboardTheme.MUTED);
+    }
+
+    private static DebugDeviceView.Metric view(DisplaySummary.MetricLine metric) {
+        return new DebugDeviceView.Metric("", metric.name(), DashboardClientState.format(metric.value(), metric.unit()),
+                0, metric.type(), metric.unit(), metric.value());
     }
 
     private void favorite(PoseStack pose, MultiBufferSource buffers, DisplaySummary.DeviceLine device,

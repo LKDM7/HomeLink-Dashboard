@@ -1,8 +1,8 @@
-# Guide utilisateur — HomeLink Dashboard 1.3.0
+# Guide utilisateur — HomeLink Dashboard 1.4.0
 
 ## Préparer le jeu
 
-Installer Minecraft 1.21.1, NeoForge 21.1.250 et Java 21. Les mods **HomeCore 1.9.0**, **HomeLink Energy** et **HomeLink Dashboard 1.3.0** doivent être présents côté client et côté serveur. Les traductions françaises et anglaises suivent la langue choisie dans Minecraft.
+Installer Minecraft 1.21.1, NeoForge 21.1.250 et Java 21. Les mods **HomeCore 1.9.0**, **HomeLink Energy** et **HomeLink Dashboard 1.4.0** doivent être présents côté client et côté serveur. Les traductions françaises et anglaises suivent la langue choisie dans Minecraft.
 
 Pour l'interface française, choisir **Français (France)** dans les langues de Minecraft. Les menus, états d'appareils, rôles, filtres, interrupteurs et résultats d'action sont traduits. Les noms personnalisés, messages et intitulés de mesures fournis par un autre mod restent ceux de ce mod ; Dashboard ne traduit pas arbitrairement les données reçues. Les codes inconnus conservent un affichage de secours lisible.
 
@@ -10,7 +10,7 @@ Pour l'interface française, choisir **Français (France)** dans les langues de 
 
 ## Manuel intégré
 
-Le bouton **?**, en haut à droite de l’en-tête (même emplacement que dans HomeLink Storage), ouvre le manuel dans le jeu, même avant l’association à un réseau. Cinq chapitres expliquent les premiers pas, les appareils et actions, les favoris et la disposition, les alertes et permissions, puis le dépannage. La langue suit celle de Minecraft (français ou anglais).
+Le bouton **?**, en haut à droite de l’en-tête (même emplacement que dans HomeLink Storage), ouvre le manuel dans le jeu, même avant l’association à un réseau. Cinq chapitres expliquent les premiers pas, les appareils et actions, les favoris et les widgets, les alertes et permissions, puis le dépannage. La langue suit celle de Minecraft (français ou anglais).
 
 Les flèches **< / >** changent de chapitre. La molette et les boutons **Haut / Bas** font défiler le texte ; ces boutons sont également accessibles au clavier. Raccourcis : **Page préc. / Page suiv.** pour défiler, **Début / Fin** pour aller au début ou à la fin du chapitre, **← / →** pour changer de chapitre. **Retour** ou **Échap** revient à la page précédente sans fermer la connexion au réseau. Les mesures continuent de se mettre à jour pendant la lecture. **Fermer** quitte le Dashboard.
 
@@ -27,9 +27,9 @@ Dans l’onglet créatif HomeLink Dashboard, les deux blocs sont **HomeLink Serv
 
 Un seul objet place l’écran entier, quelle que soit sa taille. **Casser une case retire tout l’écran** et rend un seul objet avec une pioche adaptée ; aucun objet n’est lâché en créatif. Les anciens écrans restent en 1 × 1 sans manipulation. La consommation d’énergie et l’interface sont identiques pour les trois tailles. **Maj + clic droit, main vide**, sur n’importe quelle case permet de réassocier l’écran.
 
-Le Display possède une façade rectangulaire, un cadre continu et un voyant d'état. **Sans cliquer**, vous voyez vos favoris du Dashboard et leurs deux premières mesures, actualisées environ chaque seconde à moins de **16 blocs**. Ajoutez les appareils dans **HOME → Favoris** : le 1 × 1 en présente un, le 2 × 1 deux et le 2 × 2 quatre, triés par nom. Un indicateur signale les autres favoris accessibles. Chaque joueur voit ses propres favoris et uniquement les données auxquelles il a accès ; les appareils hors portée radio ou déchargés ne sont pas affichés. L'écran indique quand il est hors ligne, non associé ou sans favori accessible.
+Le Display possède une façade rectangulaire, un cadre continu et un voyant d'état. **Sans cliquer**, vous voyez vos **widgets de l’accueil, dans la même disposition** (mêmes places, largeurs et contenus), actualisés environ chaque seconde à moins de **16 blocs**. Les 12 colonnes de l’accueil couvrent la largeur de l’écran : le 1 × 1 et le 2 × 1 montrent la première rangée, le 2 × 2 quatre rangées ; un indicateur signale les widgets qui ne tiennent pas. Sans widget, l’écran présente vos favoris (un, deux ou quatre selon la taille, triés par nom). Chaque joueur voit ses propres widgets et favoris, et uniquement les données auxquelles il a accès ; un appareil hors portée radio ou déchargé apparaît indisponible. L'écran indique quand il est hors ligne, non associé ou sans favori accessible.
 
-The display face shows your personal Dashboard favorites and their first two metrics without clicking, refreshing about once per second within 16 blocks. Add favorites in **HOME → Favorites**. The three sizes show one, two or four devices, sorted by name; additional accessible favorites are indicated. Access permissions and radio coverage still apply.
+The display face mirrors your Home widgets in the same layout (places, widths and contents) without clicking, refreshing about once per second within 16 blocks. The 1 × 1 and 2 × 1 sizes show the first row, the 2 × 2 four rows; widgets that do not fit are counted. Without widgets, the display lists your favorites. Access permissions and radio coverage still apply.
 
 La GUI prend la forme d'un terminal industriel gris : boutons en relief, onglet actif enfoncé et focus clavier visible. Elle partage le cadre, la palette, les contrôles de 18 pixels, les info-bulles et la disposition de l’en-tête (voyant d’état puis **?**) avec HomeLink Storage. HOME regroupe ses compteurs sur une ligne lorsque la fenêtre est assez grande et présente les favoris dans des lignes compactes. La taille de l'interface suit le réglage d'échelle GUI de Minecraft.
 
@@ -85,15 +85,14 @@ Les définitions livrées sont [home_server.json](../src/main/resources/data/hom
 
 HOME affiche le nom du réseau, les nombres d’appareils reçus et disponibles, leurs états et le nombre d’alertes retenues. Les favoris et widgets sont personnels, enregistrés **par joueur et par réseau**, côté serveur. Ils sont donc communs aux points d’accès que ce joueur utilise sur ce réseau.
 
-Le bouton **Favoris** ouvre le sélecteur d’appareil. Cliquer sur son nom pour parcourir les appareils reçus, puis utiliser **Ajouter aux favoris** ou **Retirer des favoris**. Un Viewer peut gérer ses propres favoris.
+Le bouton **Modifier** ouvre l’éditeur de l’accueil ; cliquer directement sur un widget l’ouvre avec ce widget sélectionné. **Terminer** revient à HOME.
 
-Avec la permission CONFIGURE, **Disposition** ouvre l’éditeur :
+- **Appareils** (colonne de gauche) : tous les appareils reçus du réseau. L’étoile d’une ligne ajoute ou retire l’appareil des favoris ; un Viewer peut gérer ses propres favoris.
+- **Ajouter** : glisser un appareil sur l’aperçu de droite. Un trait doré indique où il sera inséré.
+- **Déplacer** : glisser un widget de l’aperçu vers sa nouvelle place. Les widgets se rangent seuls dans l’ordre de lecture ; deux widgets de moitié se placent côte à côte.
+- **Personnaliser** : cliquer un widget, puis utiliser la barre du bas. **‹ ›** choisit ce qu’il affiche parmi les préréglages (**Résumé** de l’appareil, ou l’une de ses mesures), **↔** passe de moitié à pleine largeur, **Supprimer** le retire.
 
-- **Ajouter des widgets** : choisir l’appareil, puis éventuellement une métrique ; ajouter un résumé d’appareil ou un widget de métrique.
-- **Placer les widgets** : sélectionner un widget, utiliser les quatre flèches, changer sa largeur avec **Taille 6 / 12**, ou le supprimer.
-- **Terminer** : revenir à HOME. La molette fait défiler la grille lorsque nécessaire.
-
-Cliquer directement sur un widget dans HOME ouvre son placement si vous êtes autorisé. Les widgets ajoutés occupent 6 × 3 cases ; le redimensionnement propose 12 × 3 et 6 × 3. La grille comporte 12 colonnes et 64 lignes. Les chevauchements et les sorties de grille sont refusés. Chaque modification attend la confirmation serveur avant d’afficher le nouvel état.
+Ajouter, déplacer ou personnaliser des widgets demande la permission CONFIGURE ; sinon l’éditeur est en lecture seule. Les widgets ajoutés occupent 6 × 3 cases, 12 × 3 en pleine largeur, sur une grille de 12 colonnes et 64 lignes. Chaque modification attend la confirmation serveur avant d’afficher le nouvel état. Les valeurs sont affichées avec deux décimales au plus.
 
 La limite est de 32 widgets et 64 favoris par profil. Les préférences stockent des références aux appareils et métriques, pas leurs valeurs. Si un appareil disparaît, le widget reste présent avec une indication d’indisponibilité ; il peut être supprimé dans l’éditeur.
 

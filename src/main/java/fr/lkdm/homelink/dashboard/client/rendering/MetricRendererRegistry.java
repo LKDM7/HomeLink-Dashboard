@@ -109,7 +109,7 @@ public final class MetricRendererRegistry {
     private static Presentation number(DebugDeviceView.Metric metric) {
         Object value = value(metric);
         if (!(value instanceof Number number)) return fallback(metric);
-        String rendered = number instanceof Double floating ? decimal(floating) : number.toString();
+        String rendered = number instanceof Double || number instanceof Float ? decimal(number.doubleValue()) : number.toString();
         String unit = metric.unit() == null ? "" : clean(metric.unit());
         return text(rendered + (unit.isBlank() ? "" : " " + unit));
     }
@@ -124,9 +124,10 @@ public final class MetricRendererRegistry {
 
     private static Presentation text(String value) { return new Presentation(value, -1); }
 
-    private static String decimal(double value) {
+    /** At most two decimals, without trailing zeros, for every value the Dashboard shows. */
+    public static String decimal(double value) {
         if (!Double.isFinite(value)) return "?";
-        return BigDecimal.valueOf(value).stripTrailingZeros().toPlainString();
+        return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP).stripTrailingZeros().toPlainString();
     }
 
     private static String compact(long value) {

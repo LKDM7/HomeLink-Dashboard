@@ -1,4 +1,4 @@
-# Guide développeur — HomeLink Dashboard 1.3.0
+# Guide développeur — HomeLink Dashboard 1.4.0
 
 ## Contrat et architecture
 
@@ -75,7 +75,9 @@ L’interface reflète les rôles de la politique HomeCore courante de référen
 
 ## Widgets et extensions
 
-`DashboardWidget` stocke un UUID, un type, un UUID d’appareil, un identifiant de métrique éventuel et la géométrie sur une grille de 12 colonnes et 64 lignes. Les types V1 sont DEVICE_SUMMARY et METRIC. Le modèle valide 3 × 2, 4 × 2, 6 × 3 et 12 × 3 ; l’éditeur V1 propose l’ajout en 6 × 3 et l’alternance 6 × 3 / 12 × 3. Les limites sont de 32 widgets et 64 favoris par profil, sans chevauchement.
+`DashboardWidget` stocke un UUID, un type, un UUID d’appareil, un identifiant de métrique éventuel et la géométrie sur une grille de 12 colonnes et 64 lignes. Les types V1 sont DEVICE_SUMMARY et METRIC. Le modèle valide 3 × 2, 4 × 2, 6 × 3 et 12 × 3 ; l’éditeur propose l’ajout en 6 × 3 et l’alternance 6 × 3 / 12 × 3. Les limites sont de 32 widgets et 64 favoris par profil, sans chevauchement.
+
+Depuis la 1.4.0, `HomeDashboardView` ne déplace plus les widgets case par case : il trie la liste en ordre de lecture (`y`, puis `x`), applique l’insertion, le déplacement ou le changement de préréglage, puis recalcule toutes les positions par flux sur 12 colonnes avant `saveLayout`. Le format des profils et la validation serveur sont inchangés ; une ancienne disposition avec des trous est compactée à la première modification. `MetricRendererRegistry.decimal` arrondit toute valeur décimale affichée à deux chiffres.
 
 `MetricRendererRegistry.register(ResourceLocation, MetricRenderer)` est un point d’extension Java **interne à Dashboard** pour associer un type de métrique à une présentation pure. Sa sortie contient une valeur textuelle et éventuellement une fraction de progression. Le rendu final reste contrôlé par Dashboard ; erreurs et types inconnus passent par un fallback. Son cache de présentation est borné à 1 024 entrées et invalidé lors d’un nouvel enregistrement de renderer.
 
@@ -83,7 +85,7 @@ La séparation des vues et du modèle prépare de futurs widgets spécialisés. 
 
 ## Résumé sur la façade
 
-`DashboardDisplayBlock` utilise son tick serveur existant (20 ticks) pour appeler `DisplaySummaryService.refresh` sur le seul maître. Le service compose les favoris personnels autorisés du destinataire via les API publiques HomeCore et les profils Dashboard : quatre favoris au maximum, deux mesures chacun. Aucun abonnement de menu ni chargement de chunk n'est requis. Les paquets `DisplaySummaryPayloads.Update` sont envoyés individuellement aux joueurs à 16 blocs maximum ; VIEW, appartenance, portée radio et alimentation sont revérifiées avant chaque envoi. Ils ne sont jamais distribués dans les tags de mise à jour du block entity.
+`DashboardDisplayBlock` utilise son tick serveur existant (20 ticks) pour appeler `DisplaySummaryService.refresh` sur le seul maître. Le service compose les favoris personnels autorisés du destinataire via les API publiques HomeCore et les profils Dashboard : quatre favoris au maximum, deux mesures chacun. Il y ajoute les 12 premiers widgets du profil en ordre de lecture (`DisplaySummary.WidgetTile`), avec leur géométrie : deux mesures pour un résumé, la seule mesure choisie pour un widget METRIC, et un nom vide pour un appareil indisponible. Le registrar de `DisplaySummaryPayloads` passe en version `2` ; client et serveur doivent partager la 1.4.0. Aucun abonnement de menu ni chargement de chunk n'est requis. Les paquets `DisplaySummaryPayloads.Update` sont envoyés individuellement aux joueurs à 16 blocs maximum ; VIEW, appartenance, portée radio et alimentation sont revérifiées avant chaque envoi. Ils ne sont jamais distribués dans les tags de mise à jour du block entity.
 
 `DisplaySummaryClient` conserve au plus 256 résumés pendant 45 ticks, associés à l'instance du maître et au monde courant. Éloignement, remplacement du bloc, changement de monde et déconnexion invalident le cache. `DashboardDisplayRenderer` dessine une seule surface couvrant le multibloc, avec une boîte de rendu englobant toutes ses cases. Les valeurs ne sont pas sauvegardées. Le transport et les droits de l'interface ouverte restent indépendants.
 

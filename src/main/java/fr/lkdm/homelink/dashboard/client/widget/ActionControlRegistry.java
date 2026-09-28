@@ -165,7 +165,7 @@ public final class ActionControlRegistry {
             return sliderValue(action, value);
         }
         @Override protected void updateMessage() {
-            setMessage(Component.literal(action == null ? "" : Double.toString(numericValue())));
+            setMessage(Component.literal(action == null ? "" : fr.lkdm.homelink.dashboard.client.rendering.MetricRendererRegistry.decimal(numericValue())));
         }
         @Override protected void applyValue() { }
     }

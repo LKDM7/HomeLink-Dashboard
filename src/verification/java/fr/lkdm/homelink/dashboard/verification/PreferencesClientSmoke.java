@@ -143,10 +143,10 @@ public final class PreferencesClientSmoke {
                 later(); stage = 9;
             } else if (stage == 9 && due()) {
                 screen(client).home().selectWidget(beforeEdit.id());
-                screen(client).home().moveSelected(0, 3); stage = 10;
+                screen(client).home().moveSelected(1); stage = 10;
             } else if (stage == 10 && acknowledged()) {
                 var moved = widget();
-                if (moved.y() == beforeEdit.y()) fail("Directional move did not persist");
+                if (moved.x() == beforeEdit.x() && moved.y() == beforeEdit.y()) fail("Reorder did not persist");
                 beforeEdit = moved;
                 later(); stage = 11;
             } else if (stage == 11 && due()) {

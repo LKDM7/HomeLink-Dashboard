@@ -32,16 +32,15 @@ public final class DisplaySummaryPayloads {
                     buffer.writeVarInt(summary.attention());
                     buffer.writeVarInt(summary.offline());
                     buffer.writeVarInt(summary.devices().size());
-                    for (var device : summary.devices()) {
-                        buffer.writeUtf(device.name(), DisplaySummary.MAX_NAME_LENGTH);
-                        buffer.writeUtf(device.status(), 16);
-                        buffer.writeVarInt(device.metrics().size());
-                        for (var metric : device.metrics()) {
-                            buffer.writeUtf(metric.name(), DisplaySummary.MAX_NAME_LENGTH);
-                            buffer.writeUtf(metric.type(), 256);
-                            buffer.writeUtf(metric.unit(), DisplaySummary.MAX_NAME_LENGTH);
-                            WireValue.STREAM_CODEC.encode(buffer, metric.value());
-                        }
+                    for (var device : summary.devices()) writeDevice(buffer, device);
+                    buffer.writeVarInt(summary.widgets().size());
+                    for (var widget : summary.widgets()) {
+                        buffer.writeByte(widget.x());
+                        buffer.writeByte(widget.y());
+                        buffer.writeByte(widget.width());
+                        buffer.writeByte(widget.height());
+                        buffer.writeBoolean(widget.metric());
+                        writeDevice(buffer, widget.device());
                     }
                 }, buffer -> {
                     var dimension = buffer.readResourceLocation();
@@ -52,18 +51,16 @@ public final class DisplaySummaryPayloads {
                     int count = buffer.readVarInt();
                     if (count < 0 || count > DisplaySummary.MAX_LINES) throw new IllegalArgumentException("Too many display lines");
                     var devices = new ArrayList<DisplaySummary.DeviceLine>(count);
-                    for (int i = 0; i < count; i++) {
-                        var deviceName = buffer.readUtf(DisplaySummary.MAX_NAME_LENGTH);
-                        var status = buffer.readUtf(16);
-                        int metricCount = buffer.readVarInt();
-                        if (metricCount < 0 || metricCount > DisplaySummary.MAX_METRICS) throw new IllegalArgumentException("Too many display metrics");
-                        var metrics = new ArrayList<DisplaySummary.MetricLine>(metricCount);
-                        for (int m = 0; m < metricCount; m++)
-                            metrics.add(new DisplaySummary.MetricLine(buffer.readUtf(DisplaySummary.MAX_NAME_LENGTH), buffer.readUtf(256),
-                                    buffer.readUtf(DisplaySummary.MAX_NAME_LENGTH), WireValue.STREAM_CODEC.decode(buffer)));
-                        devices.add(new DisplaySummary.DeviceLine(deviceName, status, metrics));
+                    for (int i = 0; i < count; i++) devices.add(readDevice(buffer));
+                    int widgetCount = buffer.readVarInt();
+                    if (widgetCount < 0 || widgetCount > DisplaySummary.MAX_WIDGETS) throw new IllegalArgumentException("Too many display widgets");
+                    var widgets = new ArrayList<DisplaySummary.WidgetTile>(widgetCount);
+                    for (int i = 0; i < widgetCount; i++) {
+                        int x = buffer.readByte(), y = buffer.readByte(), width = buffer.readByte(), height = buffer.readByte();
+                        boolean metric = buffer.readBoolean();
+                        widgets.add(new DisplaySummary.WidgetTile(x, y, width, height, metric, readDevice(buffer)));
                     }
-                    return new Update(dimension, master, new DisplaySummary(mode, name, total, online, attention, offline, devices));
+                    return new Update(dimension, master, new DisplaySummary(mode, name, total, online, attention, offline, devices, widgets));
                 });
         public Update {
             Objects.requireNonNull(dimension);
@@ -73,8 +70,32 @@ public final class DisplaySummaryPayloads {
         @Override public Type<Update> type() { return TYPE; }
     }
 
+    private static void writeDevice(RegistryFriendlyByteBuf buffer, DisplaySummary.DeviceLine device) {
+        buffer.writeUtf(device.name(), DisplaySummary.MAX_NAME_LENGTH);
+        buffer.writeUtf(device.status(), 16);
+        buffer.writeVarInt(device.metrics().size());
+        for (var metric : device.metrics()) {
+            buffer.writeUtf(metric.name(), DisplaySummary.MAX_NAME_LENGTH);
+            buffer.writeUtf(metric.type(), 256);
+            buffer.writeUtf(metric.unit(), DisplaySummary.MAX_NAME_LENGTH);
+            WireValue.STREAM_CODEC.encode(buffer, metric.value());
+        }
+    }
+
+    private static DisplaySummary.DeviceLine readDevice(RegistryFriendlyByteBuf buffer) {
+        var deviceName = buffer.readUtf(DisplaySummary.MAX_NAME_LENGTH);
+        var status = buffer.readUtf(16);
+        int metricCount = buffer.readVarInt();
+        if (metricCount < 0 || metricCount > DisplaySummary.MAX_METRICS) throw new IllegalArgumentException("Too many display metrics");
+        var metrics = new ArrayList<DisplaySummary.MetricLine>(metricCount);
+        for (int m = 0; m < metricCount; m++)
+            metrics.add(new DisplaySummary.MetricLine(buffer.readUtf(DisplaySummary.MAX_NAME_LENGTH), buffer.readUtf(256),
+                    buffer.readUtf(DisplaySummary.MAX_NAME_LENGTH), WireValue.STREAM_CODEC.decode(buffer)));
+        return new DisplaySummary.DeviceLine(deviceName, status, metrics);
+    }
+
     public static void register(RegisterPayloadHandlersEvent event) {
-        event.registrar("1").playToClient(Update.TYPE, Update.CODEC, (packet, context) -> context.enqueueWork(() -> {
+        event.registrar("2").playToClient(Update.TYPE, Update.CODEC, (packet, context) -> context.enqueueWork(() -> {
             if (listener != null) listener.accept(packet);
         }));
     }

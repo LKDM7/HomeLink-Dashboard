@@ -402,7 +402,9 @@ public final class DashboardClientState implements AutoCloseable {
         Object value = wire.value();
         String result = switch (value) {
             case Boolean enabled -> enabled ? "ON" : "OFF";
-            case Percentage percent -> Double.toString(percent.value()) + "%";
+            case Percentage percent -> fr.lkdm.homelink.dashboard.client.rendering.MetricRendererRegistry.decimal(percent.value()) + "%";
+            case Double number -> fr.lkdm.homelink.dashboard.client.rendering.MetricRendererRegistry.decimal(number);
+            case Float number -> fr.lkdm.homelink.dashboard.client.rendering.MetricRendererRegistry.decimal(number);
             case Energy energy -> energy.stored() + " / " + energy.capacity();
             case Position position -> position.x() + " / " + position.y() + " / " + position.z();
             case BlockPos position -> position.getX() + " / " + position.getY() + " / " + position.getZ();

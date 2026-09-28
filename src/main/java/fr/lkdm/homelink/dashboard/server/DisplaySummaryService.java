@@ -7,6 +7,7 @@ import fr.lkdm.homecore.api.transport.WireValue;
 import fr.lkdm.homelink.dashboard.blockentity.DashboardDisplayBlockEntity;
 import fr.lkdm.homelink.dashboard.network.DisplaySummary;
 import fr.lkdm.homelink.dashboard.network.DisplaySummaryPayloads;
+import fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget;
 import java.util.ArrayList;
 import java.util.Comparator;
 import net.minecraft.server.level.ServerLevel;
@@ -49,20 +50,14 @@ public final class DisplaySummaryService {
                     .thenComparing(DisplaySummary.DeviceLine::name);
             int online = 0, attention = 0, offline = 0;
             // Favorites have set semantics; UUID order supplies a stable tiebreak for identical names.
-            var favorites = DashboardPreferencesSavedData.get(player.server).profile(player.getUUID(), id).favorites();
-            for (var deviceId : favorites.stream().sorted().toList()) {
+            var profile = DashboardPreferencesSavedData.get(player.server).profile(player.getUUID(), id);
+            for (var deviceId : profile.favorites().stream().sorted().toList()) {
                 try {
                     var candidate = registry.get(deviceId);
                     if (candidate.isEmpty() || !manager.isReachable(id, candidate.orElseThrow())) continue;
                     var device = candidate.orElseThrow();
                     var status = device.status().state();
-                    String name = plainName(device.displayName().getString());
-                    var metrics = new ArrayList<DisplaySummary.MetricLine>();
-                    for (var metric : device.metrics().stream().limit(DisplaySummary.MAX_METRICS).toList()) {
-                        try { metrics.add(metricLine(metric)); }
-                        catch (RuntimeException unavailableMetric) { /* Isolate malformed provider values. */ }
-                    }
-                    var line = new DisplaySummary.DeviceLine(name, status.name(), metrics);
+                    var line = deviceLine(device, device.metrics().stream().limit(DisplaySummary.MAX_METRICS).toList());
                     switch (status) {
                         case ONLINE -> online++;
                         case WARNING, ERROR -> attention++;
@@ -75,11 +70,40 @@ public final class DisplaySummaryService {
                     // A faulty provider must not crash the display or expose an unvalidated partial row.
                 }
             }
+            // The first widgets in reading order, at their saved places, exactly as on the Home page.
+            var widgets = new ArrayList<DisplaySummary.WidgetTile>();
+            var ordered = profile.widgets().stream().sorted(Comparator.comparingInt(DashboardWidget::y).thenComparingInt(DashboardWidget::x))
+                    .limit(DisplaySummary.MAX_WIDGETS).toList();
+            for (var widget : ordered) {
+                DisplaySummary.DeviceLine line = UNAVAILABLE;
+                try {
+                    var candidate = registry.get(widget.deviceId());
+                    if (candidate.isPresent() && manager.isReachable(id, candidate.orElseThrow())) {
+                        var device = candidate.orElseThrow();
+                        line = deviceLine(device, widget.type() == DashboardWidget.Type.METRIC
+                                ? device.metrics().stream().filter(metric -> metric.id().toString().equals(widget.metricId())).limit(1).toList()
+                                : device.metrics().stream().limit(DisplaySummary.MAX_METRICS).toList());
+                    }
+                } catch (RuntimeException unavailableDevice) { /* Shown as unavailable, like on the Home page. */ }
+                widgets.add(new DisplaySummary.WidgetTile(widget.x(), widget.y(), widget.width(), widget.height(),
+                        widget.type() == DashboardWidget.Type.METRIC, line));
+            }
             return new DisplaySummary(DisplaySummary.Mode.LIVE, plainName(network.name()), online + attention + offline,
-                    online, attention, offline, lines);
+                    online, attention, offline, lines, widgets);
         } catch (RuntimeException unavailableNetwork) {
             return DisplaySummary.empty(DisplaySummary.Mode.OFFLINE);
         }
+    }
+
+    private static final DisplaySummary.DeviceLine UNAVAILABLE = new DisplaySummary.DeviceLine("", "UNKNOWN");
+
+    private static DisplaySummary.DeviceLine deviceLine(fr.lkdm.homecore.api.device.DashboardDevice device, java.util.List<DeviceMetric<?>> selected) {
+        var metrics = new ArrayList<DisplaySummary.MetricLine>();
+        for (var metric : selected) {
+            try { metrics.add(metricLine(metric)); }
+            catch (RuntimeException unavailableMetric) { /* Isolate malformed provider values. */ }
+        }
+        return new DisplaySummary.DeviceLine(plainName(device.displayName().getString()), device.status().state().name(), metrics);
     }
 
     private static boolean nearby(ServerPlayer player, DashboardDisplayBlockEntity point) {

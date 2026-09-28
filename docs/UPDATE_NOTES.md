@@ -1,3 +1,18 @@
+# Version 1.4.0 — Éditeur par glisser-déposer et widgets sur l'écran
+
+Cette mise à jour garde **HomeCore 1.9.0** (API 1.5.0). HomeLink Energy reste obligatoire ; la version 0.2.1 est conseillée. Le format du résumé envoyé aux écrans change : installer la 1.4.0 sur le serveur **et** tous les clients.
+
+- **Accueil simplifié** : les boutons « Disposition » et « Favoris » sont remplacés par **Modifier**. L'éditeur liste tous les appareils à gauche et montre un aperçu de l'accueil à droite.
+- **Glisser-déposer** : glisser un appareil sur l'aperçu l'ajoute ; glisser un widget le déplace. Les widgets se rangent seuls dans l'ordre de lecture, sans placement case par case.
+- **Widgets personnalisables** : cliquer un widget pour choisir ce qu'il affiche parmi des préréglages (**Résumé** de l'appareil ou l'une de ses mesures), passer de moitié à pleine largeur ou le supprimer. L'étoile de la liste gère les favoris.
+- **Écran mural** : il reprend les widgets de l'accueil dans la même disposition ; sans widget, il présente les favoris comme avant.
+- **Deux décimales** : toutes les valeurs décimales (vent, débits, pourcentages…) sont arrondies à deux chiffres, quel que soit le mod qui les fournit.
+- **Correction** : dans un champ texte (nom de réseau à la création, renommage, recherche, actions), la touche d'inventaire ne ferme plus l'interface ; le champ du nom est sélectionné dès l'ouverture.
+
+Les dispositions existantes sont conservées ; elles sont compactées à la première modification dans l'éditeur.
+
+Vérifications du 28 septembre 2026 : `build`, **76 GameTests serveur** (dont la disposition des widgets sur l'écran et son transport), le test client connecté (captures des trois tailles d'écran avec widgets) et le test des préférences (ajout, réordonnancement, largeur, réouverture) réussis avec HomeCore 1.9.0 et HomeLink Energy 0.2.1. Le glisser-déposer à la souris et la saisie clavier du nom ont été relus mais pas rejoués automatiquement. Deux GameTests qui comptent les objets lâchés (casse du serveur, explosion de l’écran) échouent par intermittence d’une exécution à l’autre ; ils ne touchent pas le code modifié.
+
 # Version 1.3.0 — Machines, ajout de machines et écran en trois tailles
 
 Cette mise à jour nécessite **HomeCore 1.9.0** (API 1.5.0) sur le client et le serveur. La plage déclarée devient `[1.9.0,2.0.0)`. HomeLink Energy reste obligatoire ; la version 0.2.0 est conseillée.

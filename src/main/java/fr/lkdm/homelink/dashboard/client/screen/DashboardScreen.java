@@ -143,6 +143,7 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
                 create.active = fr.lkdm.homelink.dashboard.network.NetworkNames.isValid(newNetworkName);
                 input.setResponder(value -> { newNetworkName = value; create.active = fr.lkdm.homelink.dashboard.network.NetworkNames.isValid(value); });
                 addRenderableWidget(input);
+                setInitialFocus(input);
             }
             if (!menu.session().choices().isEmpty()) {
                 button("previous", 12, 110, 38, () -> { selectedNetwork = Math.floorMod(selectedNetwork - 1, menu.session().choices().size()); rebuild(); });
@@ -270,6 +271,9 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
     @Override public boolean keyPressed(int key, int scanCode, int modifiers) {
         if (manualOpen && key == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) { toggleManual(); return true; }
         if (manualOpen && manual.keyPressed(key)) return true;
+        // A text field keeps every key but Escape: otherwise the inventory key (E) closes the container screen mid-word.
+        if (key != org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE && getFocused() instanceof net.minecraft.client.gui.components.EditBox input
+                && input.canConsumeInput()) return input.keyPressed(key, scanCode, modifiers) || true;
         return super.keyPressed(key, scanCode, modifiers);
     }
     @Override public void removed() {
@@ -349,6 +353,14 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         if (!actionMode && page == Page.ALERTS && alerts != null && alerts.mouseClicked(mouseX, mouseY, button)) return true;
         if (!actionMode && page == Page.DEVICES && explorer != null && explorer.mouseClicked(mouseX, mouseY, button)) return true;
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+    @Override public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (!manualOpen && !actionMode && page == Page.HOME && home != null && home.mouseDragged(mouseX, mouseY, button)) return true;
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+    @Override public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (!manualOpen && !actionMode && page == Page.HOME && home != null && home.mouseReleased(mouseX, mouseY, button)) return true;
+        return super.mouseReleased(mouseX, mouseY, button);
     }
     @Override public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);

@@ -102,6 +102,43 @@ public final class DisplaySummaryGameTests {
     }
 
     @GameTest(template = "empty")
+    public static void widgetsKeepTheirSavedLayout(GameTestHelper helper) {
+        try (var fixture = new Fixture(helper)) {
+            var device = fixture.add("Widget device", DeviceStatus.ONLINE);
+            String secondary = device.metrics().get(1).id().toString();
+            var layout = List.of(
+                    new fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget(UUID.randomUUID(),
+                            fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.Type.METRIC, device.id(), secondary, 6, 0, 6, 3),
+                    new fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget(UUID.randomUUID(),
+                            fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.Type.DEVICE_SUMMARY, device.id(), "", 0, 0, 6, 3),
+                    new fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget(UUID.randomUUID(),
+                            fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.Type.DEVICE_SUMMARY, UUID.randomUUID(), "", 0, 3, 12, 3));
+            DashboardPreferencesSavedData.get(helper.getLevel().getServer()).put(fixture.owner.getUUID(), fixture.network,
+                    new DashboardProfile(layout, Set.of()));
+            var widgets = fixture.summary().widgets();
+            helper.assertTrue(widgets.size() == 3, "Every saved widget must reach the display");
+            var first = widgets.getFirst();
+            helper.assertTrue(first.x() == 0 && first.y() == 0 && first.width() == 6 && !first.metric()
+                            && first.device().name().equals("Widget device") && first.device().metrics().size() == 2,
+                    "Widgets must come in reading order with their saved geometry and summary metrics");
+            var metric = widgets.get(1);
+            helper.assertTrue(metric.x() == 6 && metric.metric() && metric.device().metrics().size() == 1
+                            && metric.device().metrics().getFirst().name().equals("Secondary"),
+                    "A metric widget must carry only its chosen metric");
+            helper.assertTrue(widgets.get(2).width() == 12 && widgets.get(2).device().name().isEmpty(),
+                    "A widget of a missing device must stay in place as unavailable");
+            var packet = new DisplaySummaryPayloads.Update(helper.getLevel().dimension().location(), fixture.display.getBlockPos(), fixture.summary());
+            var buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
+            try {
+                DisplaySummaryPayloads.Update.CODEC.encode(buffer, packet);
+                helper.assertTrue(DisplaySummaryPayloads.Update.CODEC.decode(buffer).equals(packet) && !buffer.isReadable(),
+                        "Widget tiles must survive transport");
+            } finally { buffer.release(); }
+        }
+        helper.succeed();
+    }
+
+    @GameTest(template = "empty")
     public static void summaryPayloadRoundTripAndBounds(GameTestHelper helper) {
         try (var fixture = new Fixture(helper)) {
             fixture.add("Codec favorite", DeviceStatus.ONLINE);
