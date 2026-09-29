@@ -6,22 +6,37 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 
-/** A personal widget stores references and grid geometry, never copies device state. */
+/**
+ * A personal widget stores references and grid geometry, never copies device state. {@code metricId} holds the
+ * metric of a METRIC widget or the action of an ACTION widget; an ENERGY_BALANCE widget summarizes the whole
+ * network and references {@link #NETWORK} instead of a device.
+ */
 public record DashboardWidget(UUID id, Type type, UUID deviceId, String metricId, int x, int y, int width, int height) {
-    public enum Type { DEVICE_SUMMARY, METRIC }
+    public enum Type {
+        DEVICE_SUMMARY, METRIC, ACTION, ENERGY_BALANCE;
+        /** @return whether {@code metricId} names a metric or an action of the device */
+        public boolean referencesEntry() { return this == METRIC || this == ACTION; }
+    }
     public static final int COLUMNS = 12;
     public static final int MAX_ROWS = 64;
+    /** Device reference of the widgets that are not about one device. */
+    public static final UUID NETWORK = new UUID(0L, 0L);
 
     public DashboardWidget {
         Objects.requireNonNull(id);
         Objects.requireNonNull(type);
         Objects.requireNonNull(deviceId);
         Objects.requireNonNull(metricId);
-        if (metricId.length() > 256 || type == Type.METRIC && ResourceLocation.tryParse(metricId) == null
-                || type == Type.DEVICE_SUMMARY && !metricId.isEmpty()) throw new IllegalArgumentException("Invalid metric reference");
+        if (metricId.length() > 256 || type.referencesEntry() && ResourceLocation.tryParse(metricId) == null
+                || !type.referencesEntry() && !metricId.isEmpty()) throw new IllegalArgumentException("Invalid metric reference");
+        if ((type == Type.ENERGY_BALANCE) != deviceId.equals(NETWORK)) throw new IllegalArgumentException("Invalid device reference");
         if (!supportedSize(width, height) || x < 0 || y < 0 || x > COLUMNS - width || y > MAX_ROWS - height)
             throw new IllegalArgumentException("Widget outside supported grid");
     }
+
+    /** @param actionType HomeCore action type name
+     *  @return whether an ACTION widget can run it with one click (a button, or a toggle switched on or off) */
+    public static boolean oneClick(String actionType) { return actionType.equals("BUTTON") || actionType.equals("TOGGLE"); }
 
     public static boolean supportedSize(int width, int height) {
         return height == 2 && (width == 3 || width == 4) || height == 3 && (width == 6 || width == 12);

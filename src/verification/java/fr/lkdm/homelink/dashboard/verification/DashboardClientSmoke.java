@@ -136,7 +136,18 @@ public final class DashboardClientSmoke {
                 if (++visibleTicks < 10) return;
                 var screen = (DashboardScreen) client.screen;
                 if (!screen.getMenu().session().canCreate()) throw new IllegalStateException("Owner cannot configure server");
-                nameInput(screen).setValue("Atelier principal");
+                // Type the name key by key: "e" is the inventory key and used to close the screen.
+                var input = nameInput(screen);
+                if (screen.getFocused() != input) throw new IllegalStateException("The network name field must be focused on open");
+                input.setValue("");
+                for (char character : "Atelier principal".toCharArray()) {
+                    int key = Character.isLetter(character) ? org.lwjgl.glfw.GLFW.GLFW_KEY_A + Character.toUpperCase(character) - 'A'
+                            : org.lwjgl.glfw.GLFW.GLFW_KEY_SPACE;
+                    screen.keyPressed(key, 0, 0);
+                    screen.charTyped(character, 0);
+                }
+                if (client.screen != screen || !input.getValue().equals("Atelier principal"))
+                    throw new IllegalStateException("Typing a network name closed the screen or lost keys: " + input.getValue());
                 press(screen, "create");
                 stage = 30;
             } else if (stage == 30 && isExpectedScreen(client, serverPosition)
@@ -231,8 +242,14 @@ public final class DashboardClientSmoke {
                                 new fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget(UUID.randomUUID(),
                                         fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.Type.METRIC,
                                         FACADE_FIXTURES.get(1).id(), "homelink_dashboard_validation:level", 6, 0, 6, 3),
+                                new fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget(UUID.randomUUID(),
+                                        fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.Type.ENERGY_BALANCE,
+                                        fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.NETWORK, "", 0, 3, 3, 2),
+                                new fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget(UUID.randomUUID(),
+                                        fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.Type.METRIC,
+                                        FACADE_FIXTURES.get(3).id(), "homelink_dashboard_validation:level", 3, 3, 3, 2),
                                 new fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget(UUID.randomUUID(), widget,
-                                        FACADE_FIXTURES.get(2).id(), "", 0, 3, 12, 3));
+                                        FACADE_FIXTURES.get(2).id(), "", 6, 3, 6, 3));
                         DashboardPreferencesSavedData.get(server).put(client.player.getUUID(), createdNetwork,
                                 new DashboardProfile(layout, FACADE_FIXTURES.stream().map(FacadeFixture::id)
                                         .collect(java.util.stream.Collectors.toSet())));

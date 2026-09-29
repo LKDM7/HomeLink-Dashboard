@@ -39,7 +39,8 @@ public final class DisplaySummaryPayloads {
                         buffer.writeByte(widget.y());
                         buffer.writeByte(widget.width());
                         buffer.writeByte(widget.height());
-                        buffer.writeBoolean(widget.metric());
+                        buffer.writeEnum(widget.kind());
+                        buffer.writeUtf(widget.label(), DisplaySummary.MAX_NAME_LENGTH);
                         writeDevice(buffer, widget.device());
                     }
                 }, buffer -> {
@@ -57,8 +58,9 @@ public final class DisplaySummaryPayloads {
                     var widgets = new ArrayList<DisplaySummary.WidgetTile>(widgetCount);
                     for (int i = 0; i < widgetCount; i++) {
                         int x = buffer.readByte(), y = buffer.readByte(), width = buffer.readByte(), height = buffer.readByte();
-                        boolean metric = buffer.readBoolean();
-                        widgets.add(new DisplaySummary.WidgetTile(x, y, width, height, metric, readDevice(buffer)));
+                        var kind = buffer.readEnum(DisplaySummary.WidgetTile.Kind.class);
+                        var label = buffer.readUtf(DisplaySummary.MAX_NAME_LENGTH);
+                        widgets.add(new DisplaySummary.WidgetTile(x, y, width, height, kind, label, readDevice(buffer)));
                     }
                     return new Update(dimension, master, new DisplaySummary(mode, name, total, online, attention, offline, devices, widgets));
                 });
@@ -95,7 +97,7 @@ public final class DisplaySummaryPayloads {
     }
 
     public static void register(RegisterPayloadHandlersEvent event) {
-        event.registrar("2").playToClient(Update.TYPE, Update.CODEC, (packet, context) -> context.enqueueWork(() -> {
+        event.registrar("3").playToClient(Update.TYPE, Update.CODEC, (packet, context) -> context.enqueueWork(() -> {
             if (listener != null) listener.accept(packet);
         }));
     }

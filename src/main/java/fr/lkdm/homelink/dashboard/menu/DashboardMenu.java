@@ -24,6 +24,8 @@ public final class DashboardMenu extends AbstractContainerMenu {
     public static final int CREATE_NETWORK = 0;
     public static final int PREVIOUS_NETWORKS = 1;
     public static final int NEXT_NETWORKS = 2;
+    /** Display owner: every viewer sees the owner's Home on this display, or each viewer their own. */
+    public static final int SHARE_LAYOUT = 3, PRIVATE_LAYOUT = 4;
     public static final int BIND_NETWORK_BASE = 100;
 
     public DashboardMenu(int id, Inventory inventory, RegistryFriendlyByteBuf buffer) {
@@ -56,6 +58,14 @@ public final class DashboardMenu extends AbstractContainerMenu {
     }
 
     @Override public boolean clickMenuButton(Player player, int button) {
+        if (button == SHARE_LAYOUT || button == PRIVATE_LAYOUT) {
+            // Works on a bound display too: sharing is the display owner's choice, not a network setup step.
+            if (!(player instanceof ServerPlayer serverPlayer) || player.containerMenu != this || !stillValid(player)
+                    || !(accessPoint instanceof fr.lkdm.homelink.dashboard.blockentity.DashboardDisplayBlockEntity display)
+                    || !DashboardNetworks.canShare(serverPlayer, display)) return false;
+            display.setSharedLayout(button == SHARE_LAYOUT);
+            return true;
+        }
         if (!(player instanceof ServerPlayer serverPlayer) || player.containerMenu != this
                 || !stillValid(player) || !DashboardNetworks.canSetup(serverPlayer, accessPoint)) return false;
         if (button == PREVIOUS_NETWORKS || button == NEXT_NETWORKS) {

@@ -112,8 +112,16 @@ public final class PreferencesPayloads {
                     boolean retainedReference = current.widgets().stream().anyMatch(previous -> previous.id().equals(widget.id())
                             && previous.deviceId().equals(widget.deviceId()) && previous.type() == widget.type()
                             && previous.metricId().equals(widget.metricId()));
-                    if (retainedReference) continue;
+                    if (retainedReference || widget.type() == DashboardWidget.Type.ENERGY_BALANCE) continue;
                     if (!network.devices().contains(widget.deviceId())) throw new IllegalArgumentException("Device outside network");
+                    if (widget.type() == DashboardWidget.Type.ACTION) {
+                        var device = DashboardAPI.devices(player.server).get(widget.deviceId()).orElseThrow(
+                                () -> new IllegalArgumentException("Device currently unavailable"));
+                        // Only one-click actions fit a widget; the others need the full action editor.
+                        if (device.actions().stream().noneMatch(action -> action.id().toString().equals(widget.metricId())
+                                && DashboardWidget.oneClick(action.type().name())))
+                            throw new IllegalArgumentException("Unknown action");
+                    }
                     if (widget.type() == DashboardWidget.Type.METRIC) {
                         var device = DashboardAPI.devices(player.server).get(widget.deviceId()).orElseThrow(
                                 () -> new IllegalArgumentException("Device currently unavailable"));

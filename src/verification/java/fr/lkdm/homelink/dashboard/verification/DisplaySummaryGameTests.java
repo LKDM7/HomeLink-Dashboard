@@ -118,11 +118,11 @@ public final class DisplaySummaryGameTests {
             var widgets = fixture.summary().widgets();
             helper.assertTrue(widgets.size() == 3, "Every saved widget must reach the display");
             var first = widgets.getFirst();
-            helper.assertTrue(first.x() == 0 && first.y() == 0 && first.width() == 6 && !first.metric()
+            helper.assertTrue(first.x() == 0 && first.y() == 0 && first.width() == 6 && first.kind() == DisplaySummary.WidgetTile.Kind.SUMMARY
                             && first.device().name().equals("Widget device") && first.device().metrics().size() == 2,
                     "Widgets must come in reading order with their saved geometry and summary metrics");
             var metric = widgets.get(1);
-            helper.assertTrue(metric.x() == 6 && metric.metric() && metric.device().metrics().size() == 1
+            helper.assertTrue(metric.x() == 6 && metric.kind() == DisplaySummary.WidgetTile.Kind.METRIC && metric.device().metrics().size() == 1
                             && metric.device().metrics().getFirst().name().equals("Secondary"),
                     "A metric widget must carry only its chosen metric");
             helper.assertTrue(widgets.get(2).width() == 12 && widgets.get(2).device().name().isEmpty(),

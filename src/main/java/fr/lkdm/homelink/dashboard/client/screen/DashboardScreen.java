@@ -51,6 +51,13 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
     private String favoriteSymbol = "";
     private DashboardPreferencesClient preferences;
     private HomeDashboardView home;
+    /** Display owner's choice to show their Home to every viewer; the server re-checks ownership on each change. */
+    private final fr.lkdm.homelink.dashboard.client.widget.HomeEditorView.Sharing displaySharing = new fr.lkdm.homelink.dashboard.client.widget.HomeEditorView.Sharing() {
+        private Boolean shared;
+        @Override public boolean available() { return menu.session().canShare(); }
+        @Override public boolean shared() { return shared != null ? shared : menu.session().display() == fr.lkdm.homelink.dashboard.network.AccessPointSession.Display.SHARED; }
+        @Override public void share(boolean value) { shared = value; send(value ? DashboardMenu.SHARE_LAYOUT : DashboardMenu.PRIVATE_LAYOUT); }
+    };
     private enum Page { HOME, MACHINES, DISCOVER, DEVICES, ALERTS, NETWORK, SETTINGS }
     private Page page = Page.HOME;
     private MachinesView machines;
@@ -156,7 +163,7 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         } else {
             if (explorer == null) explorer = new DeviceExplorerView(state, font);
             if (preferences == null) { preferences = new DashboardPreferencesClient(menu); preferences.start(); }
-            if (home == null) home = new HomeDashboardView(state, preferences, font);
+            if (home == null) home = new HomeDashboardView(state, preferences, font, displaySharing);
             if (machines == null) machines = new MachinesView(state, font, this::openDevice);
             if (discovery == null) discovery = new DiscoveryView(font, menu.containerId);
             if (alerts == null) alerts = new AlertCenterView(state, font, this::openDevice);
@@ -171,7 +178,7 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
                 int contentX = leftPos + 12, contentY = topPos + 62;
                 int contentWidth = imageWidth - 24, contentHeight = imageHeight - 96;
                 switch (page) {
-                    case HOME -> home.init(contentX, contentY, contentWidth, contentHeight, this::addRenderableWidget, this::rebuild);
+                    case HOME -> home.init(contentX, contentY, contentWidth, contentHeight, this::addRenderableWidget, this::setFocused, this::rebuild);
                     case MACHINES -> machines.init(contentX, contentY, contentWidth, contentHeight, this::addRenderableWidget, this::rebuild);
                     case DISCOVER -> discovery.init(contentX, contentY, contentWidth, contentHeight, this::addRenderableWidget, this::rebuild);
                     case DEVICES -> explorer.init(contentX, contentY + 20, contentWidth, contentHeight - 20, this::addRenderableWidget);
@@ -271,6 +278,7 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
     @Override public boolean keyPressed(int key, int scanCode, int modifiers) {
         if (manualOpen && key == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) { toggleManual(); return true; }
         if (manualOpen && manual.keyPressed(key)) return true;
+        if (!manualOpen && actionMode && actions.keyPressed(key)) return true;
         // A text field keeps every key but Escape: otherwise the inventory key (E) closes the container screen mid-word.
         if (key != org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE && getFocused() instanceof net.minecraft.client.gui.components.EditBox input
                 && input.canConsumeInput()) return input.keyPressed(key, scanCode, modifiers) || true;

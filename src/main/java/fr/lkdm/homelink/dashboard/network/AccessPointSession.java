@@ -14,16 +14,19 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
  */
 public record AccessPointSession(BlockPos position, Optional<UUID> networkId,
         List<NetworkChoice> choices, int directoryOffset, boolean hasNext, boolean canCreate,
-        String suggestedName, List<String> takenNames) {
+        String suggestedName, List<String> takenNames, Display display, boolean canShare) {
     public static final int PAGE_SIZE = 16;
     public static final int MAX_TAKEN_NAMES = 256;
     public record NetworkChoice(UUID id, String name, boolean inRange) { }
+    /** Whether the menu was opened from a wall display, and whether that display shows its owner's Home to everyone. */
+    public enum Display { NONE, PRIVATE, SHARED }
 
     public AccessPointSession {
         position = position.immutable();
         choices = List.copyOf(choices);
         suggestedName = suggestedName == null ? "" : suggestedName;
         takenNames = List.copyOf(takenNames);
+        display = display == null ? Display.NONE : display;
         if (choices.size() > PAGE_SIZE || directoryOffset < 0 || takenNames.size() > MAX_TAKEN_NAMES)
             throw new IllegalArgumentException("Invalid directory page");
     }
@@ -31,6 +34,16 @@ public record AccessPointSession(BlockPos position, Optional<UUID> networkId,
     public AccessPointSession(BlockPos position, Optional<UUID> networkId, List<NetworkChoice> choices,
             int directoryOffset, boolean hasNext, boolean canCreate) {
         this(position, networkId, choices, directoryOffset, hasNext, canCreate, "", List.of());
+    }
+
+    public AccessPointSession(BlockPos position, Optional<UUID> networkId, List<NetworkChoice> choices, int directoryOffset,
+            boolean hasNext, boolean canCreate, String suggestedName, List<String> takenNames) {
+        this(position, networkId, choices, directoryOffset, hasNext, canCreate, suggestedName, takenNames, Display.NONE, false);
+    }
+
+    /** @return this session with the display state of the access point it was opened from */
+    public AccessPointSession withDisplay(Display value, boolean share) {
+        return new AccessPointSession(position, networkId, choices, directoryOffset, hasNext, canCreate, suggestedName, takenNames, value, share);
     }
 
     /** Case- and surrounding-space-insensitive, matching how players read network names. */
@@ -53,6 +66,8 @@ public record AccessPointSession(BlockPos position, Optional<UUID> networkId,
         buffer.writeUtf(suggestedName, 128);
         buffer.writeVarInt(takenNames.size());
         takenNames.forEach(name -> buffer.writeUtf(name, 128));
+        buffer.writeEnum(display);
+        buffer.writeBoolean(canShare);
     }
 
     public static AccessPointSession read(RegistryFriendlyByteBuf buffer) {
@@ -70,6 +85,7 @@ public record AccessPointSession(BlockPos position, Optional<UUID> networkId,
         if (taken < 0 || taken > MAX_TAKEN_NAMES) throw new IllegalArgumentException("Invalid network name list");
         var names = new ArrayList<String>(taken);
         for (int i = 0; i < taken; i++) names.add(buffer.readUtf(128));
-        return new AccessPointSession(position, network, choices, offset, next, create, suggested, names);
+        return new AccessPointSession(position, network, choices, offset, next, create, suggested, names,
+                buffer.readEnum(Display.class), buffer.readBoolean());
     }
 }

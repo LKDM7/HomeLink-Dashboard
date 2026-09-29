@@ -1,8 +1,8 @@
-# Guide développeur — HomeLink Dashboard 1.4.0
+# Guide développeur — HomeLink Dashboard 1.5.0
 
 ## Contrat et architecture
 
-Dashboard est un consommateur générique de **HomeCore 1.9.0** (API `1.5.0`). Les classes HomeCore ne sont pas recopiées dans ce projet. Les imports d’intégration utilisent `fr.lkdm.homecore.api.*` ; aucun import de `fr.lkdm.homecore.internal.*` n’est nécessaire ou autorisé côté Dashboard.
+Dashboard est un consommateur générique de **HomeCore 1.11.0** (API `1.7.0`). Les classes HomeCore ne sont pas recopiées dans ce projet. Les imports d’intégration utilisent `fr.lkdm.homecore.api.*` ; aucun import de `fr.lkdm.homecore.internal.*` n’est nécessaire ou autorisé côté Dashboard.
 
 ```text
 Mod fournisseur / adaptateur HomeCore
@@ -69,15 +69,19 @@ Le transport historique de pages reste disponible dans le seam de test `Dashboar
 
 `ActionControlRegistry` construit les contrôles à partir de `DeviceActionView`, décodé du schéma HomeCore. Les types pris en charge sont BUTTON (`Unit.INSTANCE`), TOGGLE, INTEGER, DOUBLE, SLIDER, SELECT, TEXT et POSITION (`BlockPos`). Une définition inconnue ou invalide désactive le contrôle.
 
+HomeCore 1.11.0 ajoute au schéma des appareils `Switchable` et `Renamable` les actions standard `homecore:power` (TOGGLE, CONTROL) et `homecore:rename` (TEXT, CONFIGURE, 50 caractères), et transmet l'état `powered` dans le snapshot ; un changement de nom ou d'état renvoie le snapshot. `ActionPanel` les retire du carrousel et les place sur sa première ligne (bouton Allumer/Éteindre, champ de nom). `DeviceActionView.availableWhen` reprend la règle de HomeCore : ces deux actions restent disponibles tant que l'appareil n'est pas OFFLINE, les autres seulement ONLINE. Leurs libellés sont traduits côté client, car le serveur envoie des textes déjà résolus.
+
 Les contrôles numériques utilisent les bornes et le pas du schéma. La quantification des sliders utilise `BigDecimal`, cohérente avec la validation décimale HomeCore, y compris pour de grandes bornes finies. Le serveur reste la source de vérité : le client envoie une demande, il n’applique pas un changement de métrique lui-même. Le résultat HomeCore est affiché après réception.
 
 L’interface reflète les rôles de la politique HomeCore courante de référence. Les paquets serveur vérifient toujours l’identité réelle du joueur, la session, le réseau et les permissions. VIEW autorise la consultation et les favoris personnels ; CONTROL et la permission supplémentaire de l’action sont nécessaires à son exécution ; CONFIGURE protège les modifications de layout et l’association d’un point d’accès.
 
 ## Widgets et extensions
 
-`DashboardWidget` stocke un UUID, un type, un UUID d’appareil, un identifiant de métrique éventuel et la géométrie sur une grille de 12 colonnes et 64 lignes. Les types V1 sont DEVICE_SUMMARY et METRIC. Le modèle valide 3 × 2, 4 × 2, 6 × 3 et 12 × 3 ; l’éditeur propose l’ajout en 6 × 3 et l’alternance 6 × 3 / 12 × 3. Les limites sont de 32 widgets et 64 favoris par profil, sans chevauchement.
+`DashboardWidget` stocke un UUID, un type, un UUID d’appareil, un identifiant de métrique ou d'action éventuel et la géométrie sur une grille de 12 colonnes et 64 lignes. Les types sont DEVICE_SUMMARY, METRIC, ACTION et ENERGY_BALANCE ; ce dernier utilise l'UUID réservé NETWORK. Le modèle accepte toujours 4 × 2 pour les profils existants, tandis que l'éditeur propose 3 × 2, 6 × 3 et 12 × 3. Les limites sont de 32 widgets et 64 favoris par profil, sans chevauchement.
 
 Depuis la 1.4.0, `HomeDashboardView` ne déplace plus les widgets case par case : il trie la liste en ordre de lecture (`y`, puis `x`), applique l’insertion, le déplacement ou le changement de préréglage, puis recalcule toutes les positions par flux sur 12 colonnes avant `saveLayout`. Le format des profils et la validation serveur sont inchangés ; une ancienne disposition avec des trous est compactée à la première modification. `MetricRendererRegistry.decimal` arrondit toute valeur décimale affichée à deux chiffres.
+
+En 1.5.0, `HomeEditorView` gère la recherche et l'édition ; `WidgetCards` rend les cartes et envoie les actions à un clic par le chemin HomeCore existant. Le serveur valide qu'un nouveau widget ACTION référence une action BUTTON ou TOGGLE du réseau. `EnergyBalance` calcule le bilan depuis les mesures publiques HomeLink Energy, sans dépendance Java directe ; il regroupe les mesures identiques à l'aide du nombre de batteries annoncé par le réseau câblé. Sans identifiant public de ce réseau, une sélection partielle de deux réseaux distincts aux mesures identiques peut encore sous-estimer la consommation.
 
 `MetricRendererRegistry.register(ResourceLocation, MetricRenderer)` est un point d’extension Java **interne à Dashboard** pour associer un type de métrique à une présentation pure. Sa sortie contient une valeur textuelle et éventuellement une fraction de progression. Le rendu final reste contrôlé par Dashboard ; erreurs et types inconnus passent par un fallback. Son cache de présentation est borné à 1 024 entrées et invalidé lors d’un nouvel enregistrement de renderer.
 
@@ -85,7 +89,7 @@ La séparation des vues et du modèle prépare de futurs widgets spécialisés. 
 
 ## Résumé sur la façade
 
-`DashboardDisplayBlock` utilise son tick serveur existant (20 ticks) pour appeler `DisplaySummaryService.refresh` sur le seul maître. Le service compose les favoris personnels autorisés du destinataire via les API publiques HomeCore et les profils Dashboard : quatre favoris au maximum, deux mesures chacun. Il y ajoute les 12 premiers widgets du profil en ordre de lecture (`DisplaySummary.WidgetTile`), avec leur géométrie : deux mesures pour un résumé, la seule mesure choisie pour un widget METRIC, et un nom vide pour un appareil indisponible. Le registrar de `DisplaySummaryPayloads` passe en version `2` ; client et serveur doivent partager la 1.4.0. Aucun abonnement de menu ni chargement de chunk n'est requis. Les paquets `DisplaySummaryPayloads.Update` sont envoyés individuellement aux joueurs à 16 blocs maximum ; VIEW, appartenance, portée radio et alimentation sont revérifiées avant chaque envoi. Ils ne sont jamais distribués dans les tags de mise à jour du block entity.
+`DashboardDisplayBlock` utilise son tick serveur existant (20 ticks) pour appeler `DisplaySummaryService.refresh` sur le seul maître. Le service compose les favoris autorisés du profil du destinataire, ou du propriétaire si le partage est actif. Il ajoute les 12 premiers widgets du profil en ordre de lecture (`DisplaySummary.WidgetTile`) : mesures pour un résumé ou un widget METRIC, libellé pour ACTION, mesures agrégées pour ENERGY_BALANCE. Les valeurs sont filtrées selon le VIEW du destinataire. Le choix de partage est conservé dans la block entity maîtresse. Le registrar de `DisplaySummaryPayloads` passe en version `3` ; client et serveur doivent partager la 1.5.0. Aucun abonnement de menu ni chargement de chunk n'est requis. Les paquets `DisplaySummaryPayloads.Update` sont envoyés individuellement aux joueurs à 16 blocs maximum ; VIEW, appartenance, portée radio et alimentation sont revérifiées avant chaque envoi. Ils ne sont jamais distribués dans les tags de mise à jour du block entity.
 
 `DisplaySummaryClient` conserve au plus 256 résumés pendant 45 ticks, associés à l'instance du maître et au monde courant. Éloignement, remplacement du bloc, changement de monde et déconnexion invalident le cache. `DashboardDisplayRenderer` dessine une seule surface couvrant le multibloc, avec une boîte de rendu englobant toutes ses cases. Les valeurs ne sont pas sauvegardées. Le transport et les droits de l'interface ouverte restent indépendants.
 
@@ -103,7 +107,7 @@ HomeCore gère séparément `data/homecore_networks.dat`. Les associations des p
 
 ## Construire le projet
 
-Java 21 est nécessaire. Les versions de référence sont dans `gradle.properties` et `build.gradle` : Minecraft 1.21.1, NeoForge 21.1.250, Dashboard 1.3.0, HomeCore 1.9.0 (API 1.5.0). Les recettes de Dashboard référencent `homecore:homelink_circuit_board`, `homecore:homelink_microprocessor` et `homecore:homelink_communication_module` par identifiant, sans importer de classe HomeCore. Conserver les versions de mappings du projet à moins d’une migration explicite.
+Java 21 est nécessaire. Les versions de référence sont dans `gradle.properties` et `build.gradle` : Minecraft 1.21.1, NeoForge 21.1.250, Dashboard 1.5.0, HomeCore 1.11.0 (API 1.7.0). Les recettes de Dashboard référencent `homecore:homelink_circuit_board`, `homecore:homelink_microprocessor` et `homecore:homelink_communication_module` par identifiant, sans importer de classe HomeCore. Conserver les versions de mappings du projet à moins d’une migration explicite.
 
 `settings.gradle` inclut réellement le build source `../HomeCore` et substitue `fr.lkdm.homecore:homecore`. Ce projet source est requis avec la configuration actuelle ; un JAR isolé placé arbitrairement dans `libs` ne remplace pas cette configuration.
 

@@ -125,36 +125,78 @@ public final class DashboardDisplayRenderer implements BlockEntityRenderer<Dashb
             if (y + h > bottom) { hidden++; continue; }
             fill(pose, buffers, x, y, x + w, y + h, 0.01F, TILE);
             var device = tile.device();
+            // A quarter tile (two grid rows) holds a title and one value; taller tiles add lines.
+            float second = h < 30 ? y + 12 : y + 14;
+            if (tile.kind() == DisplaySummary.WidgetTile.Kind.ENERGY) { energy(pose, buffers, tile, x, y, w, h, second); continue; }
             boolean available = !device.name().isEmpty();
             fill(pose, buffers, x + 3, y + 5, x + 6, y + 8, 0.02F, DashboardTheme.status(device.status()));
             text(pose, buffers, available ? device.name() : tr("unavailable"), x + 9, y + 3, w - 12, DashboardTheme.TEXT);
             if (!available) continue;
-            if (tile.metric()) {
-                if (device.metrics().isEmpty()) { text(pose, buffers, tr("metric_unavailable"), x + 3, y + 14, w - 6, DashboardTheme.MUTED); continue; }
-                var view = view(device.metrics().getFirst());
-                text(pose, buffers, device.metrics().getFirst().name(), x + 3, y + 14, w - 6, DashboardTheme.MUTED);
-                text(pose, buffers, MetricRendererRegistry.localizedValue(view), x + 3, y + 24, w - 6, DashboardTheme.TEXT);
-                double fraction = MetricRendererRegistry.fraction(view);
-                if (fraction >= 0 && h >= 34) {
-                    fill(pose, buffers, x + 3, y + h - 4, x + w - 3, y + h - 2, 0.02F, RULE);
-                    fill(pose, buffers, x + 3, y + h - 4, x + 3 + (float) ((w - 6) * Math.min(1, fraction)), y + h - 2, 0.03F, DashboardTheme.ACCENT);
+            switch (tile.kind()) {
+                case ACTION -> text(pose, buffers, "▶ " + (tile.label().isEmpty() ? tr("action_unavailable") : tile.label()), x + 3, second, w - 6, DashboardTheme.MUTED);
+                case METRIC -> {
+                    if (device.metrics().isEmpty()) { text(pose, buffers, tr("metric_unavailable"), x + 3, second, w - 6, DashboardTheme.MUTED); continue; }
+                    var view = view(device.metrics().getFirst());
+                    if (h < 30) { text(pose, buffers, MetricRendererRegistry.localizedValue(view), x + 3, second, w - 6, DashboardTheme.TEXT); continue; }
+                    text(pose, buffers, device.metrics().getFirst().name(), x + 3, second, w - 6, DashboardTheme.MUTED);
+                    text(pose, buffers, MetricRendererRegistry.localizedValue(view), x + 3, y + 24, w - 6, DashboardTheme.TEXT);
+                    gauge(pose, buffers, MetricRendererRegistry.fraction(view), x, y, w, h);
                 }
-            } else if (device.metrics().isEmpty()) {
-                text(pose, buffers, DashboardText.value(device.status()), x + 3, y + 14, w - 6, DashboardTheme.status(device.status()));
-            } else {
-                for (int index = 0; index < Math.min(2, device.metrics().size()); index++) {
-                    var metric = device.metrics().get(index);
-                    String value = MetricRendererRegistry.localizedValue(view(metric));
-                    int valueWidth = Math.min(font.width(value), (int) w - 6);
-                    float metricY = y + 14 + index * 10;
-                    float labelWidth = w - 6 - valueWidth - 4;
-                    if (labelWidth >= 18) text(pose, buffers, metric.name(), x + 3, metricY, labelWidth, DashboardTheme.MUTED);
-                    text(pose, buffers, value, x + w - 3 - valueWidth, metricY, valueWidth, DashboardTheme.TEXT);
+                default -> {
+                    if (device.metrics().isEmpty() || h < 30) {
+                        text(pose, buffers, DashboardText.value(device.status()), x + 3, second, w - 6, DashboardTheme.status(device.status()));
+                        continue;
+                    }
+                    for (int index = 0; index < Math.min(2, device.metrics().size()); index++) {
+                        var metric = device.metrics().get(index);
+                        valueRow(pose, buffers, metric.name(), MetricRendererRegistry.localizedValue(view(metric)), x, y + 14 + index * 10, w);
+                    }
                 }
             }
         }
         String footer = hidden > 0 ? Component.translatable("display.homelink_dashboard.more_widgets", hidden).getString() : tr("open");
         text(pose, buffers, footer, 6, height - 11, width - 12, DashboardTheme.MUTED);
+    }
+
+    /** Network energy balance: net flow in the title, production and consumption below, battery charge as a gauge. */
+    private void energy(PoseStack pose, MultiBufferSource buffers, DisplaySummary.WidgetTile tile, float x, float y, float w, float h, float second) {
+        var metrics = tile.device().metrics();
+        double production = number(metrics, 0), consumption = number(metrics, 1), net = production - consumption;
+        String netText = (net >= 0 ? "+" : "") + MetricRendererRegistry.decimal(net) + " HE/t";
+        int netColor = net >= 0 ? DashboardTheme.ONLINE : DashboardTheme.WARNING;
+        if (h < 30) {
+            // A quarter tile is too narrow for the title and the net flow side by side.
+            text(pose, buffers, tr("energy_balance"), x + 3, y + 3, w - 6, DashboardTheme.TEXT);
+            text(pose, buffers, netText, x + 3, second, w - 6, netColor);
+            return;
+        }
+        int netWidth = Math.min(font.width(netText), (int) w / 2);
+        text(pose, buffers, tr("energy_balance"), x + 3, y + 3, w - netWidth - 10, DashboardTheme.TEXT);
+        text(pose, buffers, netText, x + w - 3 - netWidth, y + 3, netWidth, netColor);
+        valueRow(pose, buffers, tr("energy_production"), MetricRendererRegistry.decimal(production) + " HE/t", x, y + 14, w);
+        valueRow(pose, buffers, tr("energy_consumption"), MetricRendererRegistry.decimal(consumption) + " HE/t", x, y + 24, w);
+        if (!tile.label().isEmpty()) {
+            try { gauge(pose, buffers, Integer.parseInt(tile.label().replace("%", "")) / 100.0, x, y, w, h); }
+            catch (NumberFormatException ignored) { /* Only the server writes this label. */ }
+        }
+    }
+
+    private static double number(java.util.List<DisplaySummary.MetricLine> metrics, int index) {
+        return index < metrics.size() && metrics.get(index).value().value() instanceof Number number ? number.doubleValue() : 0;
+    }
+
+    /** Label on the left, value on the right; the value wins when space runs out. */
+    private void valueRow(PoseStack pose, MultiBufferSource buffers, String label, String value, float x, float y, float w) {
+        int valueWidth = Math.min(font.width(value), (int) w - 6);
+        float labelWidth = w - 6 - valueWidth - 4;
+        if (labelWidth >= 18) text(pose, buffers, label, x + 3, y, labelWidth, DashboardTheme.MUTED);
+        text(pose, buffers, value, x + w - 3 - valueWidth, y, valueWidth, DashboardTheme.TEXT);
+    }
+
+    private void gauge(PoseStack pose, MultiBufferSource buffers, double fraction, float x, float y, float w, float h) {
+        if (fraction < 0 || h < 34) return;
+        fill(pose, buffers, x + 3, y + h - 4, x + w - 3, y + h - 2, 0.02F, RULE);
+        fill(pose, buffers, x + 3, y + h - 4, x + 3 + (float) ((w - 6) * Math.min(1, fraction)), y + h - 2, 0.03F, DashboardTheme.ACCENT);
     }
 
     private static DebugDeviceView.Metric view(DisplaySummary.MetricLine metric) {

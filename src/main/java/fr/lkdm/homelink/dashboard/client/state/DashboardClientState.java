@@ -272,7 +272,7 @@ public final class DashboardClientState implements AutoCloseable {
                 metrics.set(metricIndex, new DebugDeviceView.Metric(previous.id(), previous.name(),
                         format(update.value(), previous.unit()), update.revision(), previous.type(), previous.unit(), update.value()));
                 devices.set(index, new DebugDeviceView(device.id(), device.name(), device.type(), device.status(), metrics,
-                        device.position(), device.capabilities(), device.searchText(), device.actions()));
+                        device.position(), device.capabilities(), device.searchText(), device.actions(), device.powered()));
                 deltaCount++;
                 revision++;
                 break;
@@ -314,7 +314,8 @@ public final class DashboardClientState implements AutoCloseable {
         }
         return new DebugDeviceView(snapshot.deviceId(), bounded(tag.getString("name"), snapshot.deviceId().toString()),
                 bounded(tag.getString("type"), "unknown"), bounded(tag.getString("status"), "UNKNOWN"), metrics,
-                bounded(position, ""), capabilities, "", decodeActions(tag));
+                bounded(position, ""), capabilities, "", decodeActions(tag),
+                tag.contains("powered", Tag.TAG_BYTE) ? tag.getBoolean("powered") : null);
     }
 
     private static boolean sameStructure(DebugDeviceView first, DebugDeviceView second) {
@@ -338,8 +339,14 @@ public final class DashboardClientState implements AutoCloseable {
                 try { options.add(WireValue.fromTag(optionTags.getCompound(option))); }
                 catch (RuntimeException exception) { type = "UNKNOWN"; }
             }
-            actions.add(new DeviceActionView(id, bounded(definition.getString("name"), id),
-                    bounded(definition.getString("description"), ""), type,
+            // The server sends text in its own language: HomeCore's standard actions are translated here.
+            String name = bounded(definition.getString("name"), id), description = bounded(definition.getString("description"), "");
+            if (id.equals(DeviceActionView.POWER) || id.equals(DeviceActionView.RENAME)) {
+                String key = "screen.homelink_dashboard.action_" + ResourceLocation.parse(id).getPath();
+                name = net.minecraft.network.chat.Component.translatable(key).getString();
+                description = net.minecraft.network.chat.Component.translatable(key + "_description").getString();
+            }
+            actions.add(new DeviceActionView(id, name, description, type,
                     bounded(definition.getString("permission"), "unknown"),
                     optionalDouble(definition, "min"), optionalDouble(definition, "max"), optionalDouble(definition, "step"),
                     definition.contains("maxLength", Tag.TAG_INT) ? definition.getInt("maxLength") : 1024, options));
@@ -374,7 +381,7 @@ public final class DashboardClientState implements AutoCloseable {
         int index = indexOf(deviceId);
         if (index < 0) { actionResult("DEVICE_OFFLINE", "Device unavailable"); return false; }
         DebugDeviceView device = devices.get(index);
-        if (!device.status().equals("ONLINE")) { actionResult("DEVICE_OFFLINE", "Device unavailable"); return false; }
+        if (!action.availableWhen(device.status())) { actionResult("DEVICE_OFFLINE", "Device unavailable"); return false; }
         if (!device.actions().contains(action)) { actionResult("INVALID_PARAMETER", "Action schema changed; select it again"); return false; }
         try {
             actionSentAt = clock.getAsLong();

@@ -1,4 +1,4 @@
-# HomeLink Dashboard 1.4.0
+# HomeLink Dashboard 1.5.0
 
 Centre de contrôle visuel générique de l’écosystème HomeLink : consulter les appareils HomeCore, exécuter leurs actions autorisées, recevoir leurs événements et organiser un tableau de bord personnel.
 
@@ -11,13 +11,23 @@ Dashboard interprète les schémas publics HomeCore. Il ne contient aucune inté
 | Minecraft | 1.21.1 |
 | NeoForge | 21.1.250 |
 | Java | 21 |
-| HomeCore, obligatoire | 1.9.0 ou plus récent (< 2.0.0) |
-| HomeLink Energy, obligatoire | 0.1.0 ou plus récent (< 1.0.0), 0.2.1 conseillé |
-| HomeLink Dashboard | 1.4.0 |
+| HomeCore, obligatoire | 1.11.0 ou plus récent (< 2.0.0) |
+| HomeLink Energy, obligatoire | 0.1.0 ou plus récent (< 1.0.0), 0.3.0 conseillé |
+| HomeLink Dashboard | 1.5.0 |
 
-Installer `homecore-1.9.0.jar`, `homelink_energy-0.2.1.jar` et `homelink_dashboard-1.4.0.jar` dans le dossier `mods` du client **et** du serveur. En solo, ces JAR sont nécessaires dans l’installation Minecraft. HomeCore reste une dépendance séparée ; son code n’est pas embarqué dans le JAR Dashboard.
+Installer `homecore-1.11.0.jar`, `homelink_energy-0.3.0.jar` et `homelink_dashboard-1.5.0.jar` dans le dossier `mods` du client **et** du serveur. En solo, ces JAR sont nécessaires dans l’installation Minecraft. HomeCore reste une dépendance séparée ; son code n’est pas embarqué dans le JAR Dashboard.
 
-**English installation:** use Minecraft 1.21.1, NeoForge 21.1.250 and Java 21. Put HomeCore 1.9.0, HomeLink Energy 0.2.1 and HomeLink Dashboard 1.4.0 in the client and server `mods` folders. Crafting recipes use the HomeLink Circuit Board, Microprocessor and Communication Module assembled at the HomeCore Electronics Workbench. Place a HomeLink Server, create or link a HomeNetwork, then link a Dashboard Display to the same network. Extend the 64-block range with HomeLink Repeaters. Devices must be exposed by a HomeCore-compatible mod. The **Machines** tab summarizes machines by system and the **Add** tab adds machines in radio range to the network. The **?** button in the header opens the in-game manual.
+**English installation:** use Minecraft 1.21.1, NeoForge 21.1.250 and Java 21. Put HomeCore 1.11.0, HomeLink Energy 0.3.0 and HomeLink Dashboard 1.5.0 in the client and server `mods` folders. Crafting recipes use the HomeLink Circuit Board, Microprocessor and Communication Module assembled at the HomeCore Electronics Workbench. Place a HomeLink Server, create or link a HomeNetwork, then link a Dashboard Display to the same network. Extend the 64-block range with HomeLink Repeaters. Devices must be exposed by a HomeCore-compatible mod. The **Machines** tab summarizes machines by system and the **Add** tab adds machines in radio range to the network. The **?** button in the header opens the in-game manual.
+
+## Nouveautés de la 1.5.0
+
+- L'éditeur HOME propose une recherche et regroupe les appareils par système. Les widgets ont trois tailles : quart, moitié et pleine largeur.
+- Un widget peut afficher une action à un clic (bouton ou interrupteur) directement sur HOME. Les actions qui demandent une valeur restent dans la fiche de l'appareil.
+- Le widget **Bilan énergie** réunit production, consommation et charge des batteries HomeLink Energy du réseau.
+- Le propriétaire d'un écran mural peut choisir entre l'accueil personnel de chaque spectateur et son propre accueil partagé. Les droits de consultation de chaque spectateur restent appliqués.
+- En haut de l'écran **Actions** d'une machine : **Allumer**/**Éteindre** et un champ pour la **renommer** (✓ ou Entrée ; vide = nom d'origine). Les machines sans interrupteur, comme les batteries, se renomment aussi. Renommer demande le droit CONFIGURE ; une machine éteinte reste pilotable pour être rallumée.
+- Requiert HomeCore 1.11.0 (actions standard `homecore:power` et `homecore:rename`). Avec Energy 0.3.0, Farm 1.3.0 et Quarry 1.3.0 : panneaux solaires, éoliennes, pompes, stations FarmBot et carrières s'allument et s'éteignent ; toutes leurs machines se renomment.
+- Le format du résumé d'écran a changé : installer la 1.5.0 sur le serveur et tous les clients.
 
 ## Nouveautés de la 1.4.0
 

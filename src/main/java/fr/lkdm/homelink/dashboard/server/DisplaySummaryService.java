@@ -8,6 +8,9 @@ import fr.lkdm.homelink.dashboard.blockentity.DashboardDisplayBlockEntity;
 import fr.lkdm.homelink.dashboard.network.DisplaySummary;
 import fr.lkdm.homelink.dashboard.network.DisplaySummaryPayloads;
 import fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget;
+import fr.lkdm.homelink.dashboard.dashboard.widget.EnergyBalance;
+import java.util.List;
+import java.util.UUID;
 import java.util.ArrayList;
 import java.util.Comparator;
 import net.minecraft.server.level.ServerLevel;
@@ -49,8 +52,10 @@ public final class DisplaySummaryService {
             var order = Comparator.comparing(DisplaySummary.DeviceLine::name, String.CASE_INSENSITIVE_ORDER)
                     .thenComparing(DisplaySummary.DeviceLine::name);
             int online = 0, attention = 0, offline = 0;
+            // A shared display shows its owner's Home to everyone; values stay filtered by this viewer's VIEW right above.
+            UUID layoutOwner = point.sharedLayout() && point.owner().isPresent() ? point.owner().orElseThrow() : player.getUUID();
             // Favorites have set semantics; UUID order supplies a stable tiebreak for identical names.
-            var profile = DashboardPreferencesSavedData.get(player.server).profile(player.getUUID(), id);
+            var profile = DashboardPreferencesSavedData.get(player.server).profile(layoutOwner, id);
             for (var deviceId : profile.favorites().stream().sorted().toList()) {
                 try {
                     var candidate = registry.get(deviceId);
@@ -74,19 +79,35 @@ public final class DisplaySummaryService {
             var widgets = new ArrayList<DisplaySummary.WidgetTile>();
             var ordered = profile.widgets().stream().sorted(Comparator.comparingInt(DashboardWidget::y).thenComparingInt(DashboardWidget::x))
                     .limit(DisplaySummary.MAX_WIDGETS).toList();
+            EnergyBalance.Result balance = null;
             for (var widget : ordered) {
+                if (widget.type() == DashboardWidget.Type.ENERGY_BALANCE) {
+                    if (balance == null) balance = energyBalance(manager, registry, network);
+                    widgets.add(energyTile(widget, balance));
+                    continue;
+                }
                 DisplaySummary.DeviceLine line = UNAVAILABLE;
+                String label = "";
                 try {
                     var candidate = registry.get(widget.deviceId());
                     if (candidate.isPresent() && manager.isReachable(id, candidate.orElseThrow())) {
                         var device = candidate.orElseThrow();
-                        line = deviceLine(device, widget.type() == DashboardWidget.Type.METRIC
-                                ? device.metrics().stream().filter(metric -> metric.id().toString().equals(widget.metricId())).limit(1).toList()
-                                : device.metrics().stream().limit(DisplaySummary.MAX_METRICS).toList());
+                        line = deviceLine(device, switch (widget.type()) {
+                            case METRIC -> device.metrics().stream().filter(metric -> metric.id().toString().equals(widget.metricId())).limit(1).toList();
+                            case ACTION -> List.of();
+                            default -> device.metrics().stream().limit(DisplaySummary.MAX_METRICS).toList();
+                        });
+                        if (widget.type() == DashboardWidget.Type.ACTION) label = device.actions().stream()
+                                .filter(action -> action.id().toString().equals(widget.metricId()))
+                                .map(action -> plainName(action.displayName().getString())).findFirst().orElse("");
                     }
                 } catch (RuntimeException unavailableDevice) { /* Shown as unavailable, like on the Home page. */ }
                 widgets.add(new DisplaySummary.WidgetTile(widget.x(), widget.y(), widget.width(), widget.height(),
-                        widget.type() == DashboardWidget.Type.METRIC, line));
+                        switch (widget.type()) {
+                            case METRIC -> DisplaySummary.WidgetTile.Kind.METRIC;
+                            case ACTION -> DisplaySummary.WidgetTile.Kind.ACTION;
+                            default -> DisplaySummary.WidgetTile.Kind.SUMMARY;
+                        }, label, line));
             }
             return new DisplaySummary(DisplaySummary.Mode.LIVE, plainName(network.name()), online + attention + offline,
                     online, attention, offline, lines, widgets);
@@ -96,6 +117,41 @@ public final class DisplaySummaryService {
     }
 
     private static final DisplaySummary.DeviceLine UNAVAILABLE = new DisplaySummary.DeviceLine("", "UNKNOWN");
+
+    /** Same rules as the Home widget: the devices of the network that the radio area reaches. */
+    private static EnergyBalance.Result energyBalance(fr.lkdm.homecore.api.network.HomeNetworkManager manager,
+            fr.lkdm.homecore.api.registry.DeviceRegistry registry, fr.lkdm.homecore.api.network.HomeNetwork network) {
+        var sources = new ArrayList<EnergyBalance.Source>();
+        for (var deviceId : network.devices()) {
+            try {
+                var candidate = registry.get(deviceId);
+                if (candidate.isEmpty() || !manager.isReachable(network.id(), candidate.orElseThrow())) continue;
+                var device = candidate.orElseThrow();
+                String type = device.deviceType().toString();
+                if (!type.startsWith("homelink_energy:")) continue;
+                var values = new java.util.HashMap<String, Double>();
+                for (var metric : device.metrics()) {
+                    Object value = metric.value();
+                    if (value instanceof Number number) values.put(metric.id().toString(), number.doubleValue());
+                }
+                sources.add(new EnergyBalance.Source() {
+                    @Override public String type() { return type; }
+                    @Override public double number(String metric) { return values.getOrDefault(metric, 0.0); }
+                });
+            } catch (RuntimeException unavailableDevice) { /* A faulty provider only drops out of the balance. */ }
+        }
+        return EnergyBalance.of(sources);
+    }
+
+    private static DisplaySummary.WidgetTile energyTile(DashboardWidget widget, EnergyBalance.Result balance) {
+        String type = fr.lkdm.homecore.api.metric.MetricTypes.DOUBLE.id().toString();
+        var metrics = List.of(
+                new DisplaySummary.MetricLine("production", type, "HE/t", WireValue.from(balance.production())),
+                new DisplaySummary.MetricLine("consumption", type, "HE/t", WireValue.from(balance.consumption())));
+        String charge = balance.charge() < 0 ? "" : Math.round(balance.charge() * 100) + "%";
+        return new DisplaySummary.WidgetTile(widget.x(), widget.y(), widget.width(), widget.height(),
+                DisplaySummary.WidgetTile.Kind.ENERGY, charge, new DisplaySummary.DeviceLine("", "ONLINE", metrics));
+    }
 
     private static DisplaySummary.DeviceLine deviceLine(fr.lkdm.homecore.api.device.DashboardDevice device, java.util.List<DeviceMetric<?>> selected) {
         var metrics = new ArrayList<DisplaySummary.MetricLine>();

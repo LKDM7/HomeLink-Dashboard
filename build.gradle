@@ -319,9 +319,9 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 
 dependencies {
-    implementation 'fr.lkdm.homecore:homecore:1.9.0'
+    implementation 'fr.lkdm.homecore:homecore:1.11.0'
     // Required at runtime: every Dashboard block runs on HE supplied by HomeLink Energy (published to Maven local).
-    runtimeOnly 'fr.lkdm.homelink.energy:homelink_energy:0.2.1'
+    runtimeOnly 'fr.lkdm.homelink.energy:homelink_energy:0.3.0'
     // Example mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
@@ -376,7 +376,7 @@ def verifyReleaseJar = tasks.register('verifyReleaseJar') {
             def read = { String name -> archive.getInputStream(archive.getEntry(name)).withCloseable { it.getText('UTF-8') } }
             def metadata = read('META-INF/neoforge.mods.toml')
             if (!metadata.contains('version = "' + releaseVersion + '"') || metadata.contains('${') ||
-                    !metadata.contains('versionRange = "[1.9.0,2.0.0)"') || !metadata.contains('modId = "homelink_energy"') || !metadata.contains('versionRange = "[1.21.1]"'))
+                    !metadata.contains('versionRange = "[1.11.0,2.0.0)"') || !metadata.contains('modId = "homelink_energy"') || !metadata.contains('versionRange = "[1.21.1]"'))
                 throw new GradleException('Release metadata/version/dependency mismatch')
             def parser = new groovy.json.JsonSlurper()
             def english = parser.parseText(read('assets/homelink_dashboard/lang/en_us.json'))

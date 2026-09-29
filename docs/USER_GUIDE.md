@@ -1,8 +1,8 @@
-# Guide utilisateur — HomeLink Dashboard 1.4.0
+# Guide utilisateur — HomeLink Dashboard 1.5.0
 
 ## Préparer le jeu
 
-Installer Minecraft 1.21.1, NeoForge 21.1.250 et Java 21. Les mods **HomeCore 1.9.0**, **HomeLink Energy** et **HomeLink Dashboard 1.4.0** doivent être présents côté client et côté serveur. Les traductions françaises et anglaises suivent la langue choisie dans Minecraft.
+Installer Minecraft 1.21.1, NeoForge 21.1.250 et Java 21. Les mods **HomeCore 1.9.0**, **HomeLink Energy** et **HomeLink Dashboard 1.5.0** doivent être présents côté client et côté serveur. Les traductions françaises et anglaises suivent la langue choisie dans Minecraft.
 
 Pour l'interface française, choisir **Français (France)** dans les langues de Minecraft. Les menus, états d'appareils, rôles, filtres, interrupteurs et résultats d'action sont traduits. Les noms personnalisés, messages et intitulés de mesures fournis par un autre mod restent ceux de ce mod ; Dashboard ne traduit pas arbitrairement les données reçues. Les codes inconnus conservent un affichage de secours lisible.
 
@@ -27,9 +27,9 @@ Dans l’onglet créatif HomeLink Dashboard, les deux blocs sont **HomeLink Serv
 
 Un seul objet place l’écran entier, quelle que soit sa taille. **Casser une case retire tout l’écran** et rend un seul objet avec une pioche adaptée ; aucun objet n’est lâché en créatif. Les anciens écrans restent en 1 × 1 sans manipulation. La consommation d’énergie et l’interface sont identiques pour les trois tailles. **Maj + clic droit, main vide**, sur n’importe quelle case permet de réassocier l’écran.
 
-Le Display possède une façade rectangulaire, un cadre continu et un voyant d'état. **Sans cliquer**, vous voyez vos **widgets de l’accueil, dans la même disposition** (mêmes places, largeurs et contenus), actualisés environ chaque seconde à moins de **16 blocs**. Les 12 colonnes de l’accueil couvrent la largeur de l’écran : le 1 × 1 et le 2 × 1 montrent la première rangée, le 2 × 2 quatre rangées ; un indicateur signale les widgets qui ne tiennent pas. Sans widget, l’écran présente vos favoris (un, deux ou quatre selon la taille, triés par nom). Chaque joueur voit ses propres widgets et favoris, et uniquement les données auxquelles il a accès ; un appareil hors portée radio ou déchargé apparaît indisponible. L'écran indique quand il est hors ligne, non associé ou sans favori accessible.
+Le Display possède une façade rectangulaire, un cadre continu et un voyant d'état. **Sans cliquer**, vous voyez les **widgets de l’accueil, dans la même disposition** (mêmes places, largeurs et contenus), actualisés environ chaque seconde à moins de **16 blocs**. Les 12 colonnes de l’accueil couvrent la largeur de l’écran : le 1 × 1 et le 2 × 1 montrent la première rangée, le 2 × 2 quatre rangées ; un indicateur signale les widgets qui ne tiennent pas. Sans widget, l’écran présente les favoris (un, deux ou quatre selon la taille, triés par nom). Par défaut, chacun voit son accueil personnel ; le propriétaire de l'écran peut partager le sien depuis l'éditeur HOME. Chaque spectateur ne reçoit que les données auxquelles il a accès ; un appareil hors portée radio ou déchargé apparaît indisponible. L'écran indique quand il est hors ligne, non associé ou sans favori accessible.
 
-The display face mirrors your Home widgets in the same layout (places, widths and contents) without clicking, refreshing about once per second within 16 blocks. The 1 × 1 and 2 × 1 sizes show the first row, the 2 × 2 four rows; widgets that do not fit are counted. Without widgets, the display lists your favorites. Access permissions and radio coverage still apply.
+The display face mirrors Home widgets in the same layout (places, widths and contents) without clicking, refreshing about once per second within 16 blocks. The 1 × 1 and 2 × 1 sizes show the first row, the 2 × 2 four rows; widgets that do not fit are counted. Without widgets, the display lists favorites. Each viewer sees their own Home by default; the display owner can share theirs from the Home editor. Access permissions and radio coverage still apply to each viewer.
 
 La GUI prend la forme d'un terminal industriel gris : boutons en relief, onglet actif enfoncé et focus clavier visible. Elle partage le cadre, la palette, les contrôles de 18 pixels, les info-bulles et la disposition de l’en-tête (voyant d’état puis **?**) avec HomeLink Storage. HOME regroupe ses compteurs sur une ligne lorsque la fenêtre est assez grande et présente les favoris dans des lignes compactes. La taille de l'interface suit le réglage d'échelle GUI de Minecraft.
 
@@ -87,12 +87,18 @@ HOME affiche le nom du réseau, les nombres d’appareils reçus et disponibles,
 
 Le bouton **Modifier** ouvre l’éditeur de l’accueil ; cliquer directement sur un widget l’ouvre avec ce widget sélectionné. **Terminer** revient à HOME.
 
-- **Appareils** (colonne de gauche) : tous les appareils reçus du réseau. L’étoile d’une ligne ajoute ou retire l’appareil des favoris ; un Viewer peut gérer ses propres favoris.
-- **Ajouter** : glisser un appareil sur l’aperçu de droite. Un trait doré indique où il sera inséré.
+- **Appareils** (colonne de gauche) : chercher un appareil par nom, puis parcourir les groupes par système. L’étoile d’une ligne ajoute ou retire l’appareil des favoris ; un Viewer peut gérer ses propres favoris.
+- **Ajouter** : glisser un appareil ou **Bilan énergie** sur l’aperçu de droite. Un trait doré indique où le widget sera inséré.
 - **Déplacer** : glisser un widget de l’aperçu vers sa nouvelle place. Les widgets se rangent seuls dans l’ordre de lecture ; deux widgets de moitié se placent côte à côte.
-- **Personnaliser** : cliquer un widget, puis utiliser la barre du bas. **‹ ›** choisit ce qu’il affiche parmi les préréglages (**Résumé** de l’appareil, ou l’une de ses mesures), **↔** passe de moitié à pleine largeur, **Supprimer** le retire.
+- **Personnaliser** : cliquer un widget, puis utiliser la barre du bas. **‹ ›** choisit ce qu’il affiche parmi les préréglages (**Résumé**, mesure ou action à un clic de l’appareil), **↔** parcourt les tailles quart, moitié et pleine largeur, **Supprimer** le retire.
 
-Ajouter, déplacer ou personnaliser des widgets demande la permission CONFIGURE ; sinon l’éditeur est en lecture seule. Les widgets ajoutés occupent 6 × 3 cases, 12 × 3 en pleine largeur, sur une grille de 12 colonnes et 64 lignes. Chaque modification attend la confirmation serveur avant d’afficher le nouvel état. Les valeurs sont affichées avec deux décimales au plus.
+Ajouter, déplacer ou personnaliser des widgets demande la permission CONFIGURE ; sinon l’éditeur est en lecture seule. Les widgets ajoutés occupent 6 × 3 cases ; les tailles disponibles sont 3 × 2, 6 × 3 et 12 × 3 sur une grille de 12 colonnes et 64 lignes. Chaque modification attend la confirmation serveur avant d’afficher le nouvel état. Les valeurs sont affichées avec deux décimales au plus.
+
+Une action à un clic s'exécute depuis son widget sur HOME si l'appareil est en ligne et si vous avez le droit CONTROL. Le serveur vérifie à nouveau les permissions et la valeur envoyée. Le bilan énergie montre la production des panneaux solaires et éoliennes, la consommation mesurée par les batteries et leur taux de charge ; les appareils hors de la sélection reçue ne participent pas au calcul local.
+
+La consommation du bilan est une estimation lorsque plusieurs réseaux câblés distincts ont exactement les mêmes mesures et que seule une partie de leurs batteries est visible. HomeLink Energy ne fournit pas encore d'identifiant de réseau câblé dans les mesures publiques ; les consommateurs d'un réseau sans batterie ne sont pas comptés.
+
+Sur un écran mural, le propriétaire peut choisir **Écran : partagé** dans l'éditeur pour montrer son accueil à tous les spectateurs, ou **Écran : personnel** pour que chacun voie le sien. Chaque spectateur doit conserver le droit VIEW pour recevoir les valeurs.
 
 La limite est de 32 widgets et 64 favoris par profil. Les préférences stockent des références aux appareils et métriques, pas leurs valeurs. Si un appareil disparaît, le widget reste présent avec une indication d’indisponibilité ; il peut être supprimé dans l’éditeur.
 
@@ -129,9 +135,16 @@ La recherche filtre localement les données déjà reçues par nom, type ou capa
 
 Cliquer sur un appareil ouvre son nom, type, état, position éventuelle et métriques. La molette fait défiler les valeurs. Pour les types inconnus, Dashboard conserve une présentation textuelle lorsque HomeCore fournit une valeur transportable.
 
-Le bouton **Actions** ouvre les actions exposées par l’appareil. Les flèches parcourent les actions disponibles. Les contrôles suivent le schéma HomeCore : bouton, ON/OFF, entier, décimal, slider, choix déroulant, texte ou coordonnées XYZ. Le menu déroulant se parcourt à la souris, à la molette ou au clavier.
+Le bouton **Actions** ouvre les actions exposées par l’appareil. La première ligne sert à toutes les machines compatibles :
 
-Modifier un champ ne déclenche pas l’action : cliquer sur **Exécuter**. Le serveur vérifie de nouveau les permissions, l’état de l’appareil et les paramètres. Les résultats possibles comprennent SUCCESS, DENIED, INVALID_PARAMETER, DEVICE_OFFLINE, RATE_LIMITED et FAILED. Une action n’est utilisable que sur un appareil ONLINE ; WARNING n’est pas un état autorisant son exécution dans HomeCore.
+- **Éteindre** / **Allumer** coupe ou relance la machine (droit CONTROL). Une machine sans interrupteur, comme une batterie, affiche **Sans interrupteur**.
+- Le champ de nom renomme la machine avec **✓** ou Entrée (droit CONFIGURE, 50 caractères au plus ; les mods peuvent raccourcir). Un nom vide rétablit le nom d’origine.
+
+Ces deux commandes restent disponibles quand la machine est éteinte ou en alerte, mais pas hors ligne. Machines compatibles : panneaux solaires et éoliennes (Energy 0.3.0 ; les batteries se renomment seulement), pompes et stations FarmBot (Farm 1.3.0 ; le contrôleur se renomme seulement) et carrières (Quarry 1.3.0 ; éteindre met en pause, rallumer reprend).
+
+En dessous, les flèches parcourent les actions disponibles. Les contrôles suivent le schéma HomeCore : bouton, ON/OFF, entier, décimal, slider, choix déroulant, texte ou coordonnées XYZ. Le menu déroulant se parcourt à la souris, à la molette ou au clavier.
+
+Modifier un champ ne déclenche pas l’action : cliquer sur **Exécuter**. Le serveur vérifie de nouveau les permissions, l’état de l’appareil et les paramètres. Les résultats possibles comprennent SUCCESS, DENIED, INVALID_PARAMETER, DEVICE_OFFLINE, RATE_LIMITED et FAILED. Une action propre à la machine n’est utilisable que sur un appareil ONLINE ; WARNING n’est pas un état autorisant son exécution dans HomeCore. L’interrupteur et le renommage font exception tant que la machine n’est pas OFFLINE.
 
 ## ALERTS : événements reçus
 

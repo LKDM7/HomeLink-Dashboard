@@ -1,0 +1,8 @@
+# The repository stores LF; keep it in the working tree too so Git no longer converts on every add.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.png binary
+*.nbt binary
+*.jar binary
+*.ogg binary

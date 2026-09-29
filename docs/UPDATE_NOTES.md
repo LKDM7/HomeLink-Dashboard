@@ -1,3 +1,21 @@
+# Version 1.5.0 — Widgets d'action et d'énergie, partage d'écran
+
+Cette mise à jour requiert **HomeCore 1.11.0** ; **HomeLink Energy 0.3.0** est conseillé. Le transport du résumé d'écran passe en version `3` : installer Dashboard 1.5.0 sur le serveur et tous les clients.
+
+- **Éditeur HOME** : recherche d'appareils, groupes par système et widgets de taille quart, moitié ou pleine largeur.
+- **Confort de l'éditeur** : les réglages des widgets restent accessibles en petite fenêtre et la recherche conserve son curseur lors des actualisations. Un second clic sur une action en cours ne bascule plus dans l'éditeur.
+- **Actions sur HOME** : les boutons et interrupteurs compatibles s'exécutent depuis leur widget. Le serveur vérifie encore les droits, l'état de l'appareil et la valeur ; les actions à paramètres restent dans la fiche de l'appareil.
+- **Bilan énergie** : production des panneaux solaires et éoliennes, consommation issue des mesures réseau des batteries et charge agrégée ; disponible aussi sur l'écran mural.
+- **Écran partagé** : le propriétaire peut montrer son accueil à tous les spectateurs, ou laisser chacun voir le sien. Le partage ne donne aucun droit VIEW supplémentaire et le choix est sauvegardé avec l'écran.
+- **Allumer, éteindre, renommer** : l'écran Actions d'une machine commence par un bouton **Allumer**/**Éteindre** et un champ de nom (✓ ou Entrée ; vide = nom d'origine). Ils utilisent les actions standard `homecore:power` (CONTROL) et `homecore:rename` (CONFIGURE) de HomeCore 1.11.0 et restent disponibles quand la machine est éteinte ou en alerte, pas quand elle est hors ligne. Les machines sans interrupteur, comme les batteries, affichent « Sans interrupteur » et se renomment. L'interrupteur apparaît aussi parmi les widgets d'action de HOME.
+- **Machines compatibles** : Energy 0.3.0 (panneaux et éoliennes s'éteignent, tous les blocs se renomment), Farm 1.3.0 (pompes et stations FarmBot s'éteignent, contrôleur, pompes et stations se renomment) et Quarry 1.3.0 (éteindre met le chantier en pause, rallumer le reprend).
+
+Vérifications du 28 septembre 2026 : `build`, compilation des classes de vérification, **79 GameTests serveur**, scénarios client connecté, actions et préférences réussis avec HomeCore 1.9.0 et HomeLink Energy 0.2.1.
+
+Vérifications du 29 septembre 2026, avec HomeCore 1.11.0 et HomeLink Energy 0.3.0 : `build`, **79 GameTests serveur** et scénario client des actions, étendu à l'extinction, au rallumage d'une machine DISABLED et au renommage par les vrais contrôles, avec capture en petite fenêtre (427 × 240 en unités GUI). Les scénarios client connecté et préférences n'ont pas été rejoués.
+
+Revue GUI : scénario d'éditeur réussi en français et en anglais, avec glisser-déposer d'appareil et de bilan d'énergie, taille quart, recherche et conservation du curseur, partage, sauvegarde et réouverture. Contrôle des boutons sans chevauchement à 640 × 480. Scénario des huit types d'action et du widget interrupteur réussi en français, y compris le second clic pendant une requête ; JAR 1.5.0 recompilé et vérifié.
+
 # Version 1.4.0 — Éditeur par glisser-déposer et widgets sur l'écran
 
 Cette mise à jour garde **HomeCore 1.9.0** (API 1.5.0). HomeLink Energy reste obligatoire ; la version 0.2.1 est conseillée. Le format du résumé envoyé aux écrans change : installer la 1.4.0 sur le serveur **et** tous les clients.

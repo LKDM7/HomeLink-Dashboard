@@ -32,6 +32,19 @@ public final class DashboardNetworks {
     }
 
     public static AccessPointSession describe(ServerPlayer player, AccessPointBlockEntity point, int requestedOffset) {
+        var session = directory(player, point, requestedOffset);
+        if (!(point instanceof fr.lkdm.homelink.dashboard.blockentity.DashboardDisplayBlockEntity display)) return session;
+        return session.withDisplay(display.sharedLayout() ? AccessPointSession.Display.SHARED : AccessPointSession.Display.PRIVATE,
+                canShare(player, display));
+    }
+
+    /** The display owner decides whether every viewer sees their Home on it. */
+    public static boolean canShare(ServerPlayer player, fr.lkdm.homelink.dashboard.blockentity.DashboardDisplayBlockEntity display) {
+        return DashboardAccess.canView(player, display) && display.owner().filter(player.getUUID()::equals).isPresent()
+                && player.level().getBlockEntity(display.getBlockPos()) == display;
+    }
+
+    private static AccessPointSession directory(ServerPlayer player, AccessPointBlockEntity point, int requestedOffset) {
         if (!canSetup(player, point)) {
             return new AccessPointSession(point.getBlockPos(), point.networkId(), List.of(), 0, false, false);
         }

@@ -10,6 +10,8 @@ import fr.lkdm.homecore.api.client.ClientDeviceCache;
 import fr.lkdm.homecore.api.client.HomeCoreClient;
 import fr.lkdm.homecore.api.device.DashboardDevice;
 import fr.lkdm.homecore.api.device.DeviceStatus;
+import fr.lkdm.homecore.api.device.Renamable;
+import fr.lkdm.homecore.api.device.Switchable;
 import fr.lkdm.homecore.api.metric.DeviceMetric;
 import fr.lkdm.homecore.api.metric.MetricTypes;
 import fr.lkdm.homecore.api.metric.UpdatePolicy;
@@ -56,6 +58,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 @EventBusSubscriber(modid = "homelink_dashboard_validation", value = Dist.CLIENT)
 public final class ActionClientSmoke {
     private static final UUID DEVICE = UUID.fromString("5bbaf788-3188-4c67-95b1-2612f8ecfe2c");
+    private static final UUID WIDGET = UUID.fromString("0b8f1f7e-6a35-4d2e-9a61-3c4d8f2b7a10");
     private static final String[] KINDS = {"button", "toggle", "integer", "double", "slider", "select", "text", "position"};
     private static final Object[] VALUES = {Unit.INSTANCE, true, 6, 2.5, 85.0, Choice.THIRD, "verified", new BlockPos(124, 64, -382)};
     private static volatile BlockPos position;
@@ -128,7 +131,8 @@ public final class ActionClientSmoke {
             } else if (stage == 3 && client.screen instanceof DashboardScreen screen && screen.state() != null
                     && !screen.state().loading() && screen.state().devices().size() == 1) {
                 state = screen.state();
-                if (state.devices().getFirst().actions().size() != 8) fail("Action schema incomplete");
+                // Eight own actions plus HomeCore's standard power switch and rename field.
+                if (state.devices().getFirst().actions().size() != 10) fail("Action schema incomplete");
                 screen.explorer().select(DEVICE);
                 screen.openActions();
                 stage = 4;
@@ -174,14 +178,64 @@ public final class ActionClientSmoke {
                 actionIndex++;
                 notBefore = System.nanoTime() + 200_000_000L;
                 if (actionIndex < KINDS.length) stage = 5;
-                else {
-                    serverTask(client, () -> {
-                        for (int index = 0; index < KINDS.length; index++) {
-                            if (!VALUES[index].equals(fixture.received.get(KINDS[index]))) fail("Server handler value mismatch: " + KINDS[index]);
-                        }
-                    });
-                    stage = 7;
-                }
+                else stage = 52;
+            } else if (stage == 52 && System.nanoTime() >= notBefore) {
+                // Power switch row: the actual button switches the machine off.
+                var power = ((DashboardScreen) client.screen).actions().powerButton();
+                if (!label(power, "screen.homelink_dashboard.power_off") || !power.active) fail("Power button not offered for a switchable machine");
+                if (!client.screen.mouseClicked(power.getX() + 4, power.getY() + 4, 0) || !state.actionPending()) fail("Power button did not send");
+                stage = 53;
+            } else if (stage == 53 && !state.actionPending() && Boolean.FALSE.equals(state.devices().getFirst().powered())
+                    && state.devices().getFirst().status().equals("DISABLED")) {
+                if (!state.lastActionCode().equals("SUCCESS")) fail("Switch off result " + state.lastActionCode());
+                var screen = (DashboardScreen) client.screen;
+                screen.actions().tick();
+                var power = screen.actions().powerButton();
+                // A switched-off machine reports DISABLED and must still accept switching on and renaming.
+                if (!label(power, "screen.homelink_dashboard.power_on") || !power.active) fail("Switched-off machine cannot be switched on");
+                if (!screen.mouseClicked(power.getX() + 4, power.getY() + 4, 0)) fail("Switch on click failed");
+                stage = 54;
+            } else if (stage == 54 && !state.actionPending() && Boolean.TRUE.equals(state.devices().getFirst().powered())) {
+                if (!state.lastActionCode().equals("SUCCESS")) fail("Switch on result " + state.lastActionCode());
+                if (!((DashboardScreen) client.screen).actions().submitRename("  Kitchen controls  ")) fail("Rename not sent");
+                stage = 55;
+            } else if (stage == 55 && !state.actionPending() && state.devices().getFirst().name().equals("Kitchen controls")) {
+                if (!state.lastActionCode().equals("SUCCESS")) fail("Rename result " + state.lastActionCode());
+                Screenshot.grab(client.gameDirectory, "homelink-power-rename.png", client.getMainRenderTarget(),
+                        message -> LogUtils.getLogger().info("Power and rename screenshot: {}", message.getString()));
+                serverTask(client, () -> {
+                    if (!fixture.powered || fixture.switches != 2 || !fixture.name.equals("Kitchen controls")) fail("Standard actions not applied on the server");
+                });
+                later(); stage = 60;
+            } else if (stage == 60 && System.nanoTime() >= notBefore) {
+                // A toggle placed on Home as an action widget runs from its own button.
+                var screen = (DashboardScreen) client.screen;
+                screen.showHome();
+                if (!screen.preferences().ready() || screen.preferences().pending()) return;
+                var toggle = new fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget(WIDGET,
+                        fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.Type.ACTION, DEVICE, id("toggle").toString(), 0, 0, 6, 3);
+                if (!screen.preferences().saveLayout(List.of(toggle))) fail("Action widget layout not sent");
+                visibleTicks = 0; stage = 61;
+            } else if (stage == 61 && !((DashboardScreen) client.screen).preferences().pending() && ++visibleTicks >= 5) {
+                var screen = (DashboardScreen) client.screen;
+                if (!screen.preferences().result().equals("SUCCESS")) fail("Action widget rejected: " + screen.preferences().result());
+                double[] button = screen.home().actionButton(WIDGET);
+                if (button == null || !screen.mouseClicked(button[0], button[1], 0)) fail("Action widget button did not respond");
+                if (!state.actionPending()) fail("Action widget did not send its action");
+                screen.mouseClicked(button[0], button[1], 0);
+                if (screen.home().actionButton(WIDGET) == null) fail("Pending action button opened the editor on a second click");
+                stage = 62;
+            } else if (stage == 62 && !state.actionPending()) {
+                if (!state.lastActionCode().equals("SUCCESS")) fail("Action widget result " + state.lastActionCode());
+                if (!invocationCount(KINDS.length + 1)) return;
+                Screenshot.grab(client.gameDirectory, "homelink-action-widget.png", client.getMainRenderTarget(),
+                        message -> LogUtils.getLogger().info("Action widget screenshot: {}", message.getString()));
+                serverTask(client, () -> {
+                    for (int index = 0; index < KINDS.length; index++) {
+                        if (!VALUES[index].equals(fixture.received.get(KINDS[index]))) fail("Server handler value mismatch: " + KINDS[index]);
+                    }
+                });
+                stage = 7;
             } else if (stage == 7 && System.nanoTime() >= notBefore) {
                 request = HomeCoreClient.executeAction(network, DEVICE, id("integer"), 1000);
                 stage = 8;
@@ -208,7 +262,7 @@ public final class ActionClientSmoke {
                 stage = 14;
             } else if (stage == 14 && received(ActionResult.Code.DENIED)) {
                 serverTask(client, () -> {
-                    if (fixture.received.size() != 8 || fixture.invocations != 8) fail("Rejected actions invoked device handlers");
+                    if (fixture.received.size() != 8 || fixture.invocations != 9) fail("Rejected actions invoked device handlers");
                     serverReady = true;
                 });
                 later(); stage = 15;
@@ -219,7 +273,7 @@ public final class ActionClientSmoke {
                     .filter(HomeCorePayloads.ActionResultResponse.class::isInstance).map(HomeCorePayloads.ActionResultResponse.class::cast)
                     .anyMatch(result -> burst.contains(result.requestId()) && result.result().code() == ActionResult.Code.RATE_LIMITED)) {
                 stage = 99;
-                LogUtils.getLogger().info("HOMELINK_ACTION_SMOKE_OK kinds=8 handlers=true select_popup_click=true delta=true invalid_range=true unknown_action=true offline=true viewer_denied=true rate_limited=true");
+                LogUtils.getLogger().info("HOMELINK_ACTION_SMOKE_OK kinds=8 power_switch=true rename=true widget_button=true handlers=true select_popup_click=true delta=true invalid_range=true unknown_action=true offline=true viewer_denied=true rate_limited=true");
                 shutdown(client);
             }
         } catch (Throwable failure) {
@@ -231,6 +285,9 @@ public final class ActionClientSmoke {
     }
 
     private static void later() { notBefore = System.nanoTime() + 200_000_000L; }
+    private static boolean label(AbstractWidget widget, String key) {
+        return widget.getMessage().getContents() instanceof TranslatableContents text && text.getKey().equals(key);
+    }
     private static AbstractWidget dropdown(DashboardScreen screen) {
         return screen.children().stream().filter(AbstractWidget.class::isInstance).map(AbstractWidget.class::cast)
                 .filter(widget -> widget.getClass().getSimpleName().equals("ActionDropdown") && widget.visible).findFirst().orElseThrow();
@@ -257,8 +314,11 @@ public final class ActionClientSmoke {
     }
     private enum Choice { FIRST, SECOND, THIRD }
 
-    private static final class Fixture implements DashboardDevice {
+    private static final class Fixture implements DashboardDevice, Switchable, Renamable {
         private final Map<String, Object> received = new HashMap<>();
+        private boolean powered = true;
+        private int switches;
+        private String name = "Unknown integration controls";
         private final List<DeviceAction<?>> actions = new ArrayList<>();
         private final DeviceMetric<Integer> count = DeviceMetric.builder(ActionClientSmoke.id("invocations"), Component.literal("Completed actions"), MetricTypes.INTEGER, 0)
                 .updatePolicy(UpdatePolicy.ON_CHANGE).build();
@@ -282,8 +342,12 @@ public final class ActionClientSmoke {
         }
         @Override public UUID id() { return DEVICE; }
         @Override public ResourceLocation deviceType() { return ActionClientSmoke.id("action_fixture"); }
-        @Override public Component displayName() { return Component.literal("Unknown integration controls"); }
-        @Override public DeviceStatus status() { return DeviceStatus.of(status); }
+        @Override public Component displayName() { return Component.literal(name); }
+        /** Like the HomeLink machines, a switched-off fixture stays loaded but reports DISABLED. */
+        @Override public DeviceStatus status() { return DeviceStatus.of(powered ? status : DeviceStatus.State.DISABLED); }
+        @Override public boolean powered() { return powered; }
+        @Override public ActionResult setPowered(boolean value) { powered = value; switches++; return ActionResult.success(); }
+        @Override public ActionResult rename(String value) { name = value.isEmpty() ? "Unknown integration controls" : value; return ActionResult.success(); }
         @Override public List<DeviceMetric<?>> metrics() { return List.of(count); }
         @Override public List<DeviceAction<?>> actions() { return List.copyOf(actions); }
     }

@@ -50,9 +50,11 @@ public final class PreferencesClientSmoke {
     private static volatile UUID network;
     private static volatile Throwable serverFailure;
     private static volatile boolean rebound;
+    private static volatile boolean sharedDisplay;
     private static DashboardPreferencesClient preferences;
     private static DashboardProfile expected;
     private static DashboardWidget beforeEdit;
+    private static UUID draggedWidget;
     private static long started;
     private static long notBefore;
     private static int stage;
@@ -106,7 +108,12 @@ public final class PreferencesClientSmoke {
                     DashboardAPI.devices(server).register(new Fixture());
                     manager.addDevice(home.id(), DEVICE);
                     BlockPos location = player.blockPosition().offset(1, 0, 0);
-                    player.serverLevel().setBlock(location, DashboardRegistries.HOME_SERVER.get().defaultBlockState(), 3);
+                    var rootPos = location.offset(3, 0, 0);
+                    player.serverLevel().setBlock(rootPos, DashboardRegistries.HOME_SERVER.get().defaultBlockState(), 3);
+                    var root = (AccessPointBlockEntity) player.serverLevel().getBlockEntity(rootPos);
+                    root.initializeOwner(playerId);
+                    root.setNetworkId(home.id());
+                    player.serverLevel().setBlock(location, DashboardRegistries.DASHBOARD_DISPLAY.get().defaultBlockState(), 3);
                     var point = (AccessPointBlockEntity) player.serverLevel().getBlockEntity(location);
                     if (point == null) fail("Access point missing");
                     point.initializeOwner(playerId);
@@ -115,7 +122,7 @@ public final class PreferencesClientSmoke {
                     position = location;
                 });
             } else if (stage == 2 && position != null && client.level != null && client.gameMode != null
-                    && client.level.getBlockState(position).is(DashboardRegistries.HOME_SERVER.get())) {
+                    && client.level.getBlockState(position).is(DashboardRegistries.DASHBOARD_DISPLAY.get())) {
                 interact(client); stage = 3;
             } else if (stage == 3 && readyScreen(client)) {
                 var screen = screen(client);
@@ -154,10 +161,101 @@ public final class PreferencesClientSmoke {
             } else if (stage == 12 && acknowledged()) {
                 var resized = widget();
                 if (resized.width() == beforeEdit.width() && resized.height() == beforeEdit.height()) fail("Resize did not persist");
+                later(); stage = 110;
+            } else if (stage == 110 && due()) {
+                var screen = screen(client);
+                var search = search(screen);
+                screen.mouseClicked(search.getX() + 4, search.getY() + 5, 0);
+                search.setValue("no_matching_fixture");
+                if (screen.home().editor().deviceRow(DEVICE) != null) fail("Search did not filter the device");
+                search.setValue("generic");
+                if (screen.home().editor().deviceRow(DEVICE) == null) fail("Search did not restore the matching device");
+                screen.keyPressed(org.lwjgl.glfw.GLFW.GLFW_KEY_E, 0, 0);
+                if (client.screen != screen) fail("Inventory key closed the search field");
+                screen.keyPressed(org.lwjgl.glfw.GLFW.GLFW_KEY_HOME, 0, 0);
+                screen.keyPressed(org.lwjgl.glfw.GLFW.GLFW_KEY_RIGHT, 0, 0);
+                preferences.refresh();
+                stage = 111;
+            } else if (stage == 111 && acknowledged()) {
+                visibleTicks = 0; stage = 112;
+            } else if (stage == 112 && ++visibleTicks >= 3) {
+                var search = search(screen(client));
+                if (!search.isFocused() || !search.getValue().equals("generic")) fail("Search focus or text lost after refresh");
+                if (search.getCursorPosition() != 1) fail("Search cursor moved after refresh");
+                search.setValue("");
+                visibleTicks = 0;
+                click(screen(client), "display_private");
+                stage = 113;
+            } else if (stage == 113) {
+                observeSharing(client);
+                if (!sharedDisplay) return;
+                click(screen(client), "display_shared");
+                stage = 114;
+            } else if (stage == 114) {
+                observeSharing(client);
+                if (sharedDisplay) return;
+                later(); stage = 120;
+            } else if (stage == 120 && due()) {
+                // Drag the device from the editor's list onto the preview, as a player would with the mouse.
+                var screen = screen(client);
+                double[] from = screen.home().editor().deviceRow(DEVICE), to = screen.home().editor().previewEnd();
+                if (from == null) fail("The device must be listed in the editor");
+                screen.mouseClicked(from[0], from[1], 0);
+                screen.mouseDragged((from[0] + to[0]) / 2, (from[1] + to[1]) / 2, 0, 0, 0);
+                screen.mouseDragged(to[0], to[1], 0, 0, 0);
+                screen.mouseReleased(to[0], to[1], 0);
+                stage = 121;
+            } else if (stage == 121 && acknowledged()) {
+                var widgets = preferences.profile().widgets();
+                if (widgets.size() != 3 || widgets.stream().filter(widget -> widget.type() == DashboardWidget.Type.DEVICE_SUMMARY).count() != 2)
+                    fail("Dragging a device onto the preview must add its summary widget");
+                draggedWidget = widgets.stream().filter(widget -> widget.type() == DashboardWidget.Type.DEVICE_SUMMARY
+                        && !widget.id().equals(beforeEdit.id())).findFirst().orElseThrow().id();
                 expected = preferences.profile();
                 stage = 13;
             } else if (stage == 13 && ++visibleTicks >= 10) {
                 screenshot(client, "homelink-editor-smoke.png");
+                org.lwjgl.glfw.GLFW.glfwSetWindowSize(client.getWindow().getWindow(), 640, 480);
+                client.options.guiScale().set(2);
+                client.resizeDisplay();
+                visibleTicks = 0; stage = 130;
+            } else if (stage == 130 && ++visibleTicks >= 10) {
+                assertToolbar(screen(client));
+                screenshot(client, "homelink-editor-small.png");
+                var sizeButton = screen(client).children().stream().filter(net.minecraft.client.gui.components.Button.class::isInstance)
+                        .map(net.minecraft.client.gui.components.Button.class::cast)
+                        .filter(button -> button.getMessage().getString().startsWith("↔")).findFirst().orElseThrow();
+                screen(client).mouseClicked(sizeButton.getX() + sizeButton.getWidth() / 2.0, sizeButton.getY() + 8, 0);
+                stage = 131;
+            } else if (stage == 131 && acknowledged()) {
+                var selected = preferences.profile().widgets().stream().filter(widget -> widget.id().equals(draggedWidget)).findFirst().orElseThrow();
+                if (selected.width() != 12) fail("Mouse click on size control did not resize selected half widget to full");
+                later(); stage = 132;
+            } else if (stage == 132 && due()) {
+                screen(client).home().resizeSelected();
+                stage = 133;
+            } else if (stage == 133 && acknowledged()) {
+                var selected = preferences.profile().widgets().stream().filter(widget -> widget.id().equals(draggedWidget)).findFirst().orElseThrow();
+                if (selected.width() != 3 || selected.height() != 2) fail("Quarter-size widget was not saved");
+                later(); stage = 134;
+            } else if (stage == 134 && due()) {
+                var screen = screen(client);
+                assertToolbar(screen);
+                var search = search(screen);
+                search.setValue(Component.translatable("screen.homelink_dashboard.energy_balance").getString());
+                double fromX = search.getX() + 25, fromY = search.getY() + 22 + 14 + 10;
+                double[] to = screen.home().editor().previewEnd();
+                screen.mouseClicked(fromX, fromY, 0);
+                screen.mouseDragged(to[0], to[1], 0, 0, 0);
+                screen.mouseReleased(to[0], to[1], 0);
+                stage = 135;
+            } else if (stage == 135 && acknowledged()) {
+                if (preferences.profile().widgets().size() != 4 || preferences.profile().widgets().stream()
+                        .noneMatch(widget -> widget.type() == DashboardWidget.Type.ENERGY_BALANCE)) fail("Dragging Energy balance did not add it");
+                expected = preferences.profile();
+                visibleTicks = 0; stage = 136;
+            } else if (stage == 136 && ++visibleTicks >= 5) {
+                screenshot(client, "homelink-editor-energy-small.png");
                 screen(client).home().setEditMode(false);
                 visibleTicks = 0; stage = 14;
             } else if (stage == 14 && ++visibleTicks >= 10) {
@@ -192,6 +290,8 @@ public final class PreferencesClientSmoke {
                     var player = server.getPlayerList().getPlayer(playerId);
                     var point = (AccessPointBlockEntity) player.serverLevel().getBlockEntity(position);
                     point.setNetworkId(restricted.id());
+                    var root = (AccessPointBlockEntity) player.serverLevel().getBlockEntity(position.offset(3, 0, 0));
+                    root.setNetworkId(restricted.id());
                     network = restricted.id();
                     rebound = true;
                 });
@@ -211,7 +311,7 @@ public final class PreferencesClientSmoke {
                 if (!preferences.result().equals("DENIED")) fail("Viewer layout request was not denied by server: " + preferences.result());
                 if (!preferences.profile().widgets().isEmpty()) fail("Denied mutation changed Viewer layout");
                 stage = 99;
-                LogUtils.getLogger().info("HOMELINK_PREFERENCES_SMOKE_OK favorite=true widgets=2 move=true resize=true reopen=true nbt=true network_isolation=true viewer_denied=true");
+                LogUtils.getLogger().info("HOMELINK_PREFERENCES_SMOKE_OK favorite=true widgets=4 move=true resize=true quarter=true energy_drag=true drag=true search=true cursor=true sharing=true small_editor=true reopen=true nbt=true network_isolation=true viewer_denied=true");
                 shutdown(client);
             }
         } catch (Throwable failure) {
@@ -221,6 +321,35 @@ public final class PreferencesClientSmoke {
         }
     }
 
+    private static net.minecraft.client.gui.components.EditBox search(DashboardScreen screen) {
+        return screen.children().stream().filter(net.minecraft.client.gui.components.EditBox.class::isInstance)
+                .map(net.minecraft.client.gui.components.EditBox.class::cast).findFirst().orElseThrow();
+    }
+    private static void click(DashboardScreen screen, String key) {
+        String label = Component.translatable("screen.homelink_dashboard." + key).getString();
+        var button = screen.children().stream().filter(net.minecraft.client.gui.components.Button.class::isInstance)
+                .map(net.minecraft.client.gui.components.Button.class::cast)
+                .filter(value -> value.getMessage().getString().equals(label)).findFirst().orElseThrow();
+        screen.mouseClicked(button.getX() + button.getWidth() / 2.0, button.getY() + 8, 0);
+    }
+    private static void observeSharing(Minecraft client) {
+        serverTask(client, () -> sharedDisplay = ((fr.lkdm.homelink.dashboard.blockentity.DashboardDisplayBlockEntity)
+                client.getSingleplayerServer().overworld().getBlockEntity(position)).sharedLayout());
+    }
+    private static void assertToolbar(DashboardScreen screen) {
+        String remove = Component.translatable("screen.homelink_dashboard.remove_widget").getString();
+        var buttons = screen.children().stream().filter(net.minecraft.client.gui.components.Button.class::isInstance)
+                .map(net.minecraft.client.gui.components.Button.class::cast).toList();
+        var removeButton = buttons.stream().filter(button -> button.getMessage().getString().equals(remove)).findFirst().orElseThrow();
+        var row = buttons.stream().filter(button -> button.getY() == removeButton.getY())
+                .sorted(java.util.Comparator.comparingInt(net.minecraft.client.gui.components.Button::getX)).toList();
+        int right = 0;
+        for (var button : row) {
+            if (button.getX() < right || button.getX() + button.getWidth() > screen.width)
+                fail("Editor toolbar buttons overlap or leave the small window: " + button.getMessage().getString());
+            right = button.getX() + button.getWidth();
+        }
+    }
     private static DashboardWidget widget() {
         return preferences.profile().widgets().stream().filter(widget -> widget.id().equals(beforeEdit.id())).findFirst().orElseThrow();
     }

@@ -42,16 +42,22 @@ public record DisplaySummary(Mode mode, String networkName, int total, int onlin
 
     /**
      * One dashboard widget at its saved grid place. A summary tile carries up to two metrics; a metric tile
-     * carries only its metric, or none when the device no longer provides it. An unavailable device has an
-     * empty name.
+     * carries only its metric, or none when the device no longer provides it; an action tile carries the action
+     * name as label; an energy tile carries production then consumption as metrics and the battery charge
+     * percentage as label (empty without battery). An unavailable device has an empty name.
      */
-    public record WidgetTile(int x, int y, int width, int height, boolean metric, DeviceLine device) {
+    public record WidgetTile(int x, int y, int width, int height, Kind kind, String label, DeviceLine device) {
+        public enum Kind { SUMMARY, METRIC, ACTION, ENERGY }
+
         public WidgetTile {
+            Objects.requireNonNull(kind);
+            Objects.requireNonNull(label);
             Objects.requireNonNull(device);
             if (!fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.supportedSize(width, height) || x < 0 || y < 0
                     || x > fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.COLUMNS - width
                     || y > fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget.MAX_ROWS - height
-                    || metric && device.metrics().size() > 1)
+                    || label.length() > MAX_NAME_LENGTH
+                    || kind == Kind.METRIC && device.metrics().size() > 1 || kind == Kind.ACTION && !device.metrics().isEmpty())
                 throw new IllegalArgumentException("Invalid display widget");
         }
     }
