@@ -22,7 +22,6 @@ Installer `homecore-1.12.0.jar`, `homelink_energy-0.4.1.jar` et `homelink_dashbo
 ## Nouveautés de la 1.5.1
 
 - Requiert HomeCore 1.12.0 et HomeLink Energy 0.4.1. Les dépendances se résolvent depuis les paquets GitHub publiés ; les sources voisines (`../HomeCore`, `../HomeLinkEnergy`) restent utilisées si elles sont présentes, avec contrôle de version (`-PuseLocalDependencies=false` pour les ignorer).
-- La création et le renommage de réseau sont limités à deux demandes par seconde et par joueur, comme les autres modifications.
 - Intégration continue (build, tests unitaires, archive et GameTests serveur) et premiers tests unitaires.
 
 ## Nouveautés de la 1.5.0
