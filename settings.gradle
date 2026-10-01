@@ -1,6 +1,5 @@
 pluginManagement {
     repositories {
-        mavenLocal()
         gradlePluginPortal()
         maven { url = 'https://maven.neoforged.net/releases' }
     }
@@ -11,13 +10,28 @@ plugins {
 }
 
 rootProject.name = 'HomeLinkDashboard'
-// Build the actual public API and runtime from the adjacent workspace project.
-def homeCoreDir = file(providers.gradleProperty('homecore_dir').getOrElse('../HomeCore'))
-if (!new File(homeCoreDir, 'settings.gradle').isFile()) {
-    throw new GradleException('HomeCore source project missing. Set -Phomecore_dir=<path>.')
-}
-includeBuild(homeCoreDir) {
-    dependencySubstitution {
-        substitute module('fr.lkdm.homecore:homecore') using project(':')
+
+// Adjacent sources are optional; -PuseLocalDependencies=false resolves published versions.
+def useLocal = providers.gradleProperty('useLocalDependencies').getOrElse('true').toBoolean()
+
+def includeLocal = { String dirProperty, String defaultDir, String versionProperty, String coordinates, String label ->
+    def localDir = file(providers.gradleProperty(dirProperty).getOrElse(defaultDir))
+    if (new File(localDir, 'settings.gradle').isFile()) {
+        def localProperties = new Properties()
+        new File(localDir, 'gradle.properties').withInputStream { localProperties.load(it) }
+        def expected = providers.gradleProperty(versionProperty).get()
+        if (localProperties.getProperty('mod_version') != expected || localProperties.getProperty('minecraft_version') != '1.21.1') {
+            throw new GradleException("${label} checkout must target Minecraft 1.21.1 and version ${expected}.")
+        }
+        includeBuild(localDir) {
+            dependencySubstitution { substitute module(coordinates) using project(':') }
+        }
+    } else if (providers.gradleProperty(dirProperty).isPresent()) {
+        throw new GradleException("Explicit ${dirProperty} does not contain a Gradle project.")
     }
+}
+
+if (useLocal) {
+    includeLocal('homecore_dir', '../HomeCore', 'homecore_version', 'fr.lkdm.homecore:homecore', 'HomeCore')
+    includeLocal('energy_dir', '../HomeLinkEnergy', 'energy_version', 'fr.lkdm.homelink.energy:homelink_energy', 'HomeLinkEnergy')
 }

@@ -1,11 +1,16 @@
 package fr.lkdm.homelink.dashboard.network;
 
 import fr.lkdm.homecore.api.action.ActionResult;
+import fr.lkdm.homecore.api.security.RateLimiter;
 import fr.lkdm.homelink.dashboard.blockentity.AccessPointBlockEntity;
 import fr.lkdm.homelink.dashboard.menu.DashboardMenu;
 import fr.lkdm.homelink.dashboard.server.DashboardAccess;
 import fr.lkdm.homelink.dashboard.server.DashboardNetworks;
+import java.time.Duration;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.function.Consumer;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -16,6 +21,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 /** Name mutations derive their network from an authenticated, live menu session. */
 public final class NetworkNamePayloads {
+    private static final Map<MinecraftServer, RateLimiter> LIMITERS = new WeakHashMap<>();
     private static Consumer<Response> listener;
     private NetworkNamePayloads() { }
     public static void listen(Consumer<Response> value) { listener = value; }
@@ -50,6 +56,9 @@ public final class NetworkNamePayloads {
         }));
     }
     public static ActionResult.Code handle(ServerPlayer player, Request packet) {
+        // Creating and renaming write persistent data: bound them like the other mutations.
+        var limiter = LIMITERS.computeIfAbsent(player.server, server -> new RateLimiter(2, Duration.ofSeconds(1), 4096, System::nanoTime));
+        if (!limiter.tryAcquire(player.getUUID())) return ActionResult.Code.RATE_LIMITED;
         if (!(player.containerMenu instanceof DashboardMenu menu) || menu.containerId != packet.containerId()
                 || !menu.stillValid(player) || !(player.level().getBlockEntity(menu.position()) instanceof AccessPointBlockEntity point))
             return ActionResult.Code.DENIED;

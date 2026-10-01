@@ -9,7 +9,24 @@ version = mod_version
 group = mod_group_id
 
 repositories {
-    mavenLocal()
+    maven {
+        name = 'HomeCorePackages'
+        url = uri('https://maven.pkg.github.com/LKDM7/HomeCore')
+        credentials {
+            username = providers.gradleProperty('githubUser').orElse(providers.environmentVariable('GITHUB_ACTOR')).getOrElse('')
+            password = providers.gradleProperty('githubToken').orElse(providers.environmentVariable('HOMELINK_PACKAGES_TOKEN')).orElse(providers.environmentVariable('GITHUB_TOKEN')).getOrElse('')
+        }
+        content { includeGroup 'fr.lkdm.homecore' }
+    }
+    maven {
+        name = 'EnergyPackages'
+        url = uri('https://maven.pkg.github.com/LKDM7/HomeLink-Energy')
+        credentials {
+            username = providers.gradleProperty('githubUser').orElse(providers.environmentVariable('GITHUB_ACTOR')).getOrElse('')
+            password = providers.gradleProperty('githubToken').orElse(providers.environmentVariable('HOMELINK_PACKAGES_TOKEN')).orElse(providers.environmentVariable('GITHUB_TOKEN')).getOrElse('')
+        }
+        content { includeGroup 'fr.lkdm.homelink.energy' }
+    }
     mavenCentral()
 }
 
@@ -319,9 +336,12 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 
 dependencies {
-    implementation 'fr.lkdm.homecore:homecore:1.11.0'
-    // Required at runtime: every Dashboard block runs on HE supplied by HomeLink Energy (published to Maven local).
-    runtimeOnly 'fr.lkdm.homelink.energy:homelink_energy:0.3.0'
+    implementation "fr.lkdm.homecore:homecore:${homecore_version}"
+    // Required at runtime: every Dashboard block runs on HE supplied by HomeLink Energy.
+    runtimeOnly "fr.lkdm.homelink.energy:homelink_energy:${energy_version}"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     // Example mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
@@ -354,6 +374,7 @@ tasks.named('jar', Jar) { from('LICENSE') }
 
 def releaseJar = tasks.named('jar', Jar).flatMap { it.archiveFile }
 def releaseVersion = providers.gradleProperty('mod_version').get()
+def homecoreRange = providers.gradleProperty('homecore_version_range').get()
 def verifyReleaseJar = tasks.register('verifyReleaseJar') {
     dependsOn tasks.named('jar')
     inputs.file(releaseJar)
@@ -376,7 +397,7 @@ def verifyReleaseJar = tasks.register('verifyReleaseJar') {
             def read = { String name -> archive.getInputStream(archive.getEntry(name)).withCloseable { it.getText('UTF-8') } }
             def metadata = read('META-INF/neoforge.mods.toml')
             if (!metadata.contains('version = "' + releaseVersion + '"') || metadata.contains('${') ||
-                    !metadata.contains('versionRange = "[1.11.0,2.0.0)"') || !metadata.contains('modId = "homelink_energy"') || !metadata.contains('versionRange = "[1.21.1]"'))
+                    !metadata.contains('versionRange = "' + homecoreRange + '"') || !metadata.contains('modId = "homelink_energy"') || !metadata.contains('versionRange = "[1.21.1]"'))
                 throw new GradleException('Release metadata/version/dependency mismatch')
             def parser = new groovy.json.JsonSlurper()
             def english = parser.parseText(read('assets/homelink_dashboard/lang/en_us.json'))
@@ -406,7 +427,9 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
                              mod_license            : mod_license,
                              mod_version            : mod_version,
                              mod_authors            : mod_authors,
-                             mod_description        : mod_description]
+                             mod_description        : mod_description,
+                             homecore_version_range : homecore_version_range,
+                             energy_version_range   : energy_version_range]
     inputs.properties replaceProperties
     expand replaceProperties
     from "src/main/templates"
@@ -438,5 +461,18 @@ idea {
     module {
         downloadSources = true
         downloadJavadoc = true
+    }
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+    testLogging { events 'passed', 'failed', 'skipped' }
+}
+
+// Unit tests run against the Minecraft classpath without starting a game.
+neoForge {
+    unitTest {
+        enable()
+        testedMod = mods."${mod_id}"
     }
 }
