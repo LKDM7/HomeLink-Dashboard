@@ -289,5 +289,8 @@
     "screen.homelink_dashboard.rename_hint":  "Name (empty: default name)",
     "screen.homelink_dashboard.rename_confirm":  "Rename the machine",
     "screen.homelink_dashboard.rename_unavailable":  "This machine cannot be renamed from the Dashboard",
-    "screen.homelink_dashboard.no_other_actions":  "No other action for this machine"
+    "screen.homelink_dashboard.no_other_actions":  "No other action for this machine",
+    "info.homelink_dashboard.home_server": "Control centre of a HomeNetwork: place it, then create a network or link an existing one. Its screen shows every HomeCore device you may see, with metrics, actions and events.\nThe Machines tab summarises machines by system and the Add tab adds machines within radio range. The ? button opens the in-game manual. It runs on HomeLink Energy.",
+    "info.homelink_dashboard.dashboard_display": "Wall screen linked to the same network as a HomeLink Server. It shows your Home widgets live: metrics, one-click actions and the energy balance.\nIt comes in three sizes (1×1, 2×1, 2×2), chosen like a painting; shift-click forces 1×1. Its owner chooses between each viewer's own home and a shared one; viewing rights always apply.",
+    "info.homelink_dashboard.signal_repeater": "Extends the 64-block radio range of a HomeLink network so that farther machines can be reached and added. It runs on HomeLink Energy."
 }

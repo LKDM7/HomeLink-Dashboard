@@ -289,5 +289,8 @@
     "screen.homelink_dashboard.rename_hint":  "Nom (vide : nom par défaut)",
     "screen.homelink_dashboard.rename_confirm":  "Renommer la machine",
     "screen.homelink_dashboard.rename_unavailable":  "Cette machine ne peut pas être renommée depuis le Dashboard",
-    "screen.homelink_dashboard.no_other_actions":  "Aucune autre action pour cette machine"
+    "screen.homelink_dashboard.no_other_actions":  "Aucune autre action pour cette machine",
+    "info.homelink_dashboard.home_server": "Centre de contrôle d'un HomeNetwork : le poser, puis créer un réseau ou en relier un existant. Son écran montre chaque appareil HomeCore que vous pouvez voir, avec métriques, actions et événements.\nL'onglet Machines résume les machines par système et l'onglet Ajouter ajoute celles à portée radio. Le bouton ? ouvre le manuel en jeu. Il fonctionne à l'énergie HomeLink.",
+    "info.homelink_dashboard.dashboard_display": "Écran mural relié au même réseau qu'un HomeLink Server. Il affiche en direct vos widgets de l'accueil : métriques, actions à un clic et bilan énergie.\nTrois tailles (1×1, 2×1, 2×2), choisies comme un tableau ; Maj + clic force le 1×1. Son propriétaire choisit entre l'accueil personnel de chaque spectateur et un accueil partagé ; les droits de consultation s'appliquent toujours.",
+    "info.homelink_dashboard.signal_repeater": "Étend la portée radio de 64 blocs d'un réseau HomeLink pour atteindre et ajouter des machines plus éloignées. Il fonctionne à l'énergie HomeLink."
 }
