@@ -83,7 +83,7 @@ Les définitions livrées sont [home_server.json](../src/main/resources/data/hom
 
 ## HOME : favoris et widgets
 
-HOME affiche le nom du réseau, les nombres d’appareils reçus et disponibles, leurs états et le nombre d’alertes retenues. Les favoris et widgets sont personnels, enregistrés **par joueur et par réseau**, côté serveur. Ils sont donc communs aux points d’accès que ce joueur utilise sur ce réseau.
+HOME affiche le nom du réseau, les nombres d’appareils reçus et disponibles, leurs états et le nombre d’alertes actives (non acquittées). Les favoris et widgets sont personnels, enregistrés **par joueur et par réseau**, côté serveur. Ils sont donc communs aux points d’accès que ce joueur utilise sur ce réseau.
 
 Le bouton **Modifier** ouvre l’éditeur de l’accueil ; cliquer directement sur un widget l’ouvre avec ce widget sélectionné. **Terminer** revient à HOME.
 
@@ -94,7 +94,7 @@ Le bouton **Modifier** ouvre l’éditeur de l’accueil ; cliquer directement s
 
 Ajouter, déplacer ou personnaliser des widgets demande la permission CONFIGURE ; sinon l’éditeur est en lecture seule. Les widgets ajoutés occupent 6 × 3 cases ; les tailles disponibles sont 3 × 2, 6 × 3 et 12 × 3 sur une grille de 12 colonnes et 64 lignes. Chaque modification attend la confirmation serveur avant d’afficher le nouvel état. Les valeurs sont affichées avec deux décimales au plus.
 
-Une action à un clic s'exécute depuis son widget sur HOME si l'appareil est en ligne et si vous avez le droit CONTROL. Le serveur vérifie à nouveau les permissions et la valeur envoyée. Le bilan énergie montre la production des panneaux solaires et éoliennes, la consommation mesurée par les batteries et leur taux de charge ; les appareils hors de la sélection reçue ne participent pas au calcul local.
+Une action à un clic s'exécute depuis son widget sur HOME si l'appareil est en ligne et si vous avez le droit CONTROL. Le serveur vérifie à nouveau les permissions et la valeur envoyée. Le bilan énergie montre la production des panneaux solaires, éoliennes et turbines hydroélectriques, la consommation mesurée par les batteries et leur taux de charge ; les appareils hors de la sélection reçue ne participent pas au calcul local. Les pompes Hydro fournissent un débit hydraulique (DH/t) et ne comptent jamais comme producteurs HE.
 
 La consommation du bilan est une estimation lorsque plusieurs réseaux câblés distincts ont exactement les mêmes mesures et que seule une partie de leurs batteries est visible. HomeLink Energy ne fournit pas encore d'identifiant de réseau câblé dans les mesures publiques ; les consommateurs d'un réseau sans batterie ne sont pas comptés.
 
@@ -107,7 +107,7 @@ La limite est de 32 widgets et 64 favoris par profil. Les préférences stockent
 MACHINES réunit les machines des mods HomeLink dans une seule vue. La colonne de gauche propose **Vue d’ensemble**, puis **Énergie**, **Ferme** et **Carrière**, avec le nombre de machines de chacun. **Stockage** apparaît seulement si le réseau contient un contrôleur de stockage : HomeLink Storage crée son propre réseau et se consulte normalement depuis son terminal. **Autres** apparaît lorsque le réseau contient des appareils d’un autre mod HomeCore.
 
 - **Vue d’ensemble** : une carte par système, avec son voyant d’état, ses compteurs en ligne / attention / hors ligne et ses chiffres clés. Cliquer sur une carte ouvre le système.
-- **Énergie** : production totale des panneaux solaires et éoliennes (HE/t), énergie stockée dans les batteries.
+- **Énergie** : production totale des panneaux solaires, éoliennes et turbines hydroélectriques (HE/t), énergie stockée dans les batteries. Les pompes Hydro sont exclues de la production.
 - **Ferme** : cultures suivies et part prête à récolter, pompes actives, FarmBots au travail, problèmes détectés.
 - **Carrière** : carrières en extraction, progression moyenne, blocs extraits.
 - **Stockage** (si présent) : remplissage moyen, nombre d’objets, inventaires pleins.
@@ -148,11 +148,15 @@ Modifier un champ ne déclenche pas l’action : cliquer sur **Exécuter**. Le s
 
 ## ALERTS : événements reçus
 
-ALERTS affiche les événements du réseau reçus pendant la session : heure locale, gravité, source, type et message. Le filtre propose ALL, INFO, WARNING et CRITICAL. Une infobulle donne le texte et des données supplémentaires, avec une taille limitée pour rester lisible.
+ALERTS affiche les événements du réseau reçus pendant la session : heure locale, gravité, source, système et message. Une infobulle donne aussi le type et des données supplémentaires, avec une taille limitée pour rester lisible. Les filtres de gravité (ALL, INFO, WARNING et CRITICAL), de système (Énergie, Ferme, Carrière, Stockage, Autres) et d’état (toutes, non lues, lues, actives, acquittées) se combinent.
 
-Cliquer sur une alerte ouvre l’appareil source s’il figure toujours parmi les appareils reçus. Un appareil supprimé ou situé au-delà de la limite de suivi ne peut pas être ouvert depuis cette alerte.
+Une nouvelle alerte est non lue et active. **Marquer lu** et **Marquer non lu** changent son état de lecture ; lire ne retire pas l’alerte du compteur actif. **Acquitter** marque l’alerte lue et acquittée, sans supprimer son historique. **Tout acquitter** traite toutes les alertes conservées, y compris celles masquées par les filtres. Les compteurs d’alertes actives et non lues portent toujours sur tout l’historique retenu ; survoler les compteurs montre le nombre affiché et conservé. Un nouvel événement reste actif, même si une alerte précédente de la même source a été acquittée.
 
-L’historique est limité, en mémoire, et commence lorsque le Dashboard s’abonne. Ce n’est pas un journal persistant : fermer l’interface termine la session et libère les alertes. Les événements antérieurs à l’ouverture ne sont pas rejoués. HomeCore limite la livraison des événements à 16 par tick et 32 par seconde et par joueur ; un flux très intense peut donc être réduit.
+Cliquer sur le texte d’une alerte la marque lue et ouvre l’appareil source s’il figure toujours parmi les appareils reçus. Un appareil supprimé ou situé au-delà de la limite de suivi ne peut pas être ouvert depuis cette alerte ; les actions de lecture et d’acquittement restent disponibles.
+
+La molette ou les touches Page précédente / Page suivante parcourent l’historique. Début / Fin rejoignent la première / dernière page ; Tab permet de rejoindre les boutons des lignes visibles.
+
+L’historique est limité, en mémoire, et commence lorsque le Dashboard s’abonne. Les états de lecture et d’acquittement sont personnels à cette session et survivent aux changements d’onglet et aux actualisations. Ce n’est pas un journal persistant : fermer l’interface termine la session et libère les alertes. Les événements antérieurs à l’ouverture ne sont pas rejoués. HomeCore limite la livraison des événements à 16 par tick et 32 par seconde et par joueur ; un flux très intense peut donc être réduit.
 
 ## NETWORK et SETTINGS
 

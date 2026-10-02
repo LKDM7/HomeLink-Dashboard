@@ -279,6 +279,7 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         if (manualOpen && key == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) { toggleManual(); return true; }
         if (manualOpen && manual.keyPressed(key)) return true;
         if (!manualOpen && actionMode && actions.keyPressed(key)) return true;
+        if (!manualOpen && !actionMode && page == Page.ALERTS && alerts != null && alerts.keyPressed(key)) return true;
         // A text field keeps every key but Escape: otherwise the inventory key (E) closes the container screen mid-word.
         if (key != org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE && getFocused() instanceof net.minecraft.client.gui.components.EditBox input
                 && input.canConsumeInput()) return input.keyPressed(key, scanCode, modifiers) || true;

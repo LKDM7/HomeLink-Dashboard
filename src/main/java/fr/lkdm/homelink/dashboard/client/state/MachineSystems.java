@@ -108,7 +108,7 @@ public final class MachineSystems {
         for (DebugDeviceView device : devices) {
             switch (path(device)) {
                 case "solar_panel" -> { producers++; production += number(device, "homelink_energy:generation_rate"); }
-                case "wind_turbine" -> { producers++; production += number(device, "homelink_energy:current_generation"); }
+                case "wind_turbine", "hydro_turbine" -> { producers++; production += number(device, "homelink_energy:current_generation"); }
                 case "battery" -> {
                     batteries++;
                     stored += (long) number(device, "homelink_energy:stored_energy");
@@ -195,6 +195,8 @@ public final class MachineSystems {
         List<String> ids = switch (device.type()) {
             case "homelink_energy:solar_panel" -> List.of("homelink_energy:status", "homelink_energy:generation_rate");
             case "homelink_energy:wind_turbine" -> List.of("homelink_energy:wind_status", "homelink_energy:current_generation");
+            case "homelink_energy:hydro_turbine" -> List.of("homelink_energy:hydro_turbine_status", "homelink_energy:current_generation");
+            case "homelink_energy:hydro_pump" -> List.of("homelink_energy:hydro_pump_status", "homelink_energy:available_flow");
             case "homelink_energy:battery" -> List.of("homelink_energy:percentage", "homelink_energy:stored_energy");
             case "homelink_farm:farm_controller" -> List.of("homelink_farm:crop_count", "homelink_farm:ready_percentage");
             case "homelink_farm:irrigation_pump" -> List.of("homelink_farm:pump_status", "homelink_farm:sprinklers_connected");

@@ -9,7 +9,8 @@ import java.util.Map;
  * dashboard keeps no compile-time dependency on that mod. The client computes it from watched devices and the
  * server from registered devices, with the same rules.
  *
- * <p>Production adds the current output of every solar panel and wind turbine. Consumption comes from the
+ * <p>Production adds the current output of every solar panel, wind turbine and hydro turbine. Hydro pumps
+ * supply hydraulic flow only and are not HE producers. Consumption comes from the
  * batteries, which measure what their cable network delivers to consumers. Batteries of the same cable network
  * report identical figures, so samples are grouped using those figures and the reported battery count. Without a
  * cable-network identifier, separate networks with identical figures and only some batteries visible can still
@@ -34,7 +35,7 @@ public final class EnergyBalance {
      * @param consumption HE/t delivered to consumers now
      * @param stored HE stored in batteries
      * @param capacity HE battery capacity
-     * @param producers solar panels and wind turbines
+     * @param producers solar panels, wind turbines and hydro turbines
      * @param batteries batteries
      */
     public record Result(double production, double consumption, long stored, long capacity, int producers, int batteries) {
@@ -55,7 +56,10 @@ public final class EnergyBalance {
         for (Source device : devices) {
             switch (device.type()) {
                 case NAMESPACE + "solar_panel" -> { producers++; production += device.number(NAMESPACE + "generation_rate"); }
-                case NAMESPACE + "wind_turbine" -> { producers++; production += device.number(NAMESPACE + "current_generation"); }
+                case NAMESPACE + "wind_turbine", NAMESPACE + "hydro_turbine" -> {
+                    producers++;
+                    production += device.number(NAMESPACE + "current_generation");
+                }
                 case NAMESPACE + "battery" -> {
                     batteries++;
                     stored += (long) device.number(NAMESPACE + "stored_energy");

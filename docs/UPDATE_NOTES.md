@@ -1,3 +1,10 @@
+# Changements en cours — Hydro et alertes acquittables
+
+- **Bilan énergie** : les turbines Hydro contribuent à la production HE et au nombre de producteurs, dans HOME, sur les écrans muraux et dans le résumé Machines. Les pompes Hydro restent exclues de la production.
+- **Alertes** : lecture et remise en non lu, acquittement individuel et global, filtres combinables par gravité, système et état. HOME et Alertes affichent le nombre d’alertes actives ; l’historique et ses états restent propres à la session ouverte.
+
+Vérifications du 3 octobre 2026 : `build` et validation du JAR, **15 tests unitaires**, **83 GameTests serveur**, scénario client Alertes réussi avec vrais clics, filtres combinés, défilement au clavier, suppression de source, révocation et contrôles sans chevauchement en 427 × 240.
+
 # Version 1.5.0 — Widgets d'action et d'énergie, partage d'écran
 
 Cette mise à jour requiert **HomeCore 1.11.0** ; **HomeLink Energy 0.3.0** est conseillé. Le transport du résumé d'écran passe en version `3` : installer Dashboard 1.5.0 sur le serveur et tous les clients.

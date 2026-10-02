@@ -252,12 +252,13 @@ public final class DashboardClientState implements AutoCloseable {
                     .map(entry -> entry.getKey() + ": " + entry.getValue()).collect(java.util.stream.Collectors.joining(" | ")), event.type().toString());
             int index = indexOf(event.source());
             String source = index < 0 ? event.source().toString() : devices.get(index).name();
+            MachineSystems.Group system = index < 0 ? MachineSystems.Group.OTHER : MachineSystems.Group.of(devices.get(index));
             // Keep dates within the range of ordinary UI formatters, including hostile third-party event timestamps.
             Instant timestamp = event.timestamp();
             if (timestamp.getEpochSecond() < -62_135_596_800L || timestamp.getEpochSecond() > 253_402_300_799L) timestamp = Instant.EPOCH;
             if (alerts.size() == alertLimit) alerts.removeLast();
             alerts.addFirst(new AlertView(++alertSequence, event.source(), source, bounded(event.type().toString(), "unknown"),
-                    timestamp, event.severity().name(), message, data));
+                    timestamp, event.severity().name(), message, data, system, false, false));
             alertRevision++;
             revision++;
         } else if (payload instanceof HomeCorePayloads.MetricUpdate update) {
@@ -490,6 +491,60 @@ public final class DashboardClientState implements AutoCloseable {
     public Optional<UUID> ownerId() { return Optional.ofNullable(ownerId); }
     public int memberCount() { return memberCount; }
     public List<AlertView> alerts() { return alertView; }
+    public int activeAlertCount() {
+        int count = 0;
+        for (AlertView alert : alerts) if (!alert.acknowledged()) count++;
+        return count;
+    }
+    public int unreadAlertCount() {
+        int count = 0;
+        for (AlertView alert : alerts) if (!alert.read()) count++;
+        return count;
+    }
+
+    /** Reading an event does not acknowledge it; all mutations stay in this client session. */
+    public boolean setAlertRead(long id, boolean read) {
+        for (int index = 0; index < alerts.size(); index++) {
+            AlertView alert = alerts.get(index);
+            if (alert.id() != id) continue;
+            if (alert.read() == read) return false;
+            alerts.set(index, alert.withState(read, alert.acknowledged()));
+            alertRevision++;
+            revision++;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean acknowledgeAlert(long id) {
+        for (int index = 0; index < alerts.size(); index++) {
+            AlertView alert = alerts.get(index);
+            if (alert.id() != id) continue;
+            if (alert.read() && alert.acknowledged()) return false;
+            alerts.set(index, alert.withState(true, true));
+            alertRevision++;
+            revision++;
+            return true;
+        }
+        return false;
+    }
+
+    /** Acknowledges retained events across every system, regardless of the current UI filter. */
+    public int acknowledgeAllAlerts() {
+        int changed = 0;
+        for (int index = 0; index < alerts.size(); index++) {
+            AlertView alert = alerts.get(index);
+            if (alert.read() && alert.acknowledged()) continue;
+            alerts.set(index, alert.withState(true, true));
+            changed++;
+        }
+        if (changed > 0) {
+            alertRevision++;
+            revision++;
+        }
+        return changed;
+    }
+
     public long alertRevision() { return alertRevision; }
     public int alertLimit() { return alertLimit; }
     public void setAlertLimit(int limit) {

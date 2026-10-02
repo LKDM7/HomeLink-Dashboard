@@ -37,6 +37,35 @@ class EnergyBalanceTest {
         assertEquals(8, result.consumption());
     }
 
+    @Test void hydroTurbinesProduceHeAndHydroPumpsNeverDo() {
+        var result = EnergyBalance.of(List.of(
+                new Device("homelink_energy:solar_panel", Map.of("homelink_energy:generation_rate", 12.0)),
+                new Device("homelink_energy:wind_turbine", Map.of("homelink_energy:current_generation", 8.0)),
+                new Device("homelink_energy:hydro_turbine", Map.of(
+                        "homelink_energy:current_generation", 15.5, "homelink_energy:available_flow", 200.0)),
+                new Device("homelink_energy:hydro_pump", Map.of(
+                        "homelink_energy:available_flow", 100.0, "homelink_energy:current_generation", 999.0)),
+                battery(5, 1, 100)));
+        assertEquals(35.5, result.production());
+        assertEquals(3, result.producers());
+        assertEquals(30.5, result.net());
+        assertEquals(5, result.consumption());
+        assertEquals(100, result.stored());
+        assertEquals(1, result.batteries());
+    }
+
+    @Test void stoppedHydroTurbinesStillCountAsProducersWithoutOutput() {
+        var result = EnergyBalance.of(List.of(new Device("homelink_energy:hydro_turbine", Map.of())));
+        assertEquals(0, result.production());
+        assertEquals(1, result.producers());
+    }
+
+    @Test void hydroPumpsOnTheirOwnDoNotChangeTheEnergyBalance() {
+        var result = EnergyBalance.of(List.of(new Device("homelink_energy:hydro_pump", Map.of(
+                "homelink_energy:available_flow", 100.0, "homelink_energy:current_generation", 999.0))));
+        assertEquals(EnergyBalance.Result.EMPTY, result);
+    }
+
     @Test void withoutBatteryChargeIsUnknownAndOtherDevicesAreIgnored() {
         var result = EnergyBalance.of(List.of(new Device("homelink_farm:pump", Map.of())));
         assertEquals(EnergyBalance.Result.EMPTY, result);

@@ -61,6 +61,30 @@ public final class MachineSystemsGameTests {
         helper.succeed();
     }
 
+    @GameTest(template = "empty")
+    public static void hydroProductionExcludesPumpFlow(GameTestHelper helper) {
+        var turbine = device("Hydro turbine", "homelink_energy:hydro_turbine", "ONLINE",
+                metric("homelink_energy:available_flow", 200.0),
+                metric("homelink_energy:hydro_turbine_status", new WireValue.EnumName("GENERATING")),
+                metric("homelink_energy:current_generation", 15.5));
+        var pump = device("Hydro pump", "homelink_energy:hydro_pump", "ONLINE",
+                metric("homelink_energy:hydro_pump_level", 3),
+                metric("homelink_energy:hydro_pump_status", new WireValue.EnumName("PUMPING")),
+                metric("homelink_energy:available_flow", 100.0),
+                metric("homelink_energy:current_generation", 999.0));
+        var energy = MachineSystems.summarize(List.of(turbine, pump)).get(MachineSystems.Group.ENERGY);
+        helper.assertTrue(energy.total() == 2, "Hydro pumps and turbines belong to Energy");
+        helper.assertTrue(energy.lines().getFirst().args().equals(List.of("15.5 HE/t", "1")),
+                "Only the turbine produces HE; pump flow and generation-like metrics must never count");
+        helper.assertTrue(MachineSystems.keyMetrics(turbine).stream().map(DebugDeviceView.Metric::id).toList()
+                        .equals(List.of("homelink_energy:hydro_turbine_status", "homelink_energy:current_generation")),
+                "Turbine rows must show status and HE production");
+        helper.assertTrue(MachineSystems.keyMetrics(pump).stream().map(DebugDeviceView.Metric::id).toList()
+                        .equals(List.of("homelink_energy:hydro_pump_status", "homelink_energy:available_flow")),
+                "Pump rows must show status and hydraulic flow");
+        helper.succeed();
+    }
+
     private static DebugDeviceView device(String name, String type, String status, DebugDeviceView.Metric... metrics) {
         return new DebugDeviceView(UUID.nameUUIDFromBytes(name.getBytes()), name, type, status, List.of(metrics));
     }

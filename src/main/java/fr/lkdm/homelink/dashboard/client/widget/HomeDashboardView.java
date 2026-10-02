@@ -126,13 +126,13 @@ public final class HomeDashboardView {
             statistic(graphics, 0, cell, "stat_online", online, DashboardTheme.ONLINE);
             statistic(graphics, 1, cell, "stat_warning", warning, DashboardTheme.WARNING);
             statistic(graphics, 2, cell, "stat_offline", offline, DashboardTheme.OFFLINE);
-            statistic(graphics, 3, cell, "stat_alerts", state.alerts().size(), DashboardTheme.ACCENT);
+            statistic(graphics, 3, cell, "stat_alerts", state.activeAlertCount(), DashboardTheme.ACCENT);
             text(graphics, WidgetCards.label("favorites_widgets").getString(), x, y + 72, width, DashboardTheme.MUTED);
         } else {
             text(graphics, Component.translatable("screen.homelink_dashboard.home_device_states", online, warning, offline).getString(),
                     x, y + 29, width - 104, DashboardTheme.MUTED);
             text(graphics, WidgetCards.label("favorites_widgets").getString() + " · "
-                    + Component.translatable("screen.homelink_dashboard.home_alerts", state.alerts().size()).getString(), x, y + 44, width, DashboardTheme.ACCENT);
+                    + Component.translatable("screen.homelink_dashboard.home_alerts", state.activeAlertCount()).getString(), x, y + 44, width, DashboardTheme.ACCENT);
         }
         int top = y + overviewHeight();
         if (top >= y + height) return;
