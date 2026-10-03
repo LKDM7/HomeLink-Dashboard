@@ -1,7 +1,10 @@
 package fr.lkdm.homelink.dashboard.client.widget;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
+
 import fr.lkdm.homelink.dashboard.client.rendering.DashboardText;
-import fr.lkdm.homelink.dashboard.client.rendering.DashboardTheme;
+
 import fr.lkdm.homelink.dashboard.client.state.AlertView;
 import fr.lkdm.homelink.dashboard.client.state.DashboardClientState;
 import fr.lkdm.homelink.dashboard.client.state.MachineSystems;
@@ -78,7 +81,7 @@ public final class AlertCenterView {
     }
 
     private Button button(Component message, int left, int top, int buttonWidth, Button.OnPress action, Consumer<AbstractWidget> addWidget) {
-        Button button = DashboardButton.builder(message, action).bounds(left, top, buttonWidth, DashboardTheme.CONTROL_HEIGHT).build();
+        Button button = HomeLinkButton.builder(message, action).bounds(left, top, buttonWidth, HomeLinkTheme.CONTROL_HEIGHT).build();
         button.setTooltip(Tooltip.create(message));
         addWidget.accept(button);
         return button;
@@ -163,7 +166,7 @@ public final class AlertCenterView {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         if (height <= LIST_TOP) return;
         Component counts = Component.translatable("screen.homelink_dashboard.alert_active_counts", state.activeAlertCount(), state.unreadAlertCount());
-        text(graphics, counts.getString(), x, y + 27, Math.max(0, width - Math.min(130, width) - 6), DashboardTheme.ACCENT);
+        text(graphics, counts.getString(), x, y + 27, Math.max(0, width - Math.min(130, width) - 6), HomeLinkTheme.ACCENT);
         if (mouseX >= x && mouseX < x + width - 136 && mouseY >= y + 22 && mouseY < y + 40)
             graphics.renderTooltip(font, Component.translatable("screen.homelink_dashboard.alert_counts", filtered.size(), state.alerts().size()), mouseX, mouseY);
         int top = y + LIST_TOP;
@@ -176,16 +179,16 @@ public final class AlertCenterView {
             int rowY = top + (index - scroll) * ROW_HEIGHT;
             boolean hover = mouseX >= x && mouseX < actionX() - 4 && mouseY >= rowY && mouseY < rowY + ROW_HEIGHT - 3;
             if (hover) hovered = row;
-            graphics.fill(x, rowY, x + width - 4, rowY + ROW_HEIGHT - 3, hover ? 0xFF293945 : DashboardTheme.SURFACE);
-            int color = alert.acknowledged() ? DashboardTheme.MUTED : severityColor(alert.severity());
+            graphics.fill(x, rowY, x + width - 4, rowY + ROW_HEIGHT - 3, hover ? 0xFF293945 : HomeLinkTheme.SURFACE);
+            int color = alert.acknowledged() ? HomeLinkTheme.MUTED : severityColor(alert.severity());
             graphics.fill(x, rowY, x + 2, rowY + ROW_HEIGHT - 3, color);
             int textWidth = Math.max(0, actionX() - x - 14);
             String readMarker = alert.read() ? "" : "● ";
             text(graphics, readMarker + DashboardText.value(alert.severity()) + "  " + row.timestamp(), x + 7, rowY + 4, textWidth, color);
-            text(graphics, alert.sourceName() + " · " + groupLabel(alert.system()).getString(), x + 7, rowY + 17, textWidth, DashboardTheme.TEXT);
-            text(graphics, alert.message(), x + 7, rowY + 30, textWidth, DashboardTheme.MUTED);
+            text(graphics, alert.sourceName() + " · " + groupLabel(alert.system()).getString(), x + 7, rowY + 17, textWidth, HomeLinkTheme.TEXT);
+            text(graphics, alert.message(), x + 7, rowY + 30, textWidth, HomeLinkTheme.MUTED);
         }
-        if (rows.isEmpty()) text(graphics, label("no_alerts").getString(), x + 4, top + 8, width - 8, DashboardTheme.MUTED);
+        if (rows.isEmpty()) text(graphics, label("no_alerts").getString(), x + 4, top + 8, width - 8, HomeLinkTheme.MUTED);
         if (rows.size() > visible() && visible() > 0) {
             int available = height - LIST_TOP;
             int thumb = Math.max(6, available * visible() / rows.size());
@@ -270,7 +273,7 @@ public final class AlertCenterView {
         graphics.drawString(font, font.plainSubstrByWidth(value, Math.max(0, maxWidth)), left, top, color, false);
     }
     private static int severityColor(String severity) {
-        return switch (severity) { case "CRITICAL" -> DashboardTheme.OFFLINE; case "WARNING" -> DashboardTheme.WARNING; default -> DashboardTheme.MUTED; };
+        return switch (severity) { case "CRITICAL" -> HomeLinkTheme.OFFLINE; case "WARNING" -> HomeLinkTheme.WARNING; default -> HomeLinkTheme.MUTED; };
     }
     public List<AlertView> filteredAlerts() { return filtered; }
 }

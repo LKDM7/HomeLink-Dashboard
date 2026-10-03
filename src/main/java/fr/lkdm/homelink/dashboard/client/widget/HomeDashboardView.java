@@ -1,6 +1,10 @@
 package fr.lkdm.homelink.dashboard.client.widget;
 
-import fr.lkdm.homelink.dashboard.client.rendering.DashboardTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
+
+
 import fr.lkdm.homelink.dashboard.client.state.DashboardClientState;
 import fr.lkdm.homelink.dashboard.client.state.DashboardPreferencesClient;
 import fr.lkdm.homelink.dashboard.dashboard.widget.DashboardWidget;
@@ -56,8 +60,8 @@ public final class HomeDashboardView {
         if (editor.device() == null && !state.devices().isEmpty()) editor.selectDevice(state.devices().getFirst().id());
         if (editMode) editor.init(x, y, width, height, addWidget, focus, rebuild, () -> setEditMode(false));
         else {
-            Button edit = DashboardButton.builder(WidgetCards.label("edit_dashboard"), ignored -> setEditMode(true))
-                    .bounds(x + width - 96, y, 96, DashboardTheme.CONTROL_HEIGHT).build();
+            Button edit = HomeLinkButton.builder(WidgetCards.label("edit_dashboard"), ignored -> setEditMode(true))
+                    .bounds(x + width - 96, y, 96, HomeLinkTheme.CONTROL_HEIGHT).build();
             edit.setTooltip(Tooltip.create(WidgetCards.label("edit_dashboard")));
             addWidget.accept(edit);
         }
@@ -117,22 +121,22 @@ public final class HomeDashboardView {
     }
 
     private void renderHome(GuiGraphics graphics, int mouseX, int mouseY) {
-        graphics.fill(x, y + 4, x + 4, y + 8, DashboardTheme.status(state.connectionStatus()));
-        text(graphics, state.networkName(), x + 10, y + 2, width - 114, DashboardTheme.TEXT);
+        graphics.fill(x, y + 4, x + 4, y + 8, HomeLinkTheme.statusColor(state.connectionStatus()));
+        text(graphics, state.networkName(), x + 10, y + 2, width - 114, HomeLinkTheme.TEXT);
         text(graphics, Component.translatable("screen.homelink_dashboard.home_device_total", state.devices().size(), state.totalDeviceCount()).getString(),
-                x, y + 17, width - 104, DashboardTheme.MUTED);
+                x, y + 17, width - 104, HomeLinkTheme.MUTED);
         if (overviewHeight() > 56) {
             int cell = width / 4;
-            statistic(graphics, 0, cell, "stat_online", online, DashboardTheme.ONLINE);
-            statistic(graphics, 1, cell, "stat_warning", warning, DashboardTheme.WARNING);
-            statistic(graphics, 2, cell, "stat_offline", offline, DashboardTheme.OFFLINE);
-            statistic(graphics, 3, cell, "stat_alerts", state.activeAlertCount(), DashboardTheme.ACCENT);
-            text(graphics, WidgetCards.label("favorites_widgets").getString(), x, y + 72, width, DashboardTheme.MUTED);
+            statistic(graphics, 0, cell, "stat_online", online, HomeLinkTheme.ONLINE);
+            statistic(graphics, 1, cell, "stat_warning", warning, HomeLinkTheme.WARNING);
+            statistic(graphics, 2, cell, "stat_offline", offline, HomeLinkTheme.OFFLINE);
+            statistic(graphics, 3, cell, "stat_alerts", state.activeAlertCount(), HomeLinkTheme.ACCENT);
+            text(graphics, WidgetCards.label("favorites_widgets").getString(), x, y + 72, width, HomeLinkTheme.MUTED);
         } else {
             text(graphics, Component.translatable("screen.homelink_dashboard.home_device_states", online, warning, offline).getString(),
-                    x, y + 29, width - 104, DashboardTheme.MUTED);
+                    x, y + 29, width - 104, HomeLinkTheme.MUTED);
             text(graphics, WidgetCards.label("favorites_widgets").getString() + " · "
-                    + Component.translatable("screen.homelink_dashboard.home_alerts", state.activeAlertCount()).getString(), x, y + 44, width, DashboardTheme.ACCENT);
+                    + Component.translatable("screen.homelink_dashboard.home_alerts", state.activeAlertCount()).getString(), x, y + 44, width, HomeLinkTheme.ACCENT);
         }
         int top = y + overviewHeight();
         if (top >= y + height) return;
@@ -148,10 +152,10 @@ public final class HomeDashboardView {
             cards.render(graphics, widget, card[0], card[1], card[2], card[3], true, mouseX, mouseY);
         }
         if (preferences.profile().favorites().isEmpty() && preferences.profile().widgets().isEmpty()) {
-            DashboardTheme.panel(graphics, x, top, width - 4, Math.min(64, y + height - top));
+            HomeLinkUi.panel(graphics, x, top, width - 4, Math.min(64, y + height - top));
             int lineY = top + 10;
             for (var line : font.split(WidgetCards.label("home_empty"), Math.max(16, width - 24))) {
-                graphics.drawString(font, line, x + 10, lineY, DashboardTheme.MUTED, false);
+                graphics.drawString(font, line, x + 10, lineY, HomeLinkTheme.MUTED, false);
                 lineY += 12;
             }
         }
@@ -212,10 +216,10 @@ public final class HomeDashboardView {
     private int overviewHeight() { return height >= 180 && width >= 350 ? 88 : 56; }
     private void statistic(GuiGraphics graphics, int index, int cell, String key, int value, int color) {
         int left = x + index * cell;
-        graphics.fill(left, y + 48, left + cell, y + 64, DashboardTheme.SURFACE);
-        if (index > 0) graphics.fill(left, y + 51, left + 1, y + 61, DashboardTheme.LINE);
+        graphics.fill(left, y + 48, left + cell, y + 64, HomeLinkTheme.SURFACE);
+        if (index > 0) graphics.fill(left, y + 51, left + 1, y + 61, HomeLinkTheme.LINE);
         graphics.fill(left + 6, y + 54, left + 9, y + 57, color);
-        text(graphics, value + " " + WidgetCards.label(key).getString(), left + 14, y + 52, cell - 20, DashboardTheme.TEXT);
+        text(graphics, value + " " + WidgetCards.label(key).getString(), left + 14, y + 52, cell - 20, HomeLinkTheme.TEXT);
     }
     private boolean inside(double mouseX, double mouseY) { return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height; }
     private boolean canConfigure() { return state.role().equals("OWNER") || state.role().equals("ADMIN"); }

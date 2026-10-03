@@ -1,5 +1,7 @@
 package fr.lkdm.homelink.dashboard.client.rendering;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import fr.lkdm.homelink.dashboard.block.AccessPointStatus;
@@ -78,18 +80,18 @@ public final class DashboardDisplayRenderer implements BlockEntityRenderer<Dashb
         fill(pose, buffers, 0, 0, width, height, 0, BACKGROUND);
         fill(pose, buffers, 6, 27, width - 6, 28, 0.02F, RULE);
         boolean widgets = summary != null && summary.mode() == DisplaySummary.Mode.LIVE && !summary.widgets().isEmpty();
-        text(pose, buffers, tr(widgets ? "title_home" : "title"), 6, 5, width - 12, DashboardTheme.ACCENT);
+        text(pose, buffers, tr(widgets ? "title_home" : "title"), 6, 5, width - 12, HomeLinkTheme.ACCENT);
 
         if (summary == null || summary.mode() != DisplaySummary.Mode.LIVE) {
             inactive(pose, buffers, summary, width, height);
         } else if (widgets) {
-            text(pose, buffers, summary.networkName(), 6, 16, width - 12, DashboardTheme.TEXT);
+            text(pose, buffers, summary.networkName(), 6, 16, width - 12, HomeLinkTheme.TEXT);
             widgets(pose, buffers, summary, width, height);
         } else {
-            text(pose, buffers, summary.networkName(), 6, 16, width - 12, DashboardTheme.TEXT);
+            text(pose, buffers, summary.networkName(), 6, 16, width - 12, HomeLinkTheme.TEXT);
             if (summary.devices().isEmpty()) {
-                wrapped(pose, buffers, tr("empty"), 6, 34, width - 12, 2, DashboardTheme.TEXT);
-                wrapped(pose, buffers, tr("choose_favorites"), 6, 57, width - 12, 2, DashboardTheme.MUTED);
+                wrapped(pose, buffers, tr("empty"), 6, 34, width - 12, 2, HomeLinkTheme.TEXT);
+                wrapped(pose, buffers, tr("choose_favorites"), 6, 57, width - 12, 2, HomeLinkTheme.MUTED);
             } else {
                 int count = Math.min(summary.devices().size(), size == DashboardDisplayBlock.Size.SINGLE ? 1
                         : size == DashboardDisplayBlock.Size.WIDE ? 2 : 4);
@@ -104,7 +106,7 @@ public final class DashboardDisplayRenderer implements BlockEntityRenderer<Dashb
                     fill(pose, buffers, width / 2 - 1, 34, width / 2, 66, 0.02F, RULE);
                 int remaining = summary.total() - count;
                 String footer = remaining > 0 ? Component.translatable("display.homelink_dashboard.more", remaining).getString() : tr("open");
-                text(pose, buffers, footer, 6, height - 11, width - 12, DashboardTheme.MUTED);
+                text(pose, buffers, footer, 6, height - 11, width - 12, HomeLinkTheme.MUTED);
             }
         }
         pose.popPose();
@@ -129,22 +131,22 @@ public final class DashboardDisplayRenderer implements BlockEntityRenderer<Dashb
             float second = h < 30 ? y + 12 : y + 14;
             if (tile.kind() == DisplaySummary.WidgetTile.Kind.ENERGY) { energy(pose, buffers, tile, x, y, w, h, second); continue; }
             boolean available = !device.name().isEmpty();
-            fill(pose, buffers, x + 3, y + 5, x + 6, y + 8, 0.02F, DashboardTheme.status(device.status()));
-            text(pose, buffers, available ? device.name() : tr("unavailable"), x + 9, y + 3, w - 12, DashboardTheme.TEXT);
+            fill(pose, buffers, x + 3, y + 5, x + 6, y + 8, 0.02F, HomeLinkTheme.statusColor(device.status()));
+            text(pose, buffers, available ? device.name() : tr("unavailable"), x + 9, y + 3, w - 12, HomeLinkTheme.TEXT);
             if (!available) continue;
             switch (tile.kind()) {
-                case ACTION -> text(pose, buffers, "▶ " + (tile.label().isEmpty() ? tr("action_unavailable") : tile.label()), x + 3, second, w - 6, DashboardTheme.MUTED);
+                case ACTION -> text(pose, buffers, "▶ " + (tile.label().isEmpty() ? tr("action_unavailable") : tile.label()), x + 3, second, w - 6, HomeLinkTheme.MUTED);
                 case METRIC -> {
-                    if (device.metrics().isEmpty()) { text(pose, buffers, tr("metric_unavailable"), x + 3, second, w - 6, DashboardTheme.MUTED); continue; }
+                    if (device.metrics().isEmpty()) { text(pose, buffers, tr("metric_unavailable"), x + 3, second, w - 6, HomeLinkTheme.MUTED); continue; }
                     var view = view(device.metrics().getFirst());
-                    if (h < 30) { text(pose, buffers, MetricRendererRegistry.localizedValue(view), x + 3, second, w - 6, DashboardTheme.TEXT); continue; }
-                    text(pose, buffers, device.metrics().getFirst().name(), x + 3, second, w - 6, DashboardTheme.MUTED);
-                    text(pose, buffers, MetricRendererRegistry.localizedValue(view), x + 3, y + 24, w - 6, DashboardTheme.TEXT);
+                    if (h < 30) { text(pose, buffers, MetricRendererRegistry.localizedValue(view), x + 3, second, w - 6, HomeLinkTheme.TEXT); continue; }
+                    text(pose, buffers, device.metrics().getFirst().name(), x + 3, second, w - 6, HomeLinkTheme.MUTED);
+                    text(pose, buffers, MetricRendererRegistry.localizedValue(view), x + 3, y + 24, w - 6, HomeLinkTheme.TEXT);
                     gauge(pose, buffers, MetricRendererRegistry.fraction(view), x, y, w, h);
                 }
                 default -> {
                     if (device.metrics().isEmpty() || h < 30) {
-                        text(pose, buffers, DashboardText.value(device.status()), x + 3, second, w - 6, DashboardTheme.status(device.status()));
+                        text(pose, buffers, DashboardText.value(device.status()), x + 3, second, w - 6, HomeLinkTheme.statusColor(device.status()));
                         continue;
                     }
                     for (int index = 0; index < Math.min(2, device.metrics().size()); index++) {
@@ -155,7 +157,7 @@ public final class DashboardDisplayRenderer implements BlockEntityRenderer<Dashb
             }
         }
         String footer = hidden > 0 ? Component.translatable("display.homelink_dashboard.more_widgets", hidden).getString() : tr("open");
-        text(pose, buffers, footer, 6, height - 11, width - 12, DashboardTheme.MUTED);
+        text(pose, buffers, footer, 6, height - 11, width - 12, HomeLinkTheme.MUTED);
     }
 
     /** Network energy balance: net flow in the title, production and consumption below, battery charge as a gauge. */
@@ -163,15 +165,15 @@ public final class DashboardDisplayRenderer implements BlockEntityRenderer<Dashb
         var metrics = tile.device().metrics();
         double production = number(metrics, 0), consumption = number(metrics, 1), net = production - consumption;
         String netText = (net >= 0 ? "+" : "") + MetricRendererRegistry.decimal(net) + " HE/t";
-        int netColor = net >= 0 ? DashboardTheme.ONLINE : DashboardTheme.WARNING;
+        int netColor = net >= 0 ? HomeLinkTheme.ONLINE : HomeLinkTheme.WARNING;
         if (h < 30) {
             // A quarter tile is too narrow for the title and the net flow side by side.
-            text(pose, buffers, tr("energy_balance"), x + 3, y + 3, w - 6, DashboardTheme.TEXT);
+            text(pose, buffers, tr("energy_balance"), x + 3, y + 3, w - 6, HomeLinkTheme.TEXT);
             text(pose, buffers, netText, x + 3, second, w - 6, netColor);
             return;
         }
         int netWidth = Math.min(font.width(netText), (int) w / 2);
-        text(pose, buffers, tr("energy_balance"), x + 3, y + 3, w - netWidth - 10, DashboardTheme.TEXT);
+        text(pose, buffers, tr("energy_balance"), x + 3, y + 3, w - netWidth - 10, HomeLinkTheme.TEXT);
         text(pose, buffers, netText, x + w - 3 - netWidth, y + 3, netWidth, netColor);
         valueRow(pose, buffers, tr("energy_production"), MetricRendererRegistry.decimal(production) + " HE/t", x, y + 14, w);
         valueRow(pose, buffers, tr("energy_consumption"), MetricRendererRegistry.decimal(consumption) + " HE/t", x, y + 24, w);
@@ -189,14 +191,14 @@ public final class DashboardDisplayRenderer implements BlockEntityRenderer<Dashb
     private void valueRow(PoseStack pose, MultiBufferSource buffers, String label, String value, float x, float y, float w) {
         int valueWidth = Math.min(font.width(value), (int) w - 6);
         float labelWidth = w - 6 - valueWidth - 4;
-        if (labelWidth >= 18) text(pose, buffers, label, x + 3, y, labelWidth, DashboardTheme.MUTED);
-        text(pose, buffers, value, x + w - 3 - valueWidth, y, valueWidth, DashboardTheme.TEXT);
+        if (labelWidth >= 18) text(pose, buffers, label, x + 3, y, labelWidth, HomeLinkTheme.MUTED);
+        text(pose, buffers, value, x + w - 3 - valueWidth, y, valueWidth, HomeLinkTheme.TEXT);
     }
 
     private void gauge(PoseStack pose, MultiBufferSource buffers, double fraction, float x, float y, float w, float h) {
         if (fraction < 0 || h < 34) return;
         fill(pose, buffers, x + 3, y + h - 4, x + w - 3, y + h - 2, 0.02F, RULE);
-        fill(pose, buffers, x + 3, y + h - 4, x + 3 + (float) ((w - 6) * Math.min(1, fraction)), y + h - 2, 0.03F, DashboardTheme.ACCENT);
+        fill(pose, buffers, x + 3, y + h - 4, x + 3 + (float) ((w - 6) * Math.min(1, fraction)), y + h - 2, 0.03F, HomeLinkTheme.ACCENT);
     }
 
     private static DebugDeviceView.Metric view(DisplaySummary.MetricLine metric) {
@@ -206,17 +208,17 @@ public final class DashboardDisplayRenderer implements BlockEntityRenderer<Dashb
 
     private void favorite(PoseStack pose, MultiBufferSource buffers, DisplaySummary.DeviceLine device,
             float x, float y, float width, boolean large) {
-        fill(pose, buffers, x, y + 2, x + 3, y + 5, 0.02F, DashboardTheme.status(device.status()));
+        fill(pose, buffers, x, y + 2, x + 3, y + 5, 0.02F, HomeLinkTheme.statusColor(device.status()));
         if (large) {
             String status = DashboardText.value(device.status());
             int statusWidth = Math.min(font.width(status), (int) width / 3);
-            text(pose, buffers, status, x + width - statusWidth, y, statusWidth, DashboardTheme.status(device.status()));
-            text(pose, buffers, device.name(), x + 7, y, width - statusWidth - 13, DashboardTheme.TEXT);
+            text(pose, buffers, status, x + width - statusWidth, y, statusWidth, HomeLinkTheme.statusColor(device.status()));
+            text(pose, buffers, device.name(), x + 7, y, width - statusWidth - 13, HomeLinkTheme.TEXT);
         } else {
-            text(pose, buffers, device.name(), x + 7, y, width - 7, DashboardTheme.TEXT);
+            text(pose, buffers, device.name(), x + 7, y, width - 7, HomeLinkTheme.TEXT);
         }
         if (device.metrics().isEmpty()) {
-            text(pose, buffers, DashboardText.value(device.status()), x, y + 13, width, DashboardTheme.MUTED);
+            text(pose, buffers, DashboardText.value(device.status()), x, y + 13, width, HomeLinkTheme.MUTED);
         }
         for (int index = 0; index < Math.min(2, device.metrics().size()); index++) {
             var metric = device.metrics().get(index);
@@ -226,14 +228,14 @@ public final class DashboardDisplayRenderer implements BlockEntityRenderer<Dashb
             float metricY = y + 12 + index * 11;
             if (large) {
                 int valueWidth = Math.min(font.width(value), (int) width * 2 / 3);
-                text(pose, buffers, metric.name(), x, metricY, width - valueWidth - 8, DashboardTheme.MUTED);
-                text(pose, buffers, value, x + width - valueWidth, metricY, valueWidth, DashboardTheme.TEXT);
+                text(pose, buffers, metric.name(), x, metricY, width - valueWidth - 8, HomeLinkTheme.MUTED);
+                text(pose, buffers, value, x + width - valueWidth, metricY, valueWidth, HomeLinkTheme.TEXT);
             } else {
                 // Preserve the value first; a verbose metric label must not hide the useful reading.
                 int valueWidth = Math.min(font.width(value), (int) width);
                 float labelWidth = width - valueWidth - 5;
-                if (labelWidth >= 18) text(pose, buffers, metric.name(), x, metricY, labelWidth, DashboardTheme.MUTED);
-                text(pose, buffers, value, x + width - valueWidth, metricY, valueWidth, DashboardTheme.TEXT);
+                if (labelWidth >= 18) text(pose, buffers, metric.name(), x, metricY, labelWidth, HomeLinkTheme.MUTED);
+                text(pose, buffers, value, x + width - valueWidth, metricY, valueWidth, HomeLinkTheme.TEXT);
             }
         }
         if (large) fill(pose, buffers, x, y + 34, x + width, y + 35, 0.02F, RULE);
@@ -246,9 +248,9 @@ public final class DashboardDisplayRenderer implements BlockEntityRenderer<Dashb
             case RESTRICTED -> "restricted";
             default -> "loading";
         };
-        wrapped(pose, buffers, tr(key), 6, 36, width - 12, 2, DashboardTheme.MUTED);
+        wrapped(pose, buffers, tr(key), 6, 36, width - 12, 2, HomeLinkTheme.MUTED);
         if (summary != null && summary.mode() == DisplaySummary.Mode.UNBOUND)
-            text(pose, buffers, tr("connect"), 6, height - 11, width - 12, DashboardTheme.ACCENT);
+            text(pose, buffers, tr("connect"), 6, height - 11, width - 12, HomeLinkTheme.ACCENT);
     }
 
     private void wrapped(PoseStack pose, MultiBufferSource buffers, String value, float x, float y,

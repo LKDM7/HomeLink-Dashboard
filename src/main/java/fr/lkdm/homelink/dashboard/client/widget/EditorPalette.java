@@ -1,6 +1,9 @@
 package fr.lkdm.homelink.dashboard.client.widget;
 
-import fr.lkdm.homelink.dashboard.client.rendering.DashboardTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+
+
 import fr.lkdm.homelink.dashboard.client.state.DashboardClientState;
 import fr.lkdm.homelink.dashboard.client.state.DashboardPreferencesClient;
 import fr.lkdm.homelink.dashboard.client.state.DebugDeviceView;
@@ -54,7 +57,7 @@ final class EditorPalette {
         this.width = width;
         this.height = height;
         if (search == null) {
-            search = DashboardTheme.input(new EditBox(font, x, y, width, DashboardTheme.CONTROL_HEIGHT, WidgetCards.label("palette_search")));
+            search = HomeLinkUi.input(new EditBox(font, x, y, width, HomeLinkTheme.CONTROL_HEIGHT, WidgetCards.label("palette_search")));
             search.setHint(WidgetCards.label("palette_search"));
             search.setMaxLength(64);
             search.setValue(query);
@@ -102,23 +105,23 @@ final class EditorPalette {
         for (int index = scroll; index < rows.size() && rowY < y + height; index++) {
             var row = rows.get(index);
             if (row.kind() == Kind.HEADER) {
-                graphics.drawString(font, font.plainSubstrByWidth(row.label(), width - 4), x + 2, rowY + 3, DashboardTheme.ACCENT, false);
+                graphics.drawString(font, font.plainSubstrByWidth(row.label(), width - 4), x + 2, rowY + 3, HomeLinkTheme.ACCENT, false);
             } else {
                 boolean hovered = dragged == null && mouseX >= x && mouseX < x + width && mouseY >= rowY && mouseY < rowY + DEVICE_ROW - 2;
-                DashboardTheme.panel(graphics, x, rowY, width, DEVICE_ROW - 2);
-                if (hovered || row.equals(dragged)) graphics.renderOutline(x, rowY, width, DEVICE_ROW - 2, DashboardTheme.ACCENT);
-                int dot = row.kind() == Kind.ENERGY ? DashboardTheme.ACCENT : DashboardTheme.status(row.device().status());
+                HomeLinkUi.panel(graphics, x, rowY, width, DEVICE_ROW - 2);
+                if (hovered || row.equals(dragged)) graphics.renderOutline(x, rowY, width, DEVICE_ROW - 2, HomeLinkTheme.ACCENT);
+                int dot = row.kind() == Kind.ENERGY ? HomeLinkTheme.ACCENT : HomeLinkTheme.statusColor(row.device().status());
                 graphics.fill(x + 5, rowY + 7, x + 9, rowY + 11, dot);
-                graphics.drawString(font, font.plainSubstrByWidth(row.label(), width - 30), x + 13, rowY + 5, DashboardTheme.TEXT, false);
+                graphics.drawString(font, font.plainSubstrByWidth(row.label(), width - 30), x + 13, rowY + 5, HomeLinkTheme.TEXT, false);
                 if (row.kind() == Kind.DEVICE) {
                     boolean favored = preferences.profile().favorites().contains(row.device().id());
-                    graphics.drawString(font, favored ? "★" : "☆", x + width - 12, rowY + 5, favored ? DashboardTheme.ACCENT : DashboardTheme.MUTED, false);
+                    graphics.drawString(font, favored ? "★" : "☆", x + width - 12, rowY + 5, favored ? HomeLinkTheme.ACCENT : HomeLinkTheme.MUTED, false);
                 }
             }
             rowY += row.height();
         }
         if (rows.isEmpty()) graphics.drawString(font, font.plainSubstrByWidth(WidgetCards.label("no_matching_devices").getString(), width - 8),
-                x + 4, top + 5, DashboardTheme.MUTED, false);
+                x + 4, top + 5, HomeLinkTheme.MUTED, false);
         graphics.disableScissor();
     }
 

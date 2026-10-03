@@ -1,8 +1,10 @@
-# Guide développeur — HomeLink Dashboard 1.5.0
+# Guide développeur — HomeLink Dashboard 1.6.0
 
 ## Contrat et architecture
 
-Dashboard est un consommateur générique de **HomeCore 1.11.0** (API `1.7.0`). Les classes HomeCore ne sont pas recopiées dans ce projet. Les imports d’intégration utilisent `fr.lkdm.homecore.api.*` ; aucun import de `fr.lkdm.homecore.internal.*` n’est nécessaire ou autorisé côté Dashboard.
+Dashboard est un consommateur générique de **HomeCore 1.14.0** (API `1.9.0`). Les classes HomeCore ne sont pas recopiées dans ce projet. Les imports d’intégration utilisent `fr.lkdm.homecore.api.*` ; aucun import de `fr.lkdm.homecore.internal.*` n’est nécessaire ou autorisé côté Dashboard.
+
+Le rendu partagé provient exclusivement de `fr.lkdm.homecore.api.client.ui` : `HomeLinkTheme`, `HomeLinkUi`, `HomeLinkButton` et `HomeLinkScreenLayout`. `DashboardTheme` et `DashboardButton` sont supprimés. Les autres mods consomment directement ce kit sans dépendre de Dashboard ; ses vues et son état restent spécifiques à ce dépôt. Voir [la migration FR/EN](UI_MIGRATION.md).
 
 ```text
 Mod fournisseur / adaptateur HomeCore

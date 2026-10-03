@@ -1,5 +1,7 @@
 package fr.lkdm.homelink.dashboard.client.rendering;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+
 import fr.lkdm.homecore.api.metric.Energy;
 import fr.lkdm.homecore.api.metric.Percentage;
 import fr.lkdm.homecore.api.metric.Position;
@@ -94,11 +96,11 @@ public final class MetricRendererRegistry {
     public static void render(GuiGraphics graphics, Font font, DebugDeviceView.Metric metric, int x, int y, int width) {
         if (width <= 0) return;
         Presentation view = presentation(metric);
-        graphics.drawString(font, fit(font, metric == null ? "?" : clean(metric.name()), width), x, y, 0xAFB1AD, false);
-        graphics.drawString(font, fit(font, localizedValue(metric), width), x, y + 11, 0xE7E5E0, false);
+        graphics.drawString(font, fit(font, metric == null ? "?" : clean(metric.name()), width), x, y, HomeLinkTheme.MUTED, false);
+        graphics.drawString(font, fit(font, localizedValue(metric), width), x, y + 11, HomeLinkTheme.TEXT, false);
         if (view.fraction() >= 0) {
-            graphics.fill(x, y + 24, x + width, y + 27, DashboardTheme.LINE);
-            graphics.fill(x, y + 24, x + (int) Math.round(width * view.fraction()), y + 27, DashboardTheme.ACCENT);
+            graphics.fill(x, y + 24, x + width, y + 27, HomeLinkTheme.LINE);
+            graphics.fill(x, y + 24, x + (int) Math.round(width * view.fraction()), y + 27, HomeLinkTheme.ACCENT);
         }
     }
 

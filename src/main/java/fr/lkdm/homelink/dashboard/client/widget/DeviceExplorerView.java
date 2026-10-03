@@ -1,7 +1,11 @@
 package fr.lkdm.homelink.dashboard.client.widget;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
+
 import fr.lkdm.homelink.dashboard.client.rendering.MetricRendererRegistry;
-import fr.lkdm.homelink.dashboard.client.rendering.DashboardTheme;
+
 import fr.lkdm.homelink.dashboard.client.state.DashboardClientState;
 import fr.lkdm.homelink.dashboard.client.state.DebugDeviceView;
 import java.util.Comparator;
@@ -62,20 +66,20 @@ public final class DeviceExplorerView {
         this.width = Math.max(32, width);
         this.height = Math.max(20, height);
         int filterWidth = Math.min(94, this.width / 2);
-        searchBox = DashboardTheme.input(new EditBox(font, x, y, Math.max(16, this.width - filterWidth - 6), DashboardTheme.CONTROL_HEIGHT, label("search")));
+        searchBox = HomeLinkUi.input(new EditBox(font, x, y, Math.max(16, this.width - filterWidth - 6), HomeLinkTheme.CONTROL_HEIGHT, label("search")));
         searchBox.setMaxLength(128);
-        searchBox.setTextColor(DashboardTheme.TEXT);
+        searchBox.setTextColor(HomeLinkTheme.TEXT);
         searchBox.setHint(label("search"));
         searchBox.setValue(search);
         searchBox.setResponder(this::setSearch);
         addWidget.accept(searchBox);
-        filterButton = DashboardButton.builder(filterLabel(), button -> {
+        filterButton = HomeLinkButton.builder(filterLabel(), button -> {
             int current = STATUSES.indexOf(statusFilter);
             setStatusFilter(STATUSES.get((current + 1) % STATUSES.size()));
-        }).bounds(x + this.width - filterWidth, y, filterWidth, DashboardTheme.CONTROL_HEIGHT).build();
+        }).bounds(x + this.width - filterWidth, y, filterWidth, HomeLinkTheme.CONTROL_HEIGHT).build();
         addWidget.accept(filterButton);
-        backButton = DashboardButton.builder(label("back_devices"), button -> back())
-                .bounds(x, y, Math.min(this.width, 140), DashboardTheme.CONTROL_HEIGHT).build();
+        backButton = HomeLinkButton.builder(label("back_devices"), button -> back())
+                .bounds(x, y, Math.min(this.width, 140), HomeLinkTheme.CONTROL_HEIGHT).build();
         addWidget.accept(backButton);
         tick();
         updateVisibility();
@@ -185,7 +189,7 @@ public final class DeviceExplorerView {
     private void renderList(GuiGraphics graphics, int mouseX, int mouseY) {
         String notice = removedDevice ? label("device_removed").getString()
                 : Component.translatable("screen.homelink_dashboard.devices_filtered", filtered.size(), state.devices().size()).getString();
-        text(graphics, notice, x, y + 26, width, removedDevice ? 0xD3B16F : 0xA4A7A1);
+        text(graphics, notice, x, y + 26, width, removedDevice ? HomeLinkTheme.WARNING : HomeLinkTheme.MUTED);
         int top = y + 40;
         int available = Math.max(0, height - 40);
         int end = Math.min(filtered.size(), listScroll + (available + LIST_ROW - 1) / LIST_ROW);
@@ -193,34 +197,34 @@ public final class DeviceExplorerView {
             DebugDeviceView device = filtered.get(index);
             int rowY = top + (index - listScroll) * LIST_ROW;
             boolean hover = mouseX >= x && mouseX < x + width && mouseY >= rowY && mouseY < rowY + LIST_ROW - 3;
-            graphics.fill(x, rowY, x + width - 4, rowY + LIST_ROW - 3, hover ? DashboardTheme.HOVER : DashboardTheme.SURFACE);
+            graphics.fill(x, rowY, x + width - 4, rowY + LIST_ROW - 3, hover ? HomeLinkTheme.HOVER : HomeLinkTheme.SURFACE);
             graphics.fill(x, rowY, x + 2, rowY + LIST_ROW - 3, 0xFF000000 | statusColor(device.status()));
-            graphics.renderOutline(x + 8, rowY + 7, 16, 16, DashboardTheme.LINE);
-            graphics.fill(x + 12, rowY + 11, x + 20, rowY + 13, DashboardTheme.ACCENT);
-            graphics.fill(x + 12, rowY + 17, x + 17, rowY + 19, DashboardTheme.MUTED);
+            graphics.renderOutline(x + 8, rowY + 7, 16, 16, HomeLinkTheme.LINE);
+            graphics.fill(x + 12, rowY + 11, x + 20, rowY + 13, HomeLinkTheme.ACCENT);
+            graphics.fill(x + 12, rowY + 17, x + 17, rowY + 19, HomeLinkTheme.MUTED);
             int badgeWidth = font.width(DashboardText.value(device.status())) + 12;
-            text(graphics, device.name(), x + 32, rowY + 5, width - badgeWidth - 48, DashboardTheme.TEXT);
-            text(graphics, device.type(), x + 32, rowY + 18, width - 46, DashboardTheme.MUTED);
+            text(graphics, device.name(), x + 32, rowY + 5, width - badgeWidth - 48, HomeLinkTheme.TEXT);
+            text(graphics, device.type(), x + 32, rowY + 18, width - 46, HomeLinkTheme.MUTED);
             text(graphics, DashboardText.value(device.status()), x + width - badgeWidth, rowY + 5, badgeWidth - 6, statusColor(device.status()));
             for (int metricIndex = 0; metricIndex < Math.min(2, device.metrics().size()); metricIndex++) {
                 var metric = device.metrics().get(metricIndex);
                 int columnWidth = (width - 18) / Math.min(2, device.metrics().size());
                 text(graphics, metric.name() + ": " + MetricRendererRegistry.localizedValue(metric), x + 8 + metricIndex * columnWidth,
-                        rowY + 29, columnWidth - 6, 0xAFB1AD);
+                        rowY + 29, columnWidth - 6, HomeLinkTheme.MUTED);
             }
         }
-        if (filtered.isEmpty()) text(graphics, label("no_matching_devices").getString(), x + 4, top + 8, width - 8, 0xAFB1AD);
+        if (filtered.isEmpty()) text(graphics, label("no_matching_devices").getString(), x + 4, top + 8, width - 8, HomeLinkTheme.MUTED);
         scrollbar(graphics, top, available, listScroll, filtered.size(), listVisible());
     }
 
     private void renderDetails(GuiGraphics graphics) {
         DebugDeviceView device = selectedView;
-        DashboardTheme.panel(graphics, x, y + 24, width - 4, 51);
+        HomeLinkUi.panel(graphics, x, y + 24, width - 4, 51);
         graphics.fill(x, y + 24, x + 2, y + 75, statusColor(device.status()) | 0xFF000000);
-        text(graphics, device.name(), x + 8, y + 29, width - 20, DashboardTheme.TEXT);
-        text(graphics, device.type(), x + 8, y + 41, width - 20, DashboardTheme.MUTED);
+        text(graphics, device.name(), x + 8, y + 29, width - 20, HomeLinkTheme.TEXT);
+        text(graphics, device.type(), x + 8, y + 41, width - 20, HomeLinkTheme.MUTED);
         text(graphics, DashboardText.value(device.status()), x + 8, y + 53, width - 20, statusColor(device.status()));
-        text(graphics, device.position().isBlank() ? label("position_unavailable").getString() : device.position(), x + 8, y + 65, width - 20, DashboardTheme.MUTED);
+        text(graphics, device.position().isBlank() ? label("position_unavailable").getString() : device.position(), x + 8, y + 65, width - 20, HomeLinkTheme.MUTED);
         int top = y + 80;
         int available = Math.max(0, height - 80);
         if (available == 0) return;
@@ -229,7 +233,7 @@ public final class DeviceExplorerView {
         for (int index = metricScroll; index < end; index++) {
             MetricRendererRegistry.render(graphics, font, device.metrics().get(index), x, top + (index - metricScroll) * METRIC_ROW, width - 8);
         }
-        if (device.metrics().isEmpty()) text(graphics, label("no_metrics").getString(), x + 4, top + 4, width - 8, 0xAFB1AD);
+        if (device.metrics().isEmpty()) text(graphics, label("no_metrics").getString(), x + 4, top + 4, width - 8, HomeLinkTheme.MUTED);
         scrollbar(graphics, top, available, metricScroll, device.metrics().size(), metricVisible());
         graphics.disableScissor();
     }
@@ -273,12 +277,7 @@ public final class DeviceExplorerView {
     }
 
     private static int statusColor(String status) {
-        return switch (status.toUpperCase(Locale.ROOT)) {
-            case "ONLINE" -> 0xA1BD92;
-            case "WARNING" -> 0xD3B16F;
-            case "OFFLINE", "ERROR" -> 0xD19A8F;
-            default -> 0xA4A7A1;
-        };
+        return HomeLinkTheme.statusColor(status);
     }
 
     private Component filterLabel() { return Component.translatable("screen.homelink_dashboard.filter_status", DashboardText.component(statusFilter)); }

@@ -1,6 +1,10 @@
 package fr.lkdm.homelink.dashboard.client.widget;
 
-import fr.lkdm.homelink.dashboard.client.rendering.DashboardTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
+
+
 import fr.lkdm.homecore.api.action.Unit;
 import fr.lkdm.homelink.dashboard.client.state.DeviceActionView;
 import java.util.ArrayList;
@@ -47,10 +51,10 @@ public final class ActionControlRegistry {
                     input(font, x + (part + 4) * 2, y, part, "Z");
                 }
                 case "TOGGLE" -> {
-                    choice = DashboardButton.builder(Component.empty(), button -> {
+                    choice = HomeLinkButton.builder(Component.empty(), button -> {
                         toggle = !toggle;
                         choiceLabel();
-                    }).bounds(x, y, width, DashboardTheme.CONTROL_HEIGHT).build();
+                    }).bounds(x, y, width, HomeLinkTheme.CONTROL_HEIGHT).build();
                     widgets.add(choice);
                 }
                 case "SELECT" -> { dropdown = new ActionDropdown(font, x, y, width); widgets.add(dropdown); }
@@ -65,7 +69,7 @@ public final class ActionControlRegistry {
         }
 
         private void input(Font font, int x, int y, int width, String name) {
-            EditBox input = DashboardTheme.input(new EditBox(font, x, y, width, DashboardTheme.CONTROL_HEIGHT, DashboardText.component(name)));
+            EditBox input = HomeLinkUi.input(new EditBox(font, x, y, width, HomeLinkTheme.CONTROL_HEIGHT, DashboardText.component(name)));
             input.setHint(DashboardText.component(name));
             inputs.add(input);
             widgets.add(input);

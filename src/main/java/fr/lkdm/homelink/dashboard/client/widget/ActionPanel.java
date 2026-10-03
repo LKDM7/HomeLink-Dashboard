@@ -1,6 +1,10 @@
 package fr.lkdm.homelink.dashboard.client.widget;
 
-import fr.lkdm.homelink.dashboard.client.rendering.DashboardTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
+
+
 import fr.lkdm.homelink.dashboard.client.state.DashboardClientState;
 import fr.lkdm.homelink.dashboard.client.state.DebugDeviceView;
 import fr.lkdm.homelink.dashboard.client.state.DeviceActionView;
@@ -56,33 +60,33 @@ public final class ActionPanel {
         this.height = height;
         editors.clear();
         int powerWidth = Math.min(120, Math.max(60, width / 3));
-        power = DashboardButton.builder(Component.empty(), button -> togglePower())
-                .bounds(x, y, powerWidth, DashboardTheme.CONTROL_HEIGHT).build();
-        rename = DashboardTheme.input(new EditBox(font, x + powerWidth + 6, y, Math.max(20, width - powerWidth - CONFIRM_WIDTH - 10),
-                DashboardTheme.CONTROL_HEIGHT, label("rename_hint")));
+        power = HomeLinkButton.builder(Component.empty(), button -> togglePower())
+                .bounds(x, y, powerWidth, HomeLinkTheme.CONTROL_HEIGHT).build();
+        rename = HomeLinkUi.input(new EditBox(font, x + powerWidth + 6, y, Math.max(20, width - powerWidth - CONFIRM_WIDTH - 10),
+                HomeLinkTheme.CONTROL_HEIGHT, label("rename_hint")));
         rename.setHint(label("rename_hint"));
         rename.setMaxLength(50);
         rename.setResponder(ignored -> updateMachineControls());
-        confirmRename = DashboardButton.builder(Component.literal("✓"), button -> submitRename())
-                .bounds(x + width - CONFIRM_WIDTH, y, CONFIRM_WIDTH, DashboardTheme.CONTROL_HEIGHT).build();
+        confirmRename = HomeLinkButton.builder(Component.literal("✓"), button -> submitRename())
+                .bounds(x + width - CONFIRM_WIDTH, y, CONFIRM_WIDTH, HomeLinkTheme.CONTROL_HEIGHT).build();
         confirmRename.setTooltip(Tooltip.create(label("rename_confirm")));
         addWidget.accept(power);
         addWidget.accept(rename);
         addWidget.accept(confirmRename);
         shownName = null;
         int top = y + MACHINE_ROW;
-        previous = DashboardButton.builder(Component.literal("<"), button -> changeAction(-1)).bounds(x, top, 24, DashboardTheme.CONTROL_HEIGHT).build();
-        next = DashboardButton.builder(Component.literal(">"), button -> changeAction(1)).bounds(x + width - 24, top, 24, DashboardTheme.CONTROL_HEIGHT).build();
+        previous = HomeLinkButton.builder(Component.literal("<"), button -> changeAction(-1)).bounds(x, top, 24, HomeLinkTheme.CONTROL_HEIGHT).build();
+        next = HomeLinkButton.builder(Component.literal(">"), button -> changeAction(1)).bounds(x + width - 24, top, 24, HomeLinkTheme.CONTROL_HEIGHT).build();
         addWidget.accept(previous);
         addWidget.accept(next);
         for (String type : ActionControlRegistry.TYPES) editors.put(type,
                 ActionControlRegistry.create(type, font, x, top + 36, width, addWidget));
         editors.values().forEach(editor -> editor.onExpandedChange(this::updateDropdownControls));
-        submit = DashboardButton.builder(label("execute_action"), button -> {
+        submit = HomeLinkButton.builder(label("execute_action"), button -> {
             if (action == null || !editors.containsKey(action.type())) return;
             try { submit(editors.get(action.type()).value()); }
             catch (IllegalArgumentException exception) { localError = "INVALID_PARAMETER: " + exception.getMessage(); }
-        }).bounds(x, top + 60, Math.min(160, width), DashboardTheme.CONTROL_HEIGHT).build();
+        }).bounds(x, top + 60, Math.min(160, width), HomeLinkTheme.CONTROL_HEIGHT).build();
         addWidget.accept(submit);
         action = null;
         tick();
@@ -234,15 +238,15 @@ public final class ActionPanel {
         graphics.enableScissor(x, y, x + width, y + height);
         int top = MACHINE_ROW;
         if (action == null) text(graphics, label(device == null ? "device_removed"
-                : device.actions().stream().anyMatch(DeviceActionView::standard) ? "no_other_actions" : "no_actions").getString(), top + 6, 0xAFB1AD);
+                : device.actions().stream().anyMatch(DeviceActionView::standard) ? "no_other_actions" : "no_actions").getString(), top + 6, HomeLinkTheme.MUTED);
         else {
             graphics.drawString(font, font.plainSubstrByWidth((actionIndex + 1) + "/" + actions().size()
-                    + " " + action.name(), Math.max(0, width - 60)), x + 30, y + top + 6, 0xE7E5E0, false);
+                    + " " + action.name(), Math.max(0, width - 60)), x + 30, y + top + 6, HomeLinkTheme.TEXT, false);
             String constraints = action.min() == null && action.max() == null ? ""
                     : (action.min() == null ? "−∞" : action.min()) + " .. " + (action.max() == null ? "∞" : action.max())
                             + (action.step() == null ? "" : " / " + action.step());
             String description = action.description().isBlank() ? label("action_hint").getString() : action.description();
-            text(graphics, constraints.isEmpty() ? description : constraints + " · " + description, top + 24, 0xAFB1AD);
+            text(graphics, constraints.isEmpty() ? description : constraints + " · " + description, top + 24, HomeLinkTheme.MUTED);
         }
         String result = localError.isEmpty() ? DashboardText.value(state.lastActionCode()) + " " + DashboardText.message(state.lastActionMessage()) : DashboardText.message(localError);
         if (state.actionPending()) result = label("action_pending").getString();
@@ -254,7 +258,7 @@ public final class ActionPanel {
         if (!dropdownExpanded()) {
             int left = submit.getWidth() + 6;
             graphics.drawString(font, font.plainSubstrByWidth(result, Math.max(0, width - left)), x + left, y + top + 66,
-                    success ? 0xA1BD92 : 0xD3B16F, false);
+                    success ? HomeLinkTheme.ONLINE : HomeLinkTheme.WARNING, false);
         }
         graphics.disableScissor();
     }

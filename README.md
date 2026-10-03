@@ -2,7 +2,13 @@
 
 Centre de contrôle visuel générique de l’écosystème HomeLink : consulter les appareils HomeCore, exécuter leurs actions autorisées, recevoir leurs événements et organiser un tableau de bord personnel.
 
-Dashboard interprète les schémas publics HomeCore. Il ne contient aucune intégration spécifique à Farm Monitor, Holographique Map, Create ou Mekanism. Son interface partage le cadre, la palette et les contrôles de [HomeLink Storage](https://github.com/LKDM7/HomeLink-Storage).
+Dashboard interprète les schémas publics HomeCore. Il ne contient aucune intégration spécifique à Farm Monitor, Holographique Map, Create ou Mekanism. Son interface utilise le cadre, la palette et les contrôles publics du kit UI HomeLink fourni par HomeCore.
+
+## Interface partagée / Shared UI
+
+Le langage visuel HomeLink est fourni par **HomeCore 1.14.0**, API publique **1.9.0**, dans `fr.lkdm.homecore.api.client.ui`. `DashboardTheme` et `DashboardButton` sont supprimés : utiliser `HomeLinkTheme` pour les tokens, `HomeLinkUi` pour le rendu, `HomeLinkButton` pour les contrôles et `HomeLinkScreenLayout.fit(...)` pour une surface adaptative. Les vues, profils, transports et règles métier restent dans Dashboard. Ces imports sont réservés au client ; aucune API serveur ne doit exposer leurs types.
+
+**Developer guidance (EN):** HomeCore 1.14.0 / public API 1.9.0 supplies the shared HomeLink UI kit. Replace `DashboardTheme` with `HomeLinkTheme` / `HomeLinkUi` and `DashboardButton` with `HomeLinkButton`. New HomeLink mods, including Furnace and Storage Pipes, depend directly on HomeCore for their UI; Dashboard is unnecessary. Keep UI imports in client code, preserve inventory slot geometry, and leave business logic in the consumer mod. Declare an explicit compatible HomeCore dependency; local composite builds use adjacent sources rather than automatically updating from GitHub. See [migration details](docs/UI_MIGRATION.md) and the [HomeCore style guide](https://github.com/LKDM7/HomeCore/blob/main/docs/UI_STYLE.md).
 
 ## Installation
 
@@ -11,18 +17,18 @@ Dashboard interprète les schémas publics HomeCore. Il ne contient aucune inté
 | Minecraft | 1.21.1 |
 | NeoForge | 21.1.250 |
 | Java | 21 |
-| HomeCore, obligatoire | 1.13.0 ou plus récent (< 2.0.0) |
+| HomeCore, obligatoire | 1.14.0 ou plus récent (< 2.0.0) |
 | HomeLink Energy, obligatoire | 0.5.0 ou plus récent (< 1.0.0) |
 | HomeLink Dashboard | 1.6.0 |
 
-Installer `homecore-1.13.0.jar`, `homelink_energy-0.5.0.jar` et `homelink_dashboard-1.6.0.jar` dans le dossier `mods` du client **et** du serveur. En solo, ces JAR sont nécessaires dans l’installation Minecraft. HomeCore reste une dépendance séparée ; son code n’est pas embarqué dans le JAR Dashboard.
+Installer `homecore-1.14.0.jar`, `homelink_energy-0.5.0.jar` et `homelink_dashboard-1.6.0.jar` dans le dossier `mods` du client **et** du serveur. En solo, ces JAR sont nécessaires dans l’installation Minecraft. HomeCore reste une dépendance séparée ; son code n’est pas embarqué dans le JAR Dashboard.
 
-**English installation:** use Minecraft 1.21.1, NeoForge 21.1.250 and Java 21. Put HomeCore 1.13.0, HomeLink Energy 0.5.0 and HomeLink Dashboard 1.6.0 in the client and server `mods` folders. Crafting recipes use the HomeLink Circuit Board, Microprocessor and Communication Module assembled at the HomeCore Electronics Workbench. Place a HomeLink Server, create or link a HomeNetwork, then link a Dashboard Display to the same network. Extend the 64-block range with HomeLink Repeaters. Devices must be exposed by a HomeCore-compatible mod. The **Machines** tab summarizes machines by system and the **Add** tab adds machines in radio range to the network. The **?** button in the header opens the in-game manual.
+**English installation:** use Minecraft 1.21.1, NeoForge 21.1.250 and Java 21. Put HomeCore 1.14.0, HomeLink Energy 0.5.0 and HomeLink Dashboard 1.6.0 in the client and server `mods` folders. Crafting recipes use the HomeLink Circuit Board, Microprocessor and Communication Module assembled at the HomeCore Electronics Workbench. Place a HomeLink Server, create or link a HomeNetwork, then link a Dashboard Display to the same network. Extend the 64-block range with HomeLink Repeaters. Devices must be exposed by a HomeCore-compatible mod. The **Machines** tab summarizes machines by system and the **Add** tab adds machines in radio range to the network. The **?** button in the header opens the in-game manual.
 
 ## Nouveautés de la 1.6.0
 
 - Compatibilité JEI et REI : Avec JEI (19.0 ou plus récent) ou REI (16.0 ou plus récent), chaque objet du mod a une page d'information (onglet « i » de JEI, « Information » de REI) qui explique son rôle, en français et en anglais. Les recettes de fabrication s'y affichent comme les autres. Ces deux mods restent facultatifs et côté client.
-- Requiert HomeCore 1.13.0 et HomeLink Energy 0.5.0.
+- Requiert HomeCore 1.14.0 et HomeLink Energy 0.5.0.
 
 ## Nouveautés de la 1.5.1
 

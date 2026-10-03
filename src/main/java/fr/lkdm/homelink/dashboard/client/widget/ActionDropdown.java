@@ -1,10 +1,13 @@
 package fr.lkdm.homelink.dashboard.client.widget;
 
 import fr.lkdm.homecore.api.transport.WireValue;
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
 import java.util.List;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
@@ -14,6 +17,7 @@ final class ActionDropdown extends AbstractWidget {
     private final Font font;
     private List<WireValue> options = List.of();
     private List<String> labels = List.of();
+    private List<Tooltip> labelTooltips = List.of();
     private boolean expanded;
     private int selected;
     private int scroll;
@@ -24,6 +28,8 @@ final class ActionDropdown extends AbstractWidget {
         this.options = options;
         labels = options.stream().map(wire -> wire.value() instanceof WireValue.EnumName name ? name.name() : String.valueOf(wire.value()))
                 .map(value -> value.length() > 256 ? value.substring(0, 253) + "..." : value).toList();
+        labelTooltips = options.stream().map(wire -> wire.value() instanceof WireValue.EnumName name ? name.name() : String.valueOf(wire.value()))
+                .map(value -> Tooltip.create(Component.literal(value))).toList();
         selected = scroll = 0;
         close();
         updateMessage();
@@ -38,26 +44,34 @@ final class ActionDropdown extends AbstractWidget {
         setHeight(value ? 20 + Math.min(3, options.size()) * 12 : 20);
         changed.run();
     }
-    private void updateMessage() { setMessage(Component.literal(labels.isEmpty() ? "—" : labels.get(selected))); }
+    private void updateMessage() {
+        setMessage(Component.literal(labels.isEmpty() ? "—" : labels.get(selected)));
+        setTooltip(labelTooltips.isEmpty() ? null : labelTooltips.get(selected));
+    }
 
     @Override protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        graphics.fill(getX(), getY(), getX() + width, getY() + 20, active ? 0xFF484B4D : 0xFF343638);
-        graphics.drawString(font, font.plainSubstrByWidth(getMessage().getString(), Math.max(0, width - 24)), getX() + 5, getY() + 6, active ? 0xE7E5E0 : 0x768893, false);
-        graphics.drawString(font, expanded ? "▲" : "▼", getX() + width - 13, getY() + 6, 0xA9BCC7, false);
+        setTooltip(labelTooltips.isEmpty() ? null : labelTooltips.get(selected));
+        graphics.fill(getX(), getY(), getX() + width, getY() + 20,
+                active ? isHovered ? HomeLinkTheme.HOVER : HomeLinkTheme.HEADER : HomeLinkTheme.BACKGROUND);
+        graphics.renderOutline(getX(), getY(), width, 20, isFocused() && active ? HomeLinkTheme.ACCENT : HomeLinkTheme.LINE);
+        graphics.drawString(font, HomeLinkUi.clip(font, getMessage().getString(), Math.max(0, width - 24)), getX() + 5, getY() + 6,
+                active ? HomeLinkTheme.TEXT : HomeLinkTheme.MUTED, false);
+        graphics.drawString(font, expanded ? "▲" : "▼", getX() + width - 13, getY() + 6, HomeLinkTheme.MUTED, false);
         if (!expanded) return;
-        graphics.fill(getX(), getY() + 20, getX() + width, getY() + height, 0xFF232527);
+        HomeLinkUi.panel(graphics, getX(), getY() + 20, width, height - 20);
         int end = Math.min(options.size(), scroll + 3);
         for (int index = scroll; index < end; index++) {
             int top = getY() + 20 + (index - scroll) * 12;
             boolean hover = mouseX >= getX() && mouseX < getX() + width && mouseY >= top && mouseY < top + 12;
-            if (hover || index == selected) graphics.fill(getX() + 1, top, getX() + width - 3, top + 12, 0xFF505352);
-            graphics.drawString(font, font.plainSubstrByWidth(labels.get(index), Math.max(0, width - 12)), getX() + 5, top + 2, 0xE7E5E0, false);
+            if (hover || index == selected) graphics.fill(getX() + 1, top, getX() + width - 3, top + 12, HomeLinkTheme.HOVER);
+            if (hover) setTooltip(labelTooltips.get(index));
+            graphics.drawString(font, HomeLinkUi.clip(font, labels.get(index), Math.max(0, width - 12)), getX() + 5, top + 2, HomeLinkTheme.TEXT, false);
         }
         if (options.size() > 3) {
             int available = Math.min(3, options.size()) * 12;
             int thumb = Math.max(4, available * 3 / options.size());
             int top = getY() + 20 + (available - thumb) * scroll / (options.size() - 3);
-            graphics.fill(getX() + width - 2, top, getX() + width, top + thumb, 0xFF8AC4B4);
+            graphics.fill(getX() + width - 2, top, getX() + width, top + thumb, HomeLinkTheme.ACCENT);
         }
     }
     @Override public void onClick(double mouseX, double mouseY) {

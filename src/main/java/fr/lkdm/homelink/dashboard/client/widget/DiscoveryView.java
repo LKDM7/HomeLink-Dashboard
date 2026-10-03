@@ -1,7 +1,11 @@
 package fr.lkdm.homelink.dashboard.client.widget;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
+
 import fr.lkdm.homecore.api.action.ActionResult;
-import fr.lkdm.homelink.dashboard.client.rendering.DashboardTheme;
+
 import fr.lkdm.homelink.dashboard.network.DiscoveryPayloads;
 import fr.lkdm.homelink.dashboard.network.MachineListing;
 import java.util.List;
@@ -50,8 +54,8 @@ public final class DiscoveryView {
         this.height = Math.max(40, height);
         this.rebuild = rebuild;
         var label = Component.translatable("screen.homelink_dashboard.discover_add_all");
-        addAll = DashboardButton.builder(label, ignored -> send(DiscoveryPayloads.Operation.ADD_ALL, Optional.empty()))
-                .bounds(x + this.width - 110, y, 110, DashboardTheme.CONTROL_HEIGHT).build();
+        addAll = HomeLinkButton.builder(label, ignored -> send(DiscoveryPayloads.Operation.ADD_ALL, Optional.empty()))
+                .bounds(x + this.width - 110, y, 110, HomeLinkTheme.CONTROL_HEIGHT).build();
         addAll.setTooltip(net.minecraft.client.gui.components.Tooltip.create(label));
         addWidget.accept(addAll);
         if (!requested) refresh();
@@ -91,18 +95,18 @@ public final class DiscoveryView {
     }
 
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        text(graphics, heading(), x, y + 5, width - 118, DashboardTheme.TEXT);
+        text(graphics, heading(), x, y + 5, width - 118, HomeLinkTheme.TEXT);
         if (!message.isEmpty())
             text(graphics, Component.translatable("screen.homelink_dashboard." + message).getString(), x, y + 22, width,
-                    message.equals("discover_added") ? DashboardTheme.ONLINE : DashboardTheme.WARNING);
+                    message.equals("discover_added") ? HomeLinkTheme.ONLINE : HomeLinkTheme.WARNING);
         int top = y + LIST_TOP;
         if (listingCode != null && listingCode != ActionResult.Code.SUCCESS || entries.isEmpty()) {
-            DashboardTheme.panel(graphics, x, top, width, 44);
+            HomeLinkUi.panel(graphics, x, top, width, 44);
             String key = listingCode == null || pending ? "discover_loading"
                     : listingCode == ActionResult.Code.SUCCESS ? "discover_empty" : "discover_denied_" + listingCode.name().toLowerCase(java.util.Locale.ROOT);
             int lineY = top + 8;
             for (var line : font.split(Component.translatable("screen.homelink_dashboard." + key), Math.max(16, width - 16))) {
-                graphics.drawString(font, line, x + 8, lineY, DashboardTheme.MUTED, false);
+                graphics.drawString(font, line, x + 8, lineY, HomeLinkTheme.MUTED, false);
                 lineY += 11;
             }
             return;
@@ -133,36 +137,36 @@ public final class DiscoveryView {
 
     private void renderRow(GuiGraphics graphics, MachineListing.Entry entry, int top, int mouseX, int mouseY) {
         int rowWidth = width - 4, rowHeight = ROW_HEIGHT - 2;
-        DashboardTheme.panel(graphics, x, top, rowWidth, rowHeight);
+        HomeLinkUi.panel(graphics, x, top, rowWidth, rowHeight);
         int color = switch (entry.state()) {
-            case FREE -> DashboardTheme.ACCENT;
-            case IN_NETWORK -> DashboardTheme.ONLINE;
-            case OTHER_NETWORK -> DashboardTheme.WARNING;
-            case UNSUPPORTED -> DashboardTheme.MUTED;
+            case FREE -> HomeLinkTheme.ACCENT;
+            case IN_NETWORK -> HomeLinkTheme.ONLINE;
+            case OTHER_NETWORK -> HomeLinkTheme.WARNING;
+            case UNSUPPORTED -> HomeLinkTheme.MUTED;
         };
         graphics.fill(x + 5, top + 5, x + 11, top + 11, 0xFF1D1F20);
         graphics.fill(x + 6, top + 6, x + 10, top + 10, color);
         int buttonWidth = 86;
         int textWidth = rowWidth - buttonWidth - 26;
-        text(graphics, entry.name(), x + 15, top + 5, textWidth, DashboardTheme.TEXT);
+        text(graphics, entry.name(), x + 15, top + 5, textWidth, HomeLinkTheme.TEXT);
         String details = MachinesView.typeLabel(entry.type()).getString() + "  ·  "
                 + Component.translatable("screen.homelink_dashboard.discover_distance", entry.distance()).getString() + "  ·  " + stateLabel(entry);
-        text(graphics, details, x + 15, top + 16, textWidth, DashboardTheme.MUTED);
+        text(graphics, details, x + 15, top + 16, textWidth, HomeLinkTheme.MUTED);
         int buttonX = x + rowWidth - buttonWidth - 5, buttonY = top + 5;
         if (entry.canAdd()) {
-            boolean hover = !pending && mouseX >= buttonX && mouseX < buttonX + buttonWidth && mouseY >= buttonY && mouseY < buttonY + DashboardTheme.CONTROL_HEIGHT;
-            graphics.fill(buttonX, buttonY, buttonX + buttonWidth, buttonY + DashboardTheme.CONTROL_HEIGHT, 0xFF181A1B);
-            graphics.fill(buttonX + 1, buttonY + 1, buttonX + buttonWidth - 1, buttonY + DashboardTheme.CONTROL_HEIGHT - 1,
+            boolean hover = !pending && mouseX >= buttonX && mouseX < buttonX + buttonWidth && mouseY >= buttonY && mouseY < buttonY + HomeLinkTheme.CONTROL_HEIGHT;
+            graphics.fill(buttonX, buttonY, buttonX + buttonWidth, buttonY + HomeLinkTheme.CONTROL_HEIGHT, 0xFF181A1B);
+            graphics.fill(buttonX + 1, buttonY + 1, buttonX + buttonWidth - 1, buttonY + HomeLinkTheme.CONTROL_HEIGHT - 1,
                     pending ? 0xFF36383A : hover ? 0xFF5A5D60 : 0xFF474A4D);
             graphics.fill(buttonX + 1, buttonY + 1, buttonX + buttonWidth - 1, buttonY + 2, 0xFF74787A);
             String label = Component.translatable("screen.homelink_dashboard."
                     + (entry.state() == MachineListing.State.OTHER_NETWORK ? "discover_move" : "discover_add")).getString();
             label = font.plainSubstrByWidth(label, buttonWidth - 8);
             graphics.drawString(font, label, buttonX + (buttonWidth - font.width(label)) / 2, buttonY + 5,
-                    pending ? 0xFF91948F : DashboardTheme.TEXT, false);
+                    pending ? 0xFF91948F : HomeLinkTheme.TEXT, false);
         } else if (entry.state() == MachineListing.State.FREE || entry.state() == MachineListing.State.OTHER_NETWORK) {
             String locked = Component.translatable("screen.homelink_dashboard.discover_locked").getString();
-            text(graphics, locked, x + rowWidth - Math.min(buttonWidth, font.width(locked)) - 5, top + 10, buttonWidth, DashboardTheme.MUTED);
+            text(graphics, locked, x + rowWidth - Math.min(buttonWidth, font.width(locked)) - 5, top + 10, buttonWidth, HomeLinkTheme.MUTED);
         }
     }
 
@@ -185,7 +189,7 @@ public final class DiscoveryView {
         var entry = entries.get(index);
         int rowTop = top + index * ROW_HEIGHT - scroll;
         int buttonX = x + width - 4 - 86 - 5;
-        if (!entry.canAdd() || mouseX < buttonX || mouseX >= buttonX + 86 || mouseY < rowTop + 5 || mouseY >= rowTop + 5 + DashboardTheme.CONTROL_HEIGHT) return false;
+        if (!entry.canAdd() || mouseX < buttonX || mouseX >= buttonX + 86 || mouseY < rowTop + 5 || mouseY >= rowTop + 5 + HomeLinkTheme.CONTROL_HEIGHT) return false;
         send(DiscoveryPayloads.Operation.ADD, Optional.of(entry.id()));
         return true;
     }

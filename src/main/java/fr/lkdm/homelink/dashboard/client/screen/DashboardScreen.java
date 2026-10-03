@@ -1,5 +1,9 @@
 package fr.lkdm.homelink.dashboard.client.screen;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
+
 import fr.lkdm.homelink.dashboard.client.state.DashboardClientState;
 import fr.lkdm.homelink.dashboard.client.widget.DeviceExplorerView;
 import fr.lkdm.homelink.dashboard.client.widget.ActionPanel;
@@ -9,8 +13,8 @@ import fr.lkdm.homelink.dashboard.client.widget.DiscoveryView;
 import fr.lkdm.homelink.dashboard.client.widget.AlertCenterView;
 import fr.lkdm.homelink.dashboard.client.widget.NetworkView;
 import fr.lkdm.homelink.dashboard.client.widget.SettingsView;
-import fr.lkdm.homelink.dashboard.client.widget.DashboardButton;
-import fr.lkdm.homelink.dashboard.client.rendering.DashboardTheme;
+
+
 import fr.lkdm.homelink.dashboard.config.DashboardConfig;
 import fr.lkdm.homelink.dashboard.client.state.DashboardPreferencesClient;
 import fr.lkdm.homelink.dashboard.menu.DashboardMenu;
@@ -122,8 +126,10 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         previous = null; next = null; refresh = null; actionButton = null;
         favoriteButton = null;
         favoriteSymbol = "";
-        imageWidth = Math.min(520, width - 16);
-        imageHeight = Math.min(340, height - 16);
+        var layout = fr.lkdm.homecore.api.client.ui.HomeLinkScreenLayout.fit(width, height,
+                HomeLinkTheme.DEFAULT_MAX_WIDTH, HomeLinkTheme.DEFAULT_MAX_HEIGHT);
+        imageWidth = layout.width();
+        imageHeight = layout.height();
         super.init();
         if (state == null && menu.session().networkId().isPresent()) {
             state = new DashboardClientState(menu.session().networkId().orElseThrow());
@@ -131,7 +137,7 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
             state.start();
         }
         button("close", imageWidth - 80, footerY(), 68, this::onClose);
-        var help = ((DashboardButton) button("manual", imageWidth - 34, 6, 20, this::toggleManual)).selected(manualOpen);
+        var help = ((HomeLinkButton) button("manual", imageWidth - 34, 6, 20, this::toggleManual)).selected(manualOpen);
         help.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("manual.homelink_dashboard.title")));
         if (manualOpen) {
             if (manual == null) manual = new fr.lkdm.homelink.dashboard.client.widget.ManualView(font);
@@ -143,8 +149,8 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
             if (menu.session().canCreate()) {
                 if (newNetworkName == null) newNetworkName = menu.session().suggestedName().isEmpty()
                         ? "HomeLink · " + minecraft.player.getGameProfile().getName() : menu.session().suggestedName();
-                var input = DashboardTheme.input(new net.minecraft.client.gui.components.EditBox(font, leftPos + 12, topPos + 66,
-                        imageWidth - 132, DashboardTheme.CONTROL_HEIGHT, Component.translatable("screen.homelink_dashboard.network_name")));
+                var input = HomeLinkUi.input(new net.minecraft.client.gui.components.EditBox(font, leftPos + 12, topPos + 66,
+                        imageWidth - 132, HomeLinkTheme.CONTROL_HEIGHT, Component.translatable("screen.homelink_dashboard.network_name")));
                 input.setMaxLength(128); input.setValue(newNetworkName);
                 var create = button("create", imageWidth - 114, 66, 102, () -> sendName(true, newNetworkName));
                 create.active = fr.lkdm.homelink.dashboard.network.NetworkNames.isValid(newNetworkName);
@@ -197,9 +203,9 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
                     if (page == Page.DEVICES) actionButton = button("actions", refreshX + 78, footerY(),
                             Math.max(24, Math.min(78, Math.min(174, imageWidth - 156) - refreshX - 82)), this::openActions);
                     if (page == Page.DEVICES && state.isNetworkWatch()) {
-                        favoriteButton = addRenderableWidget(DashboardButton.builder(Component.literal("☆"), ignored -> {
+                        favoriteButton = addRenderableWidget(HomeLinkButton.builder(Component.literal("☆"), ignored -> {
                             explorer.selectedDeviceId().ifPresent(id -> { preferences.toggleFavorite(id); home.selectDevice(id); });
-                        }).bounds(leftPos + Math.min(174, imageWidth - 156), topPos + footerY(), 36, DashboardTheme.CONTROL_HEIGHT).build());
+                        }).bounds(leftPos + Math.min(174, imageWidth - 156), topPos + footerY(), 36, HomeLinkTheme.CONTROL_HEIGHT).build());
                     }
                 } else if (page != Page.SETTINGS) refresh = button("refresh", 12, footerY(), 90, this::refreshData);
             }
@@ -210,8 +216,8 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
     private int footerY() { return imageHeight - 26; }
     private Button button(String key, int x, int y, int width, Runnable action) {
         var label = Component.translatable("screen.homelink_dashboard." + key);
-        Button control = addRenderableWidget(DashboardButton.builder(label, ignored -> action.run())
-                .bounds(leftPos + x, topPos + y, width, DashboardTheme.CONTROL_HEIGHT).build());
+        Button control = addRenderableWidget(HomeLinkButton.builder(label, ignored -> action.run())
+                .bounds(leftPos + x, topPos + y, width, HomeLinkTheme.CONTROL_HEIGHT).build());
         control.setTooltip(net.minecraft.client.gui.components.Tooltip.create(label));
         return control;
     }
@@ -230,7 +236,7 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
             Page target = pages[index];
             int tabWidth = total <= usable ? natural[index] + (usable - total) / keys.length : natural[index] * usable / total;
             if (index == keys.length - 1) tabWidth = imageWidth - 12 - cursor;
-            var tab = ((DashboardButton) button(keys[index], cursor, 36, tabWidth, () -> show(target)))
+            var tab = ((HomeLinkButton) button(keys[index], cursor, 36, tabWidth, () -> show(target)))
                     .navigation(page == target && !actionMode);
             tab.setTooltip(net.minecraft.client.gui.components.Tooltip.create(tab.getMessage()));
             cursor += tabWidth + 4;
@@ -280,8 +286,9 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         if (manualOpen && manual.keyPressed(key)) return true;
         if (!manualOpen && actionMode && actions.keyPressed(key)) return true;
         if (!manualOpen && !actionMode && page == Page.ALERTS && alerts != null && alerts.keyPressed(key)) return true;
-        // A text field keeps every key but Escape: otherwise the inventory key (E) closes the container screen mid-word.
-        if (key != org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE && getFocused() instanceof net.minecraft.client.gui.components.EditBox input
+        // Keep typing in a field, while Escape and Tab retain native screen navigation.
+        if (key != org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE && key != org.lwjgl.glfw.GLFW.GLFW_KEY_TAB
+                && getFocused() instanceof net.minecraft.client.gui.components.EditBox input
                 && input.canConsumeInput()) return input.keyPressed(key, scanCode, modifiers) || true;
         return super.keyPressed(key, scanCode, modifiers);
     }
@@ -294,8 +301,8 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         super.removed();
     }
     @Override protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        DashboardTheme.frame(graphics, leftPos, topPos, imageWidth, imageHeight);
-        graphics.fill(leftPos + 10, topPos + 57, leftPos + imageWidth - 10, topPos + 58, DashboardTheme.LINE);
+        HomeLinkUi.frame(graphics, leftPos, topPos, imageWidth, imageHeight);
+        graphics.fill(leftPos + 10, topPos + 57, leftPos + imageWidth - 10, topPos + 58, HomeLinkTheme.LINE);
         if (manualOpen) manual.render(graphics);
         else if (actionMode) actions.render(graphics, mouseX, mouseY, partialTick);
         else if (state != null) switch (page) {
@@ -312,32 +319,32 @@ public final class DashboardScreen extends AbstractContainerScreen<DashboardMenu
         // Header, right to left: manual button, connection label, status indicator (HomeLink Storage layout).
         String status = font.plainSubstrByWidth(DashboardText.value(state == null ? "OFFLINE" : state.connectionStatus()), 62);
         int statusX = imageWidth - 40 - font.width(status);
-        int statusColor = state == null ? DashboardTheme.MUTED : DashboardTheme.status(state.connectionStatus());
+        int statusColor = state == null ? HomeLinkTheme.MUTED : HomeLinkTheme.statusColor(state.connectionStatus());
         graphics.fill(statusX - 12, 11, statusX - 4, 19, 0xFF1D1F20);
         graphics.fill(statusX - 10, 13, statusX - 6, 17, statusColor);
-        graphics.drawString(font, status, statusX, 11, DashboardTheme.MUTED, false);
-        graphics.drawString(font, font.plainSubstrByWidth(title.getString(), Math.max(0, statusX - 32)), 14, 11, DashboardTheme.TEXT, false);
+        graphics.drawString(font, status, statusX, 11, HomeLinkTheme.MUTED, false);
+        graphics.drawString(font, font.plainSubstrByWidth(title.getString(), Math.max(0, statusX - 32)), 14, 11, HomeLinkTheme.TEXT, false);
         if (manualOpen) {
-            text(graphics, Component.translatable("manual.homelink_dashboard.title"), 42, DashboardTheme.ACCENT);
+            text(graphics, Component.translatable("manual.homelink_dashboard.title"), 42, HomeLinkTheme.ACCENT);
         } else if (state == null) {
-            text(graphics, Component.translatable("screen.homelink_dashboard.setup"), 42, 0xAFB1AD);
+            text(graphics, Component.translatable("screen.homelink_dashboard.setup"), 42, HomeLinkTheme.MUTED);
             // Warning only: several networks may legitimately share a name, but binding machines then becomes ambiguous.
             if (menu.session().canCreate() && newNetworkName != null && menu.session().isTaken(newNetworkName))
-                text(graphics, Component.translatable("screen.homelink_dashboard.name_taken"), 86, DashboardTheme.WARNING);
+                text(graphics, Component.translatable("screen.homelink_dashboard.name_taken"), 86, HomeLinkTheme.WARNING);
             if (!menu.session().choices().isEmpty()) {
                 var choice = menu.session().choices().get(selectedNetwork);
-                text(graphics, Component.literal("[" + choice.id().toString().substring(0, 8) + "] " + choice.name()), 96, DashboardTheme.TEXT);
+                text(graphics, Component.literal("[" + choice.id().toString().substring(0, 8) + "] " + choice.name()), 96, HomeLinkTheme.TEXT);
                 text(graphics, Component.translatable("screen.homelink_dashboard." + (choice.inRange() ? "signal_available" : "signal_unavailable")),
-                        132, choice.inRange() ? DashboardTheme.ONLINE : DashboardTheme.WARNING);
+                        132, choice.inRange() ? HomeLinkTheme.ONLINE : HomeLinkTheme.WARNING);
             }
-            else text(graphics, Component.translatable("screen.homelink_dashboard.no_networks"), 98, 0xAFB1AD);
-            if (!nameResult.isEmpty()) text(graphics, DashboardText.component(nameResult), 169, DashboardTheme.WARNING);
+            else text(graphics, Component.translatable("screen.homelink_dashboard.no_networks"), 98, HomeLinkTheme.MUTED);
+            if (!nameResult.isEmpty()) text(graphics, DashboardText.component(nameResult), 169, HomeLinkTheme.WARNING);
         } else if (page == Page.DEVICES) {
-            text(graphics, Component.literal(state.networkName() + "  ·  " + DashboardText.value(state.role())), 60, 0xE7E5E0);
-            if (!state.error().isEmpty()) text(graphics, Component.translatable("screen.homelink_dashboard.error", DashboardText.component(state.error())), 71, 0xD3B16F);
-            else if (state.loading()) text(graphics, Component.translatable("screen.homelink_dashboard.loading"), 71, 0xAFB1AD);
+            text(graphics, Component.literal(state.networkName() + "  ·  " + DashboardText.value(state.role())), 60, HomeLinkTheme.TEXT);
+            if (!state.error().isEmpty()) text(graphics, Component.translatable("screen.homelink_dashboard.error", DashboardText.component(state.error())), 71, HomeLinkTheme.WARNING);
+            else if (state.loading()) text(graphics, Component.translatable("screen.homelink_dashboard.loading"), 71, HomeLinkTheme.MUTED);
             else text(graphics, Component.translatable("screen.homelink_dashboard." + (state.truncated() ? "watch_truncated" : "watch_counts"),
-                        state.devices().size(), state.totalDeviceCount()), 71, 0xAFB1AD);
+                        state.devices().size(), state.totalDeviceCount()), 71, HomeLinkTheme.MUTED);
         }
     }
     private void text(GuiGraphics graphics, Component text, int y, int color) {

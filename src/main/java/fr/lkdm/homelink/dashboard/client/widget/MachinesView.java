@@ -1,7 +1,11 @@
 package fr.lkdm.homelink.dashboard.client.widget;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
+
 import fr.lkdm.homecore.api.transport.WireValue;
-import fr.lkdm.homelink.dashboard.client.rendering.DashboardTheme;
+
 import fr.lkdm.homelink.dashboard.client.rendering.MetricRendererRegistry;
 import fr.lkdm.homelink.dashboard.client.state.DashboardClientState;
 import fr.lkdm.homelink.dashboard.client.state.DebugDeviceView;
@@ -54,8 +58,8 @@ public final class MachinesView {
         int top = 0;
         addWidget.accept(navigationButton(label("machines_overview"), null, top, buttonWidth));
         for (var summary : summaries.values()) {
-            top += DashboardTheme.CONTROL_HEIGHT + GAP;
-            if (top + DashboardTheme.CONTROL_HEIGHT > this.height) break;
+            top += HomeLinkTheme.CONTROL_HEIGHT + GAP;
+            if (top + HomeLinkTheme.CONTROL_HEIGHT > this.height) break;
             addWidget.accept(navigationButton(Component.translatable("screen.homelink_dashboard.machines_nav",
                     groupName(summary.group()), summary.total()), summary.group(), top, buttonWidth));
         }
@@ -63,9 +67,9 @@ public final class MachinesView {
     }
 
     private AbstractWidget navigationButton(Component label, MachineSystems.Group target, int top, int buttonWidth) {
-        var button = DashboardButton.builder(label, ignored -> select(target))
-                .bounds(x, y + top, buttonWidth, DashboardTheme.CONTROL_HEIGHT).build();
-        ((DashboardButton) button).navigation(selected == target);
+        var button = HomeLinkButton.builder(label, ignored -> select(target))
+                .bounds(x, y + top, buttonWidth, HomeLinkTheme.CONTROL_HEIGHT).build();
+        ((HomeLinkButton) button).navigation(selected == target);
         button.setTooltip(net.minecraft.client.gui.components.Tooltip.create(label));
         return button;
     }
@@ -101,7 +105,7 @@ public final class MachinesView {
 
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         int left = contentX(), right = x + width;
-        graphics.fill(left - 5, y, left - 4, y + height, DashboardTheme.LINE);
+        graphics.fill(left - 5, y, left - 4, y + height, HomeLinkTheme.LINE);
         graphics.enableScissor(left, y, right, y + height);
         if (selected == null) renderOverview(graphics, mouseX, mouseY);
         else renderGroup(graphics, summaries.get(selected), mouseX, mouseY);
@@ -113,7 +117,7 @@ public final class MachinesView {
         int left = contentX(), available = contentWidth();
         String heading = Component.translatable("screen.homelink_dashboard.machines_heading", state.devices().size()).getString();
         if (state.truncated()) heading += "  ·  " + label("machines_truncated").getString();
-        text(graphics, heading, left, y + 2 - scroll, available, DashboardTheme.MUTED);
+        text(graphics, heading, left, y + 2 - scroll, available, HomeLinkTheme.MUTED);
         int columns = columns();
         int cardWidth = (available - GAP * (columns - 1)) / columns;
         int index = 0;
@@ -127,19 +131,19 @@ public final class MachinesView {
     }
 
     private void renderCard(GuiGraphics graphics, MachineSystems.Summary summary, int left, int top, int cardWidth, boolean hover) {
-        DashboardTheme.panel(graphics, left, top, cardWidth, CARD_HEIGHT);
-        if (hover) graphics.renderOutline(left, top, cardWidth, CARD_HEIGHT, DashboardTheme.ACCENT);
+        HomeLinkUi.panel(graphics, left, top, cardWidth, CARD_HEIGHT);
+        if (hover) graphics.renderOutline(left, top, cardWidth, CARD_HEIGHT, HomeLinkTheme.ACCENT);
         lamp(graphics, left + 6, top + 6, summary.status());
         String count = Component.translatable("screen.homelink_dashboard.machines_count", summary.total()).getString();
         int countWidth = font.width(count);
-        text(graphics, groupName(summary.group()).getString(), left + 15, top + 5, cardWidth - countWidth - 26, DashboardTheme.TEXT);
-        text(graphics, count, left + cardWidth - countWidth - 6, top + 5, countWidth, DashboardTheme.MUTED);
+        text(graphics, groupName(summary.group()).getString(), left + 15, top + 5, cardWidth - countWidth - 26, HomeLinkTheme.TEXT);
+        text(graphics, count, left + cardWidth - countWidth - 6, top + 5, countWidth, HomeLinkTheme.MUTED);
         if (summary.total() == 0) {
             int lineY = top + 20;
             for (var line : font.split(Component.translatable("screen.homelink_dashboard.machines_none_" + summary.group().key()),
                     Math.max(16, cardWidth - 12))) {
                 if (lineY > top + CARD_HEIGHT - 10) break;
-                graphics.drawString(font, line, left + 6, lineY, DashboardTheme.MUTED, false);
+                graphics.drawString(font, line, left + 6, lineY, HomeLinkTheme.MUTED, false);
                 lineY += 11;
             }
             return;
@@ -158,9 +162,9 @@ public final class MachinesView {
         int left = contentX(), available = contentWidth();
         int top = y - scroll;
         int header = groupHeaderHeight(summary);
-        DashboardTheme.panel(graphics, left, top, available, header);
+        HomeLinkUi.panel(graphics, left, top, available, header);
         lamp(graphics, left + 6, top + 6, summary.status());
-        text(graphics, groupName(summary.group()).getString(), left + 15, top + 5, available / 2, DashboardTheme.TEXT);
+        text(graphics, groupName(summary.group()).getString(), left + 15, top + 5, available / 2, HomeLinkTheme.TEXT);
         statusCounts(graphics, summary, left + available / 2, top + 5, available / 2 - 6);
         int columns = Math.max(1, Math.min(summary.lines().size(), available >= 300 ? 3 : 1));
         int columnWidth = (available - 12 - GAP * (columns - 1)) / columns;
@@ -170,11 +174,11 @@ public final class MachinesView {
         }
         int rowsTop = top + header + GAP;
         if (summary.total() == 0) {
-            DashboardTheme.panel(graphics, left, rowsTop, available, 40);
+            HomeLinkUi.panel(graphics, left, rowsTop, available, 40);
             int lineY = rowsTop + 8;
             for (var line : font.split(Component.translatable("screen.homelink_dashboard.machines_none_" + summary.group().key()),
                     Math.max(16, available - 16))) {
-                graphics.drawString(font, line, left + 8, lineY, DashboardTheme.MUTED, false);
+                graphics.drawString(font, line, left + 8, lineY, HomeLinkTheme.MUTED, false);
                 lineY += 11;
             }
             return;
@@ -190,21 +194,21 @@ public final class MachinesView {
 
     private void renderMachine(GuiGraphics graphics, DebugDeviceView device, int left, int top, int rowWidth, boolean hover) {
         int rowHeight = ROW_HEIGHT - 2;
-        DashboardTheme.panel(graphics, left, top, rowWidth, rowHeight);
-        if (hover) graphics.renderOutline(left, top, rowWidth, rowHeight, DashboardTheme.ACCENT);
+        HomeLinkUi.panel(graphics, left, top, rowWidth, rowHeight);
+        if (hover) graphics.renderOutline(left, top, rowWidth, rowHeight, HomeLinkTheme.ACCENT);
         lamp(graphics, left + 6, top + 6, device.status());
         int nameWidth = rowWidth * 11 / 20 - 20;
-        text(graphics, device.name(), left + 15, top + 5, nameWidth, DashboardTheme.TEXT);
+        text(graphics, device.name(), left + 15, top + 5, nameWidth, HomeLinkTheme.TEXT);
         text(graphics, typeName(device).getString() + "  ·  " + DashboardText.value(device.status()),
-                left + 15, top + 16, nameWidth, DashboardTheme.MUTED);
+                left + 15, top + 16, nameWidth, HomeLinkTheme.MUTED);
         var metrics = MachineSystems.keyMetrics(device);
         int metricsLeft = left + rowWidth * 11 / 20;
         int metricWidth = (left + rowWidth - 6 - metricsLeft - GAP) / 2;
         for (int index = 0; index < metrics.size(); index++) {
             var metric = metrics.get(index);
             int metricX = metricsLeft + index * (metricWidth + GAP);
-            text(graphics, metric.name(), metricX, top + 5, metricWidth, DashboardTheme.MUTED);
-            text(graphics, value(metric), metricX, top + 16, metricWidth, DashboardTheme.TEXT);
+            text(graphics, metric.name(), metricX, top + 5, metricWidth, HomeLinkTheme.MUTED);
+            text(graphics, value(metric), metricX, top + 16, metricWidth, HomeLinkTheme.TEXT);
             double fraction = MetricRendererRegistry.fraction(metric);
             if (fraction >= 0) bar(graphics, metricX, top + 25, metricWidth, fraction);
         }
@@ -213,32 +217,32 @@ public final class MachinesView {
     private void statusCounts(GuiGraphics graphics, MachineSystems.Summary summary, int left, int top, int available) {
         int cursor = left;
         int[] values = {summary.online(), summary.warning(), summary.offline()};
-        int[] colors = {DashboardTheme.ONLINE, DashboardTheme.WARNING, DashboardTheme.OFFLINE};
+        int[] colors = {HomeLinkTheme.ONLINE, HomeLinkTheme.WARNING, HomeLinkTheme.OFFLINE};
         String[] keys = {"stat_online", "stat_warning", "stat_offline"};
         for (int index = 0; index < values.length; index++) {
             String text = values[index] + " " + label(keys[index]).getString();
             int textWidth = font.width(text);
             if (cursor + 7 + textWidth > left + available) break;
             graphics.fill(cursor, top + 2, cursor + 3, top + 5, colors[index]);
-            graphics.drawString(font, text, cursor + 6, top, values[index] == 0 ? DashboardTheme.MUTED : DashboardTheme.TEXT, false);
+            graphics.drawString(font, text, cursor + 6, top, values[index] == 0 ? HomeLinkTheme.MUTED : HomeLinkTheme.TEXT, false);
             cursor += textWidth + 14;
         }
     }
 
     private void summaryLine(GuiGraphics graphics, MachineSystems.Line line, int left, int top, int available) {
         text(graphics, Component.translatable("screen.homelink_dashboard.machines_" + line.key(), line.args().toArray()).getString(),
-                left, top, available, DashboardTheme.TEXT);
+                left, top, available, HomeLinkTheme.TEXT);
         if (line.fraction() >= 0) bar(graphics, left, top + 10, available, line.fraction());
     }
 
     private void bar(GuiGraphics graphics, int left, int top, int barWidth, double fraction) {
-        graphics.fill(left, top, left + barWidth, top + 2, DashboardTheme.LINE);
-        graphics.fill(left, top, left + (int) Math.round(barWidth * MetricRendererRegistry.clampFraction(fraction)), top + 2, DashboardTheme.ACCENT);
+        graphics.fill(left, top, left + barWidth, top + 2, HomeLinkTheme.LINE);
+        graphics.fill(left, top, left + (int) Math.round(barWidth * MetricRendererRegistry.clampFraction(fraction)), top + 2, HomeLinkTheme.ACCENT);
     }
 
     private void lamp(GuiGraphics graphics, int left, int top, String status) {
         graphics.fill(left - 1, top - 1, left + 5, top + 5, 0xFF1D1F20);
-        graphics.fill(left, top, left + 4, top + 4, DashboardTheme.status(status));
+        graphics.fill(left, top, left + 4, top + 4, HomeLinkTheme.statusColor(status));
     }
 
     private void renderScrollbar(GuiGraphics graphics) {

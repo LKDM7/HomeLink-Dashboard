@@ -1,7 +1,11 @@
 package fr.lkdm.homelink.dashboard.client.widget;
 
+import fr.lkdm.homecore.api.client.ui.HomeLinkTheme;
+import fr.lkdm.homecore.api.client.ui.HomeLinkUi;
+import fr.lkdm.homecore.api.client.ui.HomeLinkButton;
+
 import fr.lkdm.homelink.dashboard.client.rendering.DashboardText;
-import fr.lkdm.homelink.dashboard.client.rendering.DashboardTheme;
+
 import fr.lkdm.homelink.dashboard.client.state.DashboardClientState;
 import fr.lkdm.homelink.dashboard.client.state.DashboardPreferencesClient;
 import fr.lkdm.homelink.dashboard.dashboard.layout.DashboardProfile;
@@ -86,7 +90,7 @@ public final class HomeEditorView {
         actionButtons.clear();
         if (widgetId != null && selectedWidget() == null) widgetId = null;
         if (search != null) searchFocused = search.isFocused();
-        search = palette.init(x, y + 20, paletteWidth(), height - 20 - (fullWidthBar() ? DashboardTheme.CONTROL_HEIGHT + 4 : 0), addWidget);
+        search = palette.init(x, y + 20, paletteWidth(), height - 20 - (fullWidthBar() ? HomeLinkTheme.CONTROL_HEIGHT + 4 : 0), addWidget);
         if (searchFocused) focus.accept(search);
         button(addWidget, WidgetCards.label("done"), width - 70, 0, 70, done);
         if (sharing.available()) {
@@ -101,7 +105,7 @@ public final class HomeEditorView {
     /** Bottom bar of the preview: what the selected widget shows, its size, and removal. */
     private void initWidgetBar(Consumer<AbstractWidget> addWidget) {
         int left = widgetBarLeft();
-        int bar = height - DashboardTheme.CONTROL_HEIGHT;
+        int bar = height - HomeLinkTheme.CONTROL_HEIGHT;
         var selected = selectedWidget();
         Component size = Component.translatable("screen.homelink_dashboard.widget_width",
                 WidgetCards.label((selected == null ? HomeLayout.Size.HALF : HomeLayout.Size.of(selected)).key()));
@@ -221,13 +225,13 @@ public final class HomeEditorView {
         this.mouseY = mouseY;
         int headerRight = width - 78 - (sharing.available() ? 114 : 0);
         String title = WidgetCards.label("editor_title").getString();
-        text(graphics, title, x, y + 5, headerRight, DashboardTheme.TEXT);
+        text(graphics, title, x, y + 5, headerRight, HomeLinkTheme.TEXT);
         String result = !localError.isEmpty() ? localError : preferences.pending() ? "…" : preferences.result();
         if (!result.equals("SUCCESS")) {
             int titleWidth = font.width(title) + 12;
-            text(graphics, DashboardText.message(result), x + titleWidth, y + 5, headerRight - titleWidth, DashboardTheme.WARNING);
+            text(graphics, DashboardText.message(result), x + titleWidth, y + 5, headerRight - titleWidth, HomeLinkTheme.WARNING);
         }
-        graphics.fill(x + paletteWidth() + 5, y + 20, x + paletteWidth() + 6, fullWidthBar() ? previewBottom() : y + height, DashboardTheme.LINE);
+        graphics.fill(x + paletteWidth() + 5, y + 20, x + paletteWidth() + 6, fullWidthBar() ? previewBottom() : y + height, HomeLinkTheme.LINE);
         palette.render(graphics, mouseX, mouseY, dragging ? dragRow : null);
         renderPreview(graphics);
         renderWidgetBar(graphics);
@@ -238,7 +242,7 @@ public final class HomeEditorView {
         int left = x + previewLeft();
         int span = width - previewLeft();
         text(graphics, WidgetCards.label(canEdit() || preferences.pending() ? "editor_hint" : "editor_read_only").getString(),
-                left, y + PREVIEW_TOP - 11, span, DashboardTheme.MUTED);
+                left, y + PREVIEW_TOP - 11, span, HomeLinkTheme.MUTED);
         int top = y + PREVIEW_TOP, bottom = previewBottom();
         graphics.fill(left, top, left + span, bottom, 0xFF1D1F20);
         graphics.enableScissor(left, top, left + span, bottom);
@@ -247,12 +251,12 @@ public final class HomeEditorView {
             int[] card = card(widget);
             if (card[1] + card[3] <= top || card[1] >= bottom) continue;
             cards.render(graphics, widget, card[0], card[1], card[2], card[3], false, mouseX, mouseY);
-            if (widget.id().equals(widgetId)) graphics.renderOutline(card[0] - 1, card[1] - 1, card[2] + 2, card[3] + 2, DashboardTheme.ACCENT);
+            if (widget.id().equals(widgetId)) graphics.renderOutline(card[0] - 1, card[1] - 1, card[2] + 2, card[3] + 2, HomeLinkTheme.ACCENT);
         }
         if (widgets.isEmpty()) {
             int lineY = top + 10;
             for (var line : font.split(WidgetCards.label("no_widgets"), Math.max(16, span - 20))) {
-                graphics.drawString(font, line, left + 10, lineY, DashboardTheme.MUTED, false);
+                graphics.drawString(font, line, left + 10, lineY, HomeLinkTheme.MUTED, false);
                 lineY += 12;
             }
         }
@@ -262,15 +266,15 @@ public final class HomeEditorView {
     private void renderWidgetBar(GuiGraphics graphics) {
         var widget = selectedWidget();
         int left = x + widgetBarLeft();
-        int bar = y + height - DashboardTheme.CONTROL_HEIGHT;
+        int bar = y + height - HomeLinkTheme.CONTROL_HEIGHT;
         Component size = Component.translatable("screen.homelink_dashboard.widget_width",
                 WidgetCards.label((widget == null ? HomeLayout.Size.HALF : HomeLayout.Size.of(widget)).key()));
         int presetWidth = presetWidth(font.width(size) + 12, font.width(WidgetCards.label("remove_widget")) + 12);
-        DashboardTheme.panel(graphics, left + 22, bar, presetWidth, DashboardTheme.CONTROL_HEIGHT);
+        HomeLinkUi.panel(graphics, left + 22, bar, presetWidth, HomeLinkTheme.CONTROL_HEIGHT);
         String value = widget == null ? WidgetCards.label("editor_select").getString() : cards.content(widget);
         value = font.plainSubstrByWidth(value, presetWidth - 8);
         graphics.drawString(font, value, left + 22 + (presetWidth - font.width(value)) / 2, bar + 5,
-                widget == null ? DashboardTheme.MUTED : DashboardTheme.TEXT, false);
+                widget == null ? HomeLinkTheme.MUTED : HomeLinkTheme.TEXT, false);
     }
 
     /** Ghost of the dragged item under the cursor and the insertion mark in the preview. */
@@ -280,10 +284,10 @@ public final class HomeEditorView {
             int index = dropIndex(mouseX, mouseY);
             if (index < widgets.size()) {
                 int[] card = card(widgets.get(index));
-                graphics.fill(card[0] - 3, card[1], card[0] - 1, card[1] + card[3], DashboardTheme.ACCENT);
+                graphics.fill(card[0] - 3, card[1], card[0] - 1, card[1] + card[3], HomeLinkTheme.ACCENT);
             } else {
                 int end = widgets.isEmpty() ? y + PREVIEW_TOP + 2 : endOfPreview();
-                graphics.fill(x + previewLeft(), end, x + width, end + 2, DashboardTheme.ACCENT);
+                graphics.fill(x + previewLeft(), end, x + width, end + 2, HomeLinkTheme.ACCENT);
             }
         }
         String name = dragRow != null ? dragRow.label() : dragWidget == null || findWidget(dragWidget) == null ? "" : cards.name(findWidget(dragWidget));
@@ -292,8 +296,8 @@ public final class HomeEditorView {
         graphics.pose().pushPose();
         graphics.pose().translate(0, 0, 200);
         graphics.fill(gx, gy, gx + ghostWidth, gy + 16, 0xE0303234);
-        graphics.renderOutline(gx, gy, ghostWidth, 16, DashboardTheme.ACCENT);
-        text(graphics, name, gx + 6, gy + 4, ghostWidth - 12, DashboardTheme.TEXT);
+        graphics.renderOutline(gx, gy, ghostWidth, 16, HomeLinkTheme.ACCENT);
+        text(graphics, name, gx + 6, gy + 4, ghostWidth - 12, HomeLinkTheme.TEXT);
         graphics.pose().popPose();
     }
 
@@ -405,7 +409,7 @@ public final class HomeEditorView {
 
     private int paletteWidth() { return Math.clamp(width / 4, 100, 150); }
     private int previewLeft() { return paletteWidth() + 12; }
-    private int previewBottom() { return y + height - DashboardTheme.CONTROL_HEIGHT - 4; }
+    private int previewBottom() { return y + height - HomeLinkTheme.CONTROL_HEIGHT - 4; }
     private boolean overPreview(double mouseX, double mouseY) {
         return mouseX >= x + previewLeft() && mouseX < x + width && mouseY >= y + PREVIEW_TOP && mouseY < previewBottom();
     }
@@ -423,7 +427,7 @@ public final class HomeEditorView {
     DashboardWidget selectedWidget() { return findWidget(widgetId); }
     private void action(Button button, boolean applies) { actionButtons.put(button, applies); }
     private Button button(Consumer<AbstractWidget> addWidget, Component title, int left, int top, int width, Runnable action) {
-        Button button = DashboardButton.builder(title, ignored -> action.run()).bounds(x + left, y + top, Math.max(16, width), DashboardTheme.CONTROL_HEIGHT).build();
+        Button button = HomeLinkButton.builder(title, ignored -> action.run()).bounds(x + left, y + top, Math.max(16, width), HomeLinkTheme.CONTROL_HEIGHT).build();
         button.setTooltip(Tooltip.create(title));
         addWidget.accept(button);
         return button;

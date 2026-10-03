@@ -14,6 +14,9 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: HomeLink
     env:
       GITHUB_ACTOR: ${{ github.actor }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -21,6 +24,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          path: HomeLink
+          persist-credentials: false
+      - name: Check out compatible HomeCore sources
+        uses: actions/checkout@v4
+        with:
+          repository: LKDM7/HomeCore
+          ref: dbcd1dc9fe694796780498ef1628903c89f6d04f
+          path: HomeCore
+          token: ${{ secrets.HOMELINK_REPOSITORIES_TOKEN || github.token }}
+          persist-credentials: false
+      - name: Check out compatible Energy sources
+        uses: actions/checkout@v4
+        with:
+          repository: LKDM7/HomeLink-Energy
+          ref: 57620158b6e29f47bccf951a6c253295dda73602
+          path: HomeLinkEnergy
+          token: ${{ secrets.HOMELINK_REPOSITORIES_TOKEN || github.token }}
           persist-credentials: false
       - uses: actions/setup-java@v4
         with:
@@ -28,21 +48,21 @@ jobs:
           java-version: '21'
       - uses: gradle/actions/setup-gradle@v4
       - name: Build, unit tests and release archive
-        run: bash gradlew build test verifyReleaseJar -PuseLocalDependencies=false --no-daemon --no-configuration-cache
+        run: bash gradlew build test verifyReleaseJar -PuseLocalDependencies=true -Phomecore_dir=../HomeCore -Penergy_dir=../HomeLinkEnergy --no-daemon --no-configuration-cache
       - name: Server GameTests
-        run: bash gradlew runGameTestServer -PuseLocalDependencies=false --no-daemon --no-configuration-cache
+        run: bash gradlew runGameTestServer -PuseLocalDependencies=true -Phomecore_dir=../HomeCore -Penergy_dir=../HomeLinkEnergy --no-daemon --no-configuration-cache
       - name: Preserve reports and GameTest logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: dashboard-validation
           path: |
-            build/reports/
-            build/test-results/
-            build/validation/server/logs/
-            build/validation/**/logs/
+            HomeLink/build/reports/
+            HomeLink/build/test-results/
+            HomeLink/build/validation/server/logs/
+            HomeLink/build/validation/**/logs/
       - name: Preserve release JARs separately
         uses: actions/upload-artifact@v4
         with:
           name: dashboard-jars
-          path: build/libs/*.jar
+          path: HomeLink/build/libs/*.jar

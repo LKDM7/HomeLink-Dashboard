@@ -166,6 +166,7 @@ public final class DashboardClientSmoke {
             } else if (stage == 31 && client.screen instanceof DashboardScreen screen
                     && screen.state().networkName().equals("Entrepôt principal")) {
                 if (++visibleTicks < 10) return;
+                verifyUiControls(screen);
                 net.minecraft.client.Screenshot.grab(client.gameDirectory, "homelink-network-rename.png", client.getMainRenderTarget(),
                         message -> LogUtils.getLogger().info("Network rename screenshot: {}", message.getString()));
                 LogUtils.getLogger().info("HOMELINK_NETWORK_NAMES_OK create_field=true rename_form=true live_update=true unicode=true");
@@ -199,6 +200,7 @@ public final class DashboardClientSmoke {
                     if (visibleTicks % 20 == 0) screen.discovery().refresh();
                     return;
                 }
+                verifyUiControls(screen);
                 net.minecraft.client.Screenshot.grab(client.gameDirectory, "homelink-discovery.png", client.getMainRenderTarget(),
                         message -> LogUtils.getLogger().info("Discovery screenshot: {}", message.getString()));
                 screen.discovery().add(panel.orElseThrow().id());
@@ -220,6 +222,7 @@ public final class DashboardClientSmoke {
                 if (screen.machines().summaries().size() != 3 || energy == null || energy.total() != 1)
                     throw new IllegalStateException("Machines must show the added panel under Energy and hide empty storage");
                 screen.machines().select(fr.lkdm.homelink.dashboard.client.state.MachineSystems.Group.ENERGY);
+                verifyUiControls(screen);
                 net.minecraft.client.Screenshot.grab(client.gameDirectory, "homelink-machines.png", client.getMainRenderTarget(),
                         message -> LogUtils.getLogger().info("Machines screenshot: {}", message.getString()));
                 LogUtils.getLogger().info("HOMELINK_MACHINES_OK energy=1");
@@ -273,6 +276,7 @@ public final class DashboardClientSmoke {
                     if (screen.getMenu().session().choices().get(i).id().equals(createdNetwork)) index = i;
                 }
                 if (index < 0) throw new IllegalStateException("Created network absent from display binding choices");
+                verifyUiControls(screen);
                 net.minecraft.client.Screenshot.grab(client.gameDirectory, "homelink-network-selection.png", client.getMainRenderTarget(),
                         message -> LogUtils.getLogger().info("Network selection screenshot: {}", message.getString()));
                 client.gameMode.handleInventoryButtonClick(screen.getMenu().containerId, DashboardMenu.BIND_NETWORK_BASE + index);
@@ -472,6 +476,33 @@ public final class DashboardClientSmoke {
             LogUtils.getLogger().error("HOMELINK_CLIENT_SMOKE_FAILED", failure);
             shutdown(client);
         }
+    }
+
+    private static void verifyUiControls(DashboardScreen screen) {
+        var widgets = screen.children().stream().filter(net.minecraft.client.gui.components.AbstractWidget.class::isInstance)
+                .map(net.minecraft.client.gui.components.AbstractWidget.class::cast)
+                .filter(widget -> widget.visible && widget.active).toList();
+        var previous = screen.getFocused();
+        for (var widget : widgets) {
+            if (widget.getX() < 0 || widget.getY() < 0 || widget.getX() + widget.getWidth() > screen.width
+                    || widget.getY() + widget.getHeight() > screen.height)
+                throw new IllegalStateException("Dashboard control outside viewport: " + widget.getMessage().getString());
+        }
+        var visited = new java.util.HashSet<net.minecraft.client.gui.components.AbstractWidget>();
+        screen.setFocused(null);
+        for (var widget : widgets) widget.setFocused(false);
+        for (int index = 0; index < widgets.size() * 3 && visited.size() < widgets.size(); index++) {
+            screen.keyPressed(org.lwjgl.glfw.GLFW.GLFW_KEY_TAB, 0, 0);
+            if (!(screen.getFocused() instanceof net.minecraft.client.gui.components.AbstractWidget focused)
+                    || !focused.isFocused() || !focused.active || !focused.visible)
+                throw new IllegalStateException("Dashboard native Tab focus failed");
+            visited.add(focused);
+        }
+        if (!visited.containsAll(widgets)) throw new IllegalStateException("Dashboard Tab did not reach every control");
+        screen.setFocused(previous);
+        if (previous != null) previous.setFocused(true);
+        LogUtils.getLogger().info("HOMELINK_UI_CONTROLS_OK width={} height={} controls={} keyboard=true",
+                screen.width, screen.height, widgets.size());
     }
 
     private static net.minecraft.client.gui.components.EditBox nameInput(DashboardScreen screen) {

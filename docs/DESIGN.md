@@ -6,7 +6,7 @@ Référence : les [terminaux Applied Energistics 2](https://github.com/AppliedEn
 
 ## Interface
 
-- `DashboardTheme` centralise les surfaces et couleurs. Le cadre comporte un biseau et quatre petites vis. Le bandeau contient le titre et un voyant de connexion, sans répéter le logo.
+- `HomeLinkTheme` et `HomeLinkUi`, fournis par HomeCore 1.14.0, centralisent les surfaces, couleurs et primitives partagées. Le cadre comporte un biseau et quatre petites vis. Le bandeau contient le titre et un voyant de connexion, sans répéter le logo. Les contrôles utilisent `HomeLinkButton` ; aucun thème Dashboard local n'est nécessaire.
 - Les onglets sont des boutons en relief ; celui de la page active apparaît enfoncé et possède un petit témoin. Le focus clavier conserve un contour visible. Une infobulle conserve le libellé complet quand l'espace est réduit.
 - La fenêtre peut atteindre 520 × 340 unités GUI. Elle se réduit à la taille disponible avec une marge extérieure.
 - HOME présente le réseau et les favoris. Lorsque la hauteur suffit, les quatre compteurs sont réunis dans une seule ligne. Les favoris occupent des lignes de 48 unités GUI et conservent leurs deux premières mesures ; le layout enregistré des widgets reste intact.
