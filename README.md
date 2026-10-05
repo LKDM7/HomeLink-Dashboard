@@ -131,4 +131,4 @@ Le scénario en jeu de performance vérifie **100 appareils et 800 métriques** 
 
 Les rapports antérieurs décrivent l’état de leur phase ; les guides de cette version décrivent le fonctionnement final.
 
-Licence : [Apache License 2.0](LICENSE).
+Licence : tous droits réservés, auteur LKDM. Voir [LICENSE](LICENSE).
